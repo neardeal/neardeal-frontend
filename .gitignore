@@ -9,6 +9,12 @@ dist/
 web-build/
 expo-env.d.ts
 
+# Claude Code
+.claude/
+
+# VSCode MCP settings (contains API keys)
+.vscode/mcp.json
+
 # Native
 .kotlin/
 *.orig.*
@@ -31,7 +37,13 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
 .env*.local
+.env.development
+
+# temp/test files
+openapi-no-auth.json
+test-api.ts
 
 # typescript
 *.tsbuildinfo

@@ -1,5 +1,5 @@
 import NearDealLogo from "@/assets/images/logo/neardeal-logo.svg";
-import { ArrowLeft } from "@/src/components/button/ArrowLeft";
+import { ArrowLeft } from "@/src/components/button/arrow-left";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
