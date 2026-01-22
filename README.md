@@ -607,6 +607,64 @@ const styles = StyleSheet.create({
 });
 ```
 
+#### rs() 사용 기준
+
+`rs()`는 375px 기준 디자인을 화면 너비에 맞춰 스케일링하는 함수입니다. 모든 값에 적용하면 안 되고, 아래 기준에 따라 선택적으로 사용합니다.
+
+##### rs() 사용하는 경우
+
+| 항목 | 예시 | 이유 |
+|------|------|------|
+| **터치 영역 (width/height)** | 버튼, 아이콘 버튼의 크기 | 큰 화면에서 터치 타겟이 너무 작아 보이지 않게 |
+| **주요 컴포넌트 높이** | 검색바, 헤더, 카드 등 | 핵심 UI 요소의 비율 유지 |
+| **아이콘 크기** | 컴포넌트 내부 아이콘 | 컴포넌트와 비례 유지 |
+| **큰 간격 (20 이상)** | 섹션 간 여백 | 레이아웃 비율 유지 |
+
+```typescript
+// 사용 예시
+backButton: {
+  width: rs(40),
+  height: rs(40),
+},
+searchBox: {
+  height: rs(56),
+},
+```
+
+##### rs() 사용하지 않는 경우
+
+| 항목 | 예시 | 이유 |
+|------|------|------|
+| **fontSize** | `fontSize: 16` | RN Text는 시스템 접근성 설정을 따르는 것이 권장됨 |
+| **borderWidth** | `borderWidth: 1` | 1~2px은 스케일링하면 흐려지거나 뭉개짐 |
+| **borderRadius** | `borderRadius: 8` | 작은 값(4~12)은 고정이 자연스러움 |
+| **작은 간격** | `padding: 8`, `gap: 12` | 미세 조정 값은 고정 |
+| **그림자 값** | `shadowOffset`, `shadowRadius` | 스케일링하면 비율이 이상해짐 |
+
+```typescript
+// 고정값 예시
+filterText: {
+  fontSize: 14,        // 고정
+},
+filterButton: {
+  borderRadius: 8,     // 고정
+  borderWidth: 1,      // 고정
+  paddingHorizontal: 16, // 고정 (작은 값)
+  paddingVertical: 8,    // 고정 (작은 값)
+},
+```
+
+##### 일관성 유지
+
+동일한 역할의 요소에는 동일한 방식을 적용합니다.
+
+```typescript
+// 모든 터치 버튼에 일관되게 rs() 적용
+backButton: { width: rs(40), height: rs(40) },
+controlButton: { width: rs(44), height: rs(44) },  // 동일하게 rs() 사용
+searchIconButton: { width: rs(40), height: rs(40) },
+```
+
 ### SVG 아이콘 사용하기
 
 ```typescript
