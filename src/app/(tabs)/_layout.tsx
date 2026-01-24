@@ -1,11 +1,32 @@
 import { HomeIcons } from "@/assets/images/icons/home";
 import { useTabBar } from "@/src/contexts/tab-bar-context";
+import { BottomTabBar } from "@react-navigation/bottom-tabs";
 import { Tabs } from "expo-router";
+import { useEffect } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   const { isTabBarVisible } = useTabBar();
+  const tabBarHeight = 56 + insets.bottom;
+
+  // 애니메이션 값: 0 = 보임, tabBarHeight = 숨김 (아래로 슬라이드)
+  const translateY = useSharedValue(0);
+
+  useEffect(() => {
+    translateY.value = withTiming(isTabBarVisible ? 0 : tabBarHeight, {
+      duration: 250,
+    });
+  }, [isTabBarVisible, tabBarHeight]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
 
   return (
     <Tabs
@@ -13,18 +34,31 @@ export default function TabsLayout() {
         headerShown: false,
         tabBarActiveTintColor: "#34b262",
         tabBarInactiveTintColor: "#1d1b20",
-        tabBarStyle: isTabBarVisible
-          ? {
-              backgroundColor: "#ffffff",
-              borderTopWidth: 0,
-              elevation: 0,
-              shadowOpacity: 0,
-              height: 56 + insets.bottom,
-              paddingBottom: insets.bottom,
-              paddingTop: 8,
-            }
-          : { display: "none" },
+        tabBarStyle: {
+          backgroundColor: "#ffffff",
+          borderTopWidth: 0,
+          elevation: 0,
+          shadowOpacity: 0,
+          height: tabBarHeight,
+          paddingBottom: insets.bottom,
+          paddingTop: 8,
+        },
       }}
+      tabBar={(props) => (
+        <Animated.View
+          style={[
+            {
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              right: 0,
+            },
+            animatedStyle,
+          ]}
+        >
+          <BottomTabBar {...props} />
+        </Animated.View>
+      )}
     >
       <Tabs.Screen
         name="index"
