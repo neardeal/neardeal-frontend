@@ -285,40 +285,69 @@ rn-app/
   - 5분 타이머
   - 아이디/비밀번호 찾기 기능
 
-### `/src/components` - 재사용 컴포넌트
+### `/src/components` - UI 컴포넌트 레이어
+
+재사용 가능한 UI 조각들을 모아두는 레이어입니다. 공용 UI와 도메인별 UI를 분리해서 관리합니다.
+
+#### 공용 컴포넌트 (`/common`)
+
+- **`app-button.tsx`**: 기본 스타일링된 공용 버튼
+  - Props: `label`, `onPress`, `disabled`, `style`, `backgroundColor` 등
+  - 앱 전역에서 공통으로 사용하는 기본 버튼 스타일
+- **`themed-text.tsx`**, **`themed-view.tsx`**: 테마 적용 텍스트/뷰 래퍼
+  - 라이트/다크 모드 자동 적용
+  - 공통 폰트/컬러 시스템 적용
 
 #### 버튼 컴포넌트 (`/button`)
 
-- **AppButton.tsx**: 기본 스타일링된 버튼
-  - Props: `text`, `onPress`, `disabled`, `style`
-  - 기본 색상: `#40ce2b` (초록색)
-  - 비활성화 시: `#e0e0e0` (회색)
-
-- **ArrowLeft.tsx**: SVG 뒤로가기 버튼
-  - Props: `onPress`, `color`
-  - 네비게이션 뒤로가기 기능
+- **`app-button.tsx`**: 도메인별로 커스텀해서 쓰는 버튼 래퍼
+  - 공용 `common/app-button`을 감싸거나, 화면별 스타일을 추가할 때 사용
+- **`arrow-left.tsx`**: SVG 뒤로가기 아이콘 버튼
+  - Props: `onPress`
+  - 네비게이션 뒤로가기 등에서 사용
 
 #### 입력 컴포넌트 (`/input`)
 
-- **EmailInput.tsx**: 이메일 입력 필드
+- **`email-input.tsx`**: 이메일 입력 필드
   - Props: `value`, `onChangeText`, `placeholder`
-  - 학교 이메일 형식 플레이스홀더
-  - 테두리 스타일 적용
-
-- **TypeSelector.tsx**: 라디오 스타일 선택 컴포넌트
+  - 학교 이메일 형식에 맞는 스타일/검증에 사용
+- **`type-selector.tsx`**: 라디오/토글 스타일 선택 컴포넌트
   - Props: `options`, `selected`, `onSelect`
-  - 회원가입 타입, 성별 선택 등에 사용
-  - 토글 아이콘 (switch-on/off-icon.svg)
+  - 회원가입 타입/역할 선택 등에 사용
 
-#### 테마 컴포넌트
+#### Store 도메인 컴포넌트 (`/store`)
 
-- **themed-text.tsx**: 테마 적용 텍스트
-  - 라이트/다크 모드 자동 적용
-  - 스타일 종류: `default`, `title`, `subtitle`, `link`
-  - Pretendard 폰트 사용 (한국어)
+매장(Store) 도메인에 특화된 UI 컴포넌트를 모아둔 폴더입니다. 라우트(`src/app/store/**`)는 최대한 얇게 유지하고, 실제 화면 UI 조립은 이 레이어에서 담당합니다.
 
-- **themed-view.tsx**: 테마 적용 View
-  - 라이트/다크 배경색 자동 전환
+- **`header.tsx` (`StoreHeader`)**: 매장 상세 상단 영역
+  - 매장 썸네일, 뒤로가기/좋아요 버튼, 별점/카테고리/주소/영업시간/대학/제휴 뱃지 표시
+- **`benefits.tsx` (`StoreBenefits`)**: 제휴 혜택 + 쿠폰 영역
+  - `benefits: string[]`, `coupons: Coupon[]`를 받아 배너/쿠폰 카드 리스트 렌더링
+- **`content.tsx` (`StoreContent`)**: 상세 탭 컨테이너
+  - 탭 네비게이션(소식/메뉴/리뷰/매장정보)
+  - `tabs/news-section.tsx`, `tabs/menu-section.tsx`, `tabs/review-section.tsx` 조합
+  - 공지 슬라이더(AnnouncementCarousel), 추천 매장(RecommendSection),
+    잘못된 정보 신고(ReportSection) 포함
+- **`bottom-bar.tsx` (`BottomFixedBar`)**: 상세 화면 하단 고정 바
+  - 좋아요 버튼 + “쿠폰 받기” 버튼
+- **`selected-store-detail.tsx`, `store-card.tsx`**:
+  - 지도/리스트에서 사용하는 매장 카드/요약 상세 컴포넌트
+  - `types/store.ts`의 `Store` 타입을 기반으로 렌더링
+
+> ⚠️ `src/components/store-detail/**` 폴더는 기존 경로 호환성을 위한 **re-export 전용**입니다.  
+> 새로운 코드는 `src/components/store/**`를 직접 import 하는 것을 권장하며,  
+> 마이그레이션 완료 후 `store-detail` 폴더는 제거 예정입니다.
+
+#### 지도 컴포넌트 (`/map`)
+
+지도 기능에 특화된 컴포넌트 레이어입니다.
+
+- **`naver-map-view.tsx`**: 네이버 지도 래퍼 컴포넌트
+  - 중심 좌표/마커 리스트/클릭 이벤트 등을 props로 받아 지도 렌더링
+- **`sort-dropdown.tsx`**: 거리순/정렬 옵션 드롭다운
+- **(도입 예정) Store 관련 UI 정리**:  
+  `selected-store-detail`, `store-card`는 `components/store`로 이동 완료 후,  
+  `map` 폴더는 순수 지도 UI에만 집중하도록 정리할 예정입니다.
 
 ### `/src/theme` - 테마 시스템
 
@@ -605,6 +634,64 @@ const styles = StyleSheet.create({
     marginTop: rs(24), // 375px 기준 24px
   },
 });
+```
+
+#### rs() 사용 기준
+
+`rs()`는 375px 기준 디자인을 화면 너비에 맞춰 스케일링하는 함수입니다. 모든 값에 적용하면 안 되고, 아래 기준에 따라 선택적으로 사용합니다.
+
+##### rs() 사용하는 경우
+
+| 항목 | 예시 | 이유 |
+|------|------|------|
+| **터치 영역 (width/height)** | 버튼, 아이콘 버튼의 크기 | 큰 화면에서 터치 타겟이 너무 작아 보이지 않게 |
+| **주요 컴포넌트 높이** | 검색바, 헤더, 카드 등 | 핵심 UI 요소의 비율 유지 |
+| **아이콘 크기** | 컴포넌트 내부 아이콘 | 컴포넌트와 비례 유지 |
+| **큰 간격 (20 이상)** | 섹션 간 여백 | 레이아웃 비율 유지 |
+
+```typescript
+// 사용 예시
+backButton: {
+  width: rs(40),
+  height: rs(40),
+},
+searchBox: {
+  height: rs(56),
+},
+```
+
+##### rs() 사용하지 않는 경우
+
+| 항목 | 예시 | 이유 |
+|------|------|------|
+| **fontSize** | `fontSize: 16` | RN Text는 시스템 접근성 설정을 따르는 것이 권장됨 |
+| **borderWidth** | `borderWidth: 1` | 1~2px은 스케일링하면 흐려지거나 뭉개짐 |
+| **borderRadius** | `borderRadius: 8` | 작은 값(4~12)은 고정이 자연스러움 |
+| **작은 간격** | `padding: 8`, `gap: 12` | 미세 조정 값은 고정 |
+| **그림자 값** | `shadowOffset`, `shadowRadius` | 스케일링하면 비율이 이상해짐 |
+
+```typescript
+// 고정값 예시
+filterText: {
+  fontSize: 14,        // 고정
+},
+filterButton: {
+  borderRadius: 8,     // 고정
+  borderWidth: 1,      // 고정
+  paddingHorizontal: 16, // 고정 (작은 값)
+  paddingVertical: 8,    // 고정 (작은 값)
+},
+```
+
+##### 일관성 유지
+
+동일한 역할의 요소에는 동일한 방식을 적용합니다.
+
+```typescript
+// 모든 터치 버튼에 일관되게 rs() 적용
+backButton: { width: rs(40), height: rs(40) },
+controlButton: { width: rs(44), height: rs(44) },  // 동일하게 rs() 사용
+searchIconButton: { width: rs(40), height: rs(40) },
 ```
 
 ### SVG 아이콘 사용하기

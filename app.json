@@ -6,12 +6,14 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "rnapp",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.rnapp.app"
     },
     "android": {
+      "package": "com.rnapp.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -39,11 +41,33 @@
           }
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "@mj-studio/react-native-naver-map",
+        {
+          "client_id": "iiun93671l"
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "extraMavenRepos": [
+              "https://repository.map.naver.com/archive/maven"
+            ]
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "554fbeb0-4c38-4f44-86c2-6591b905ee36"
+      }
     }
   }
 }
