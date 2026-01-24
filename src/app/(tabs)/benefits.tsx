@@ -1,4 +1,6 @@
+import { ThemedText } from "@/src/components/themed-text";
 import { rs } from "@/src/theme/scale";
+import { Primary } from "@/src/theme/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import {
@@ -83,7 +85,7 @@ export default function BenefitsTab() {
         <TouchableOpacity style={styles.backButton}>
           <Ionicons name="chevron-back" size={rs(24)} color="#1B1D1F" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>쿠폰함</Text>
+        <ThemedText style={styles.headerTitle}>쿠폰함</ThemedText>
         <View style={styles.headerRight} />
       </View>
 
@@ -107,7 +109,9 @@ export default function BenefitsTab() {
             </TouchableOpacity>
           ))}
         </View>
+
         <View style={styles.tabDivider} />
+        
         {/* Filter Buttons */}
         <View style={styles.filterContainer}>
           <ScrollView
@@ -137,6 +141,7 @@ export default function BenefitsTab() {
             ))}
           </ScrollView>
         </View>
+
         {/* Coupon Count */}
         <View style={styles.couponCountContainer}>
           <Text style={styles.couponCountText}>
@@ -196,7 +201,7 @@ export default function BenefitsTab() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F7F7F7",
+    backgroundColor: Primary['300'],
   },
   header: {
     flexDirection: "row",
@@ -204,7 +209,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: rs(16),
     height: rs(44),
-    backgroundColor: "#8AD97E",
   },
   backButton: {
     width: rs(24),
@@ -307,6 +311,7 @@ const styles = StyleSheet.create({
   },
   couponListContainer: {
     flex: 1,
+    backgroundColor: Primary['textBg']
   },
   couponListContent: {
     paddingHorizontal: rs(20),
