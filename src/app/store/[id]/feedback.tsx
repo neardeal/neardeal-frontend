@@ -1,7 +1,7 @@
-import { AppButton } from '@/src/components/button/app-button';
-import { ArrowLeft } from '@/src/components/button/arrow-left';
-import { ThemedText } from '@/src/components/themed-text';
-import { rs } from '@/src/theme/scale';
+import { AppButton } from '@/src/shared/common/app-button';
+import { ArrowLeft } from '@/src/shared/common/arrow-left';
+import { ThemedText } from '@/src/shared/common/themed-text';
+import { rs } from '@/src/shared/theme/scale';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';

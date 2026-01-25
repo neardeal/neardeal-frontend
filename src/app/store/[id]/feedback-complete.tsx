@@ -1,8 +1,8 @@
 import { StoreIcons } from "@/assets/images/icons/store";
-import { ArrowLeft } from "@/src/components/button/arrow-left";
-import { AppButton } from "@/src/components/common/app-button";
-import { ThemedText } from "@/src/components/themed-text";
-import { rs } from "@/src/theme/scale";
+import { AppButton } from "@/src/shared/common/app-button";
+import { ArrowLeft } from "@/src/shared/common/arrow-left";
+import { ThemedText } from '@/src/shared/common/themed-text';
+import { rs } from "@/src/shared/theme/scale";
 
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {

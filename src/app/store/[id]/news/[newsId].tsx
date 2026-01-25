@@ -1,9 +1,9 @@
 import { StoreIcons } from "@/assets/images/icons/store";
-import { ArrowLeft } from "@/src/components/button/arrow-left";
-import { Divider } from "@/src/components/common/divider";
-import { ThemedText } from "@/src/components/themed-text";
-import { DUMMY_STORE_DETAILS } from "@/src/data/mock/store";
-import { rs } from "@/src/theme/scale";
+import { ArrowLeft } from "@/src/shared/common/arrow-left";
+import { Divider } from "@/src/shared/common/divider";
+import { ThemedText } from '@/src/shared/common/themed-text';
+import { DUMMY_STORE_DETAILS } from "@/src/shared/data/mock/store";
+import { rs } from "@/src/shared/theme/scale";
 import { router, useLocalSearchParams } from "expo-router";
 import { Alert, FlatList, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";

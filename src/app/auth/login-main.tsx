@@ -1,9 +1,9 @@
-import { ArrowLeft } from "@/src/components/button/arrow-left";
+import { ArrowLeft } from "@/src/shared/common/arrow-left";
 import { useRouter } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { rs } from "../../theme/scale";
+import { rs } from "@/src/shared/theme/scale";
 
 import { SignupIcons } from "@/assets/images/icons/signup";
 import NearDealLogo from "@/assets/images/logo/neardeal-logo.svg";

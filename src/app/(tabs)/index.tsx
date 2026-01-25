@@ -1,4 +1,4 @@
-import { rs } from "@/src/theme/scale";
+import { rs } from "@/src/shared/theme/scale";
 import {
   ScrollView,
   StyleSheet,

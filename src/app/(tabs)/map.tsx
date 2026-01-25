@@ -1,19 +1,19 @@
-import { NaverMap } from '@/src/components/map/naver-map-view';
-import { SelectedStoreDetail } from '@/src/components/map/selected-store-detail';
-import { SortDropdown } from '@/src/components/map/sort-dropdown';
-import { Store, StoreCard } from '@/src/components/map/store-card';
-import { ThemedText } from '@/src/components/themed-text';
-import { ThemedView } from '@/src/components/themed-view';
+import { NaverMap } from '@/src/app/components/map/naver-map-view';
+import { SelectedStoreDetail } from '@/src/app/components/map/selected-store-detail';
+import { SortDropdown } from '@/src/app/components/map/sort-dropdown';
+import { Store, StoreCard } from '@/src/app/components/store/store-card';
+import { ThemedText } from '@/src/shared/common/themed-text';
+import { ThemedView } from '@/src/shared/common/themed-view';
 import {
   BOTTOM_FILTERS,
   DUMMY_STORES,
   FILTER_CATEGORIES,
   SNAP_INDEX,
   SORT_OPTIONS,
-} from '@/src/constants/map';
-import { useTabBar } from '@/src/contexts/tab-bar-context';
-import { rs } from '@/src/theme/scale';
-import { Gray, Owner, Text } from '@/src/theme/theme';
+} from '@/src/shared/constants/map';
+import { useTabBar } from '@/src/shared/contexts/tab-bar-context';
+import { rs } from '@/src/shared/theme/scale';
+import { Gray, Owner, Text } from '@/src/shared/theme/theme';
 import { Ionicons } from '@expo/vector-icons';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useRouter } from 'expo-router';

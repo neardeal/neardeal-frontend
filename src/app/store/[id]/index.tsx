@@ -1,10 +1,10 @@
-import { ThemedText } from '@/src/components/themed-text';
 import { StoreBenefits } from '@/src/components/store/benefits';
 import { BottomFixedBar } from '@/src/components/store/bottom-bar';
 import { StoreContent } from '@/src/components/store/content';
 import { StoreHeader } from '@/src/components/store/header';
-import { DUMMY_STORE_DETAILS } from '@/src/data/mock/store';
-import { rs } from '@/src/theme/scale';
+import { ThemedText } from '@/src/shared/common/themed-text';
+import { DUMMY_STORE_DETAILS } from '@/src/shared/data/mock/store';
+import { rs } from '@/src/shared/theme/scale';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';

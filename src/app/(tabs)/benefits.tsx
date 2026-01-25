@@ -1,6 +1,6 @@
-import { ThemedText } from "@/src/components/themed-text";
-import { rs } from "@/src/theme/scale";
-import { Primary } from "@/src/theme/theme";
+import { ThemedText } from "@/src/shared/common/themed-text";
+import { rs } from "@/src/shared/theme/scale";
+import { Primary } from "@/src/shared/theme/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import {

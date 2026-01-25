@@ -1,14 +1,14 @@
 import { HomeIcons } from "@/assets/images/icons/home";
-import { useTabBar } from "@/src/contexts/tab-bar-context";
+import { useTabBar } from "@/src/shared/contexts/tab-bar-context";
 import { BottomTabBar } from "@react-navigation/bottom-tabs";
 import { Tabs } from "expo-router";
 import { useEffect } from "react";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();

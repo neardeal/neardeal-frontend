@@ -1,8 +1,8 @@
 import NearDealLogo from "@/assets/images/logo/neardeal-logo.svg";
 import { useLogin } from "@/src/api/auth";
-import { ArrowLeft } from "@/src/components/button/arrow-left";
-import { useAuth } from "@/src/lib/auth";
-import { rs } from "@/src/theme/scale";
+import { ArrowLeft } from "@/src/shared/common/arrow-left";
+import { useAuth } from "@/src/shared/lib/auth";
+import { rs } from "@/src/shared/theme/scale";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
@@ -58,8 +58,8 @@ export default function LoginPage() {
       {
         onSuccess: async (res) => {
           if (res.status === 200 && res.data.data?.accessToken) {
-            const { accessToken, expiresIn } = res.data.data;
-            await handleAuthSuccess(accessToken, expiresIn ?? 3600);
+            const { accessToken, expiresIn, role } = res.data.data;
+            await handleAuthSuccess(accessToken, expiresIn ?? 3600, role);
             router.replace("/");
           } else {
             Alert.alert("로그인 실패", "아이디 또는 비밀번호를 확인해주세요.");
