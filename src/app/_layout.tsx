@@ -12,7 +12,7 @@ import "react-native-reanimated";
 import { useAuth } from "../shared/lib/auth";
 
 // 점주용 앱 import
-import ShopOwnerApp from "@/src/shopowner/ShopOwnerNavigator";
+import ShopOwnerApp from "@/src/app/(shopowner)/ShopOwnerNavigator";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -23,23 +23,12 @@ const queryClient = new QueryClient();
 function AppContent() {
   const { userType, isLoading: authLoading } = useAuth();
   
-  // 학생용 폰트 (Pretendard)
-  const [studentFonts] = useFonts({
+  const [fontsLoaded] = useFonts({
     "Pretendard-Regular": require("@/assets/font/pretendard/Pretendard-Regular.ttf"),
     "Pretendard-Medium": require("@/assets/font/pretendard/Pretendard-Medium.ttf"),
     "Pretendard-SemiBold": require("@/assets/font/pretendard/Pretendard-SemiBold.ttf"),
     "Pretendard-Bold": require("@/assets/font/pretendard/Pretendard-Bold.ttf"),
   });
-
-  // 점주용 폰트 (Inter) - 파일 추가 필요
-  const [ownerFonts] = useFonts({
-    "Inter-Regular": require("@/assets/font/inter/Inter-Regular.ttf"),
-    "Inter-Medium": require("@/assets/font/inter/Inter-Medium.ttf"),
-    "Inter-SemiBold": require("@/assets/font/inter/Inter-SemiBold.ttf"),
-    "Inter-Bold": require("@/assets/font/inter/Inter-Bold.ttf"),
-  });
-
-  const fontsLoaded = userType === 'ROLE_OWNER' ? ownerFonts : studentFonts;
 
   useEffect(() => {
     if (fontsLoaded && !authLoading) {
