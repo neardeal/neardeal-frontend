@@ -1,4 +1,4 @@
-import { rs } from "@/src/theme/scale";
+import { rs } from "@/src/shared/theme/scale";
 import { Ionicons } from "@expo/vector-icons";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";

@@ -1,6 +1,6 @@
 import { ThemedText } from '@/src/shared/common/themed-text';
-import { rs } from '@/src/theme/scale';
-import type { MenuCategory, MenuItem } from '@/src/types/store';
+import { rs } from '@/src/shared/theme/scale';
+import type { MenuCategory, MenuItem } from '@/src/shared/types/store';
 import React from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 

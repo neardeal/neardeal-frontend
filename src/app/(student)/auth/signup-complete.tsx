@@ -1,5 +1,5 @@
-import { ArrowLeft } from "@/src/components/button/arrow-left";
-import { rs } from "@/src/theme/scale";
+import { ArrowLeft } from "@/src/shared/common/arrow-left";
+import { rs } from "@/src/shared/theme/scale";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";

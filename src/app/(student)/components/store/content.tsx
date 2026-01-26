@@ -5,8 +5,8 @@ import type {
   RecommendStore,
   ReviewItem,
   ReviewRating,
-} from '@/src/types/store';
-import { rs } from '@/src/theme/scale';
+} from '@/src/shared/types/store';
+import { rs } from '@/src/shared/theme/scale';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { AnnouncementCarousel } from './announcement-carousel';

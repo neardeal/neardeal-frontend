@@ -16,8 +16,8 @@ import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 //   onSelect={handleSelect}
 // />
 
-const buttonOffIcon = require('@/assets/images/버튼꺼짐.svg');
-const buttonOnIcon = require('@/assets/images/버튼켜짐.svg');
+const buttonOffIcon = require('@/assets/images/icons/signup/switch-off-icon.svg');
+const buttonOnIcon = require('@/assets/images/icons/signup/switch-on-icon.svg');
 
 export type SelectorOption = {
   id: string;

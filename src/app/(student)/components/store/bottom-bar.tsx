@@ -1,6 +1,6 @@
 import { AppButton } from '@/src/shared/common/app-button';
 import { ThemedText } from '@/src/shared/common/themed-text';
-import { rs } from '@/src/theme/scale';
+import { rs } from '@/src/shared/theme/scale';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';

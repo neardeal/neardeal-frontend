@@ -1,7 +1,7 @@
-import { StoreBenefits } from '@/src/components/store/benefits';
-import { BottomFixedBar } from '@/src/components/store/bottom-bar';
-import { StoreContent } from '@/src/components/store/content';
-import { StoreHeader } from '@/src/components/store/header';
+import { StoreBenefits } from '@/src/app/(student)/components/store/benefits';
+import { BottomFixedBar } from '@/src/app/(student)/components/store/bottom-bar';
+import { StoreContent } from '@/src/app/(student)/components/store/content';
+import { StoreHeader } from '@/src/app/(student)/components/store/header';
 import { ThemedText } from '@/src/shared/common/themed-text';
 import { DUMMY_STORE_DETAILS } from '@/src/shared/data/mock/store';
 import { rs } from '@/src/shared/theme/scale';

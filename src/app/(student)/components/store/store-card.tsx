@@ -1,5 +1,5 @@
 import { ThemedText } from '@/src/shared/common/themed-text';
-import type { Store } from '@/src/types/store';
+import type { Store } from '@/src/shared/types/store';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';

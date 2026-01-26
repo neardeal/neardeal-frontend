@@ -1,7 +1,7 @@
-import { NaverMap } from '@/src/app/components/map/naver-map-view';
-import { SelectedStoreDetail } from '@/src/app/components/map/selected-store-detail';
-import { SortDropdown } from '@/src/app/components/map/sort-dropdown';
-import { Store, StoreCard } from '@/src/app/components/store/store-card';
+import { NaverMap } from '@/src/app/(student)/components/map/naver-map-view';
+import { SelectedStoreDetail } from '@/src/app/(student)/components/map/selected-store-detail';
+import { SortDropdown } from '@/src/app/(student)/components/map/sort-dropdown';
+import { Store, StoreCard } from '@/src/app/(student)/components/store/store-card';
 import { ThemedText } from '@/src/shared/common/themed-text';
 import { ThemedView } from '@/src/shared/common/themed-view';
 import {

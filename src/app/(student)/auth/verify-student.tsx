@@ -1,19 +1,19 @@
-import { ArrowLeft } from "@/src/components/button/arrow-left";
-import { rs } from "@/src/theme/scale";
+import { ArrowLeft } from "@/src/shared/common/arrow-left";
+import { rs } from "@/src/shared/theme/scale";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
-    FlatList,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    Pressable,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  FlatList,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type SheetType = "college" | "major";
 

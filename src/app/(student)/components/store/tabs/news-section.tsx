@@ -1,6 +1,6 @@
 import { ThemedText } from '@/src/shared/common/themed-text';
-import { rs } from '@/src/theme/scale';
-import type { NewsItem } from '@/src/types/store';
+import { rs } from '@/src/shared/theme/scale';
+import type { NewsItem } from '@/src/shared/types/store';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';

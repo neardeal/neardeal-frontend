@@ -59,7 +59,7 @@ export default function LoginPage() {
         onSuccess: async (res) => {
           if (res.status === 200 && res.data.data?.accessToken) {
             const { accessToken, expiresIn, role } = res.data.data;
-            await handleAuthSuccess(accessToken, expiresIn ?? 3600, role);
+            await handleAuthSuccess(accessToken, expiresIn ?? 3600, role ?? 'ROLE_CUSTOMER');
             router.replace("/");
           } else {
             Alert.alert("로그인 실패", "아이디 또는 비밀번호를 확인해주세요.");
