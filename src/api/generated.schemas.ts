@@ -15,13 +15,13 @@ export interface CommonResponseLong {
   data?: number;
 }
 
-export type CreateOrganizationRequestCategory = typeof CreateOrganizationRequestCategory[keyof typeof CreateOrganizationRequestCategory];
-
+export type CreateOrganizationRequestCategory =
+  (typeof CreateOrganizationRequestCategory)[keyof typeof CreateOrganizationRequestCategory];
 
 export const CreateOrganizationRequestCategory = {
-  COLLEGE: 'COLLEGE',
-  DEPARTMENT: 'DEPARTMENT',
-  STUDENT_COUNCIL: 'STUDENT_COUNCIL',
+  COLLEGE: "COLLEGE",
+  DEPARTMENT: "DEPARTMENT",
+  STUDENT_COUNCIL: "STUDENT_COUNCIL",
 } as const;
 
 export interface CreateOrganizationRequest {
@@ -31,26 +31,26 @@ export interface CreateOrganizationRequest {
   expiresAt?: string;
 }
 
-export type CreateStoreRequestStoreCategoriesItem = typeof CreateStoreRequestStoreCategoriesItem[keyof typeof CreateStoreRequestStoreCategoriesItem];
-
+export type CreateStoreRequestStoreCategoriesItem =
+  (typeof CreateStoreRequestStoreCategoriesItem)[keyof typeof CreateStoreRequestStoreCategoriesItem];
 
 export const CreateStoreRequestStoreCategoriesItem = {
-  BAR: 'BAR',
-  CAFE: 'CAFE',
-  RESTAURANT: 'RESTAURANT',
-  ENTERTAINMENT: 'ENTERTAINMENT',
-  BEAUTY_HEALTH: 'BEAUTY_HEALTH',
-  ETC: 'ETC',
+  BAR: "BAR",
+  CAFE: "CAFE",
+  RESTAURANT: "RESTAURANT",
+  ENTERTAINMENT: "ENTERTAINMENT",
+  BEAUTY_HEALTH: "BEAUTY_HEALTH",
+  ETC: "ETC",
 } as const;
 
-export type CreateStoreRequestStoreMoodsItem = typeof CreateStoreRequestStoreMoodsItem[keyof typeof CreateStoreRequestStoreMoodsItem];
-
+export type CreateStoreRequestStoreMoodsItem =
+  (typeof CreateStoreRequestStoreMoodsItem)[keyof typeof CreateStoreRequestStoreMoodsItem];
 
 export const CreateStoreRequestStoreMoodsItem = {
-  SOLO_DINING: 'SOLO_DINING',
-  GROUP_GATHERING: 'GROUP_GATHERING',
-  LATE_NIGHT: 'LATE_NIGHT',
-  ROMANTIC: 'ROMANTIC',
+  SOLO_DINING: "SOLO_DINING",
+  GROUP_GATHERING: "GROUP_GATHERING",
+  LATE_NIGHT: "LATE_NIGHT",
+  ROMANTIC: "ROMANTIC",
 } as const;
 
 export interface CreateStoreRequest {
@@ -98,17 +98,17 @@ export interface CreateReviewRequest {
   rating: number;
 }
 
-export type StoreReportRequestReasonsItem = typeof StoreReportRequestReasonsItem[keyof typeof StoreReportRequestReasonsItem];
-
+export type StoreReportRequestReasonsItem =
+  (typeof StoreReportRequestReasonsItem)[keyof typeof StoreReportRequestReasonsItem];
 
 export const StoreReportRequestReasonsItem = {
-  BENEFIT_REFUSAL: 'BENEFIT_REFUSAL',
-  BENEFIT_MISMATCH: 'BENEFIT_MISMATCH',
-  EVENT_NOT_HELD: 'EVENT_NOT_HELD',
-  CLOSED_OR_MOVED: 'CLOSED_OR_MOVED',
-  INFO_ERROR: 'INFO_ERROR',
-  LOCATION_MISMATCH: 'LOCATION_MISMATCH',
-  ETC: 'ETC',
+  BENEFIT_REFUSAL: "BENEFIT_REFUSAL",
+  BENEFIT_MISMATCH: "BENEFIT_MISMATCH",
+  EVENT_NOT_HELD: "EVENT_NOT_HELD",
+  CLOSED_OR_MOVED: "CLOSED_OR_MOVED",
+  INFO_ERROR: "INFO_ERROR",
+  LOCATION_MISMATCH: "LOCATION_MISMATCH",
+  ETC: "ETC",
 } as const;
 
 export interface StoreReportRequest {
@@ -138,13 +138,13 @@ export interface CreateStoreNewsRequest {
   content: string;
 }
 
-export type CreateItemRequestBadge = typeof CreateItemRequestBadge[keyof typeof CreateItemRequestBadge];
-
+export type CreateItemRequestBadge =
+  (typeof CreateItemRequestBadge)[keyof typeof CreateItemRequestBadge];
 
 export const CreateItemRequestBadge = {
-  BEST: 'BEST',
-  NEW: 'NEW',
-  HOT: 'HOT',
+  BEST: "BEST",
+  NEW: "NEW",
+  HOT: "HOT",
 } as const;
 
 export interface CreateItemRequest {
@@ -159,15 +159,15 @@ export interface CreateItemRequest {
   soldOut?: boolean;
 }
 
-export type CreateCouponRequestStatus = typeof CreateCouponRequestStatus[keyof typeof CreateCouponRequestStatus];
-
+export type CreateCouponRequestStatus =
+  (typeof CreateCouponRequestStatus)[keyof typeof CreateCouponRequestStatus];
 
 export const CreateCouponRequestStatus = {
-  DRAFT: 'DRAFT',
-  SCHEDULED: 'SCHEDULED',
-  ACTIVE: 'ACTIVE',
-  STOPPED: 'STOPPED',
-  EXPIRED: 'EXPIRED',
+  DRAFT: "DRAFT",
+  SCHEDULED: "SCHEDULED",
+  ACTIVE: "ACTIVE",
+  STOPPED: "STOPPED",
+  EXPIRED: "EXPIRED",
 } as const;
 
 export interface CreateCouponRequest {
@@ -202,14 +202,14 @@ export interface CreateStoreNewsCommentRequest {
   content: string;
 }
 
-export type ReportRequestReason = typeof ReportRequestReason[keyof typeof ReportRequestReason];
-
+export type ReportRequestReason =
+  (typeof ReportRequestReason)[keyof typeof ReportRequestReason];
 
 export const ReportRequestReason = {
-  SPAM: 'SPAM',
-  INAPPROPRIATE_CONTENT: 'INAPPROPRIATE_CONTENT',
-  IRRELEVANT: 'IRRELEVANT',
-  OTHER: 'OTHER',
+  SPAM: "SPAM",
+  INAPPROPRIATE_CONTENT: "INAPPROPRIATE_CONTENT",
+  IRRELEVANT: "IRRELEVANT",
+  OTHER: "OTHER",
 } as const;
 
 export interface ReportRequest {
@@ -226,14 +226,14 @@ export interface CommonResponseString {
   data?: string;
 }
 
-export type IssueCouponResponseStatus = typeof IssueCouponResponseStatus[keyof typeof IssueCouponResponseStatus];
-
+export type IssueCouponResponseStatus =
+  (typeof IssueCouponResponseStatus)[keyof typeof IssueCouponResponseStatus];
 
 export const IssueCouponResponseStatus = {
-  UNUSED: 'UNUSED',
-  ACTIVATED: 'ACTIVATED',
-  USED: 'USED',
-  EXPIRED: 'EXPIRED',
+  UNUSED: "UNUSED",
+  ACTIVATED: "ACTIVATED",
+  USED: "USED",
+  EXPIRED: "EXPIRED",
 } as const;
 
 export interface IssueCouponResponse {
@@ -249,13 +249,13 @@ export interface CommonResponseIssueCouponResponse {
   data?: IssueCouponResponse;
 }
 
-export type StudentSignupRequestGender = typeof StudentSignupRequestGender[keyof typeof StudentSignupRequestGender];
-
+export type StudentSignupRequestGender =
+  (typeof StudentSignupRequestGender)[keyof typeof StudentSignupRequestGender];
 
 export const StudentSignupRequestGender = {
-  MALE: 'MALE',
-  FEMALE: 'FEMALE',
-  UNKNOWN: 'UNKNOWN',
+  MALE: "MALE",
+  FEMALE: "FEMALE",
+  UNKNOWN: "UNKNOWN",
 } as const;
 
 export interface StudentSignupRequest {
@@ -269,13 +269,13 @@ export interface StudentSignupRequest {
   departmentId?: number;
 }
 
-export type OwnerSignupRequestGender = typeof OwnerSignupRequestGender[keyof typeof OwnerSignupRequestGender];
-
+export type OwnerSignupRequestGender =
+  (typeof OwnerSignupRequestGender)[keyof typeof OwnerSignupRequestGender];
 
 export const OwnerSignupRequestGender = {
-  MALE: 'MALE',
-  FEMALE: 'FEMALE',
-  UNKNOWN: 'UNKNOWN',
+  MALE: "MALE",
+  FEMALE: "FEMALE",
+  UNKNOWN: "UNKNOWN",
 } as const;
 
 export interface StoreCreateRequest {
@@ -302,9 +302,20 @@ export interface AdminSignupRequest {
   password?: string;
 }
 
+export type LoginResponseRole =
+  (typeof LoginResponseRole)[keyof typeof LoginResponseRole];
+
+export const LoginResponseRole = {
+  ROLE_GUEST: "ROLE_GUEST",
+  ROLE_CUSTOMER: "ROLE_CUSTOMER",
+  ROLE_OWNER: "ROLE_OWNER",
+  ROLE_ADMIN: "ROLE_ADMIN",
+} as const;
+
 export interface LoginResponse {
   accessToken?: string;
   expiresIn?: number;
+  role?: LoginResponseRole;
 }
 
 export interface CommonResponseLoginResponse {
@@ -317,14 +328,14 @@ export interface LoginRequest {
   password?: string;
 }
 
-export type CompleteSocialSignupRequestRole = typeof CompleteSocialSignupRequestRole[keyof typeof CompleteSocialSignupRequestRole];
-
+export type CompleteSocialSignupRequestRole =
+  (typeof CompleteSocialSignupRequestRole)[keyof typeof CompleteSocialSignupRequestRole];
 
 export const CompleteSocialSignupRequestRole = {
-  ROLE_GUEST: 'ROLE_GUEST',
-  ROLE_CUSTOMER: 'ROLE_CUSTOMER',
-  ROLE_OWNER: 'ROLE_OWNER',
-  ROLE_ADMIN: 'ROLE_ADMIN',
+  ROLE_GUEST: "ROLE_GUEST",
+  ROLE_CUSTOMER: "ROLE_CUSTOMER",
+  ROLE_OWNER: "ROLE_OWNER",
+  ROLE_ADMIN: "ROLE_ADMIN",
 } as const;
 
 export interface CompleteSocialSignupRequest {
@@ -344,26 +355,26 @@ export interface UpdateUniversityRequest {
   emailDomain: string;
 }
 
-export type UpdateStoreRequestStoreCategoriesItem = typeof UpdateStoreRequestStoreCategoriesItem[keyof typeof UpdateStoreRequestStoreCategoriesItem];
-
+export type UpdateStoreRequestStoreCategoriesItem =
+  (typeof UpdateStoreRequestStoreCategoriesItem)[keyof typeof UpdateStoreRequestStoreCategoriesItem];
 
 export const UpdateStoreRequestStoreCategoriesItem = {
-  BAR: 'BAR',
-  CAFE: 'CAFE',
-  RESTAURANT: 'RESTAURANT',
-  ENTERTAINMENT: 'ENTERTAINMENT',
-  BEAUTY_HEALTH: 'BEAUTY_HEALTH',
-  ETC: 'ETC',
+  BAR: "BAR",
+  CAFE: "CAFE",
+  RESTAURANT: "RESTAURANT",
+  ENTERTAINMENT: "ENTERTAINMENT",
+  BEAUTY_HEALTH: "BEAUTY_HEALTH",
+  ETC: "ETC",
 } as const;
 
-export type UpdateStoreRequestStoreMoodsItem = typeof UpdateStoreRequestStoreMoodsItem[keyof typeof UpdateStoreRequestStoreMoodsItem];
-
+export type UpdateStoreRequestStoreMoodsItem =
+  (typeof UpdateStoreRequestStoreMoodsItem)[keyof typeof UpdateStoreRequestStoreMoodsItem];
 
 export const UpdateStoreRequestStoreMoodsItem = {
-  SOLO_DINING: 'SOLO_DINING',
-  GROUP_GATHERING: 'GROUP_GATHERING',
-  LATE_NIGHT: 'LATE_NIGHT',
-  ROMANTIC: 'ROMANTIC',
+  SOLO_DINING: "SOLO_DINING",
+  GROUP_GATHERING: "GROUP_GATHERING",
+  LATE_NIGHT: "LATE_NIGHT",
+  ROMANTIC: "ROMANTIC",
 } as const;
 
 export interface UpdateStoreRequest {
@@ -401,13 +412,13 @@ export interface UpdateReviewRequest {
   rating?: number;
 }
 
-export type UpdateOrganizationRequestCategory = typeof UpdateOrganizationRequestCategory[keyof typeof UpdateOrganizationRequestCategory];
-
+export type UpdateOrganizationRequestCategory =
+  (typeof UpdateOrganizationRequestCategory)[keyof typeof UpdateOrganizationRequestCategory];
 
 export const UpdateOrganizationRequestCategory = {
-  COLLEGE: 'COLLEGE',
-  DEPARTMENT: 'DEPARTMENT',
-  STUDENT_COUNCIL: 'STUDENT_COUNCIL',
+  COLLEGE: "COLLEGE",
+  DEPARTMENT: "DEPARTMENT",
+  STUDENT_COUNCIL: "STUDENT_COUNCIL",
 } as const;
 
 export interface UpdateOrganizationRequest {
@@ -417,13 +428,13 @@ export interface UpdateOrganizationRequest {
   expiresAt?: string;
 }
 
-export type UpdateItemRequestBadge = typeof UpdateItemRequestBadge[keyof typeof UpdateItemRequestBadge];
-
+export type UpdateItemRequestBadge =
+  (typeof UpdateItemRequestBadge)[keyof typeof UpdateItemRequestBadge];
 
 export const UpdateItemRequestBadge = {
-  BEST: 'BEST',
-  NEW: 'NEW',
-  HOT: 'HOT',
+  BEST: "BEST",
+  NEW: "NEW",
+  HOT: "HOT",
 } as const;
 
 export interface UpdateItemRequest {
@@ -437,15 +448,15 @@ export interface UpdateItemRequest {
   badge?: UpdateItemRequestBadge;
 }
 
-export type UpdateCouponRequestStatus = typeof UpdateCouponRequestStatus[keyof typeof UpdateCouponRequestStatus];
-
+export type UpdateCouponRequestStatus =
+  (typeof UpdateCouponRequestStatus)[keyof typeof UpdateCouponRequestStatus];
 
 export const UpdateCouponRequestStatus = {
-  DRAFT: 'DRAFT',
-  SCHEDULED: 'SCHEDULED',
-  ACTIVE: 'ACTIVE',
-  STOPPED: 'STOPPED',
-  EXPIRED: 'EXPIRED',
+  DRAFT: "DRAFT",
+  SCHEDULED: "SCHEDULED",
+  ACTIVE: "ACTIVE",
+  STOPPED: "STOPPED",
+  EXPIRED: "EXPIRED",
 } as const;
 
 export interface UpdateCouponRequest {
@@ -458,14 +469,14 @@ export interface UpdateCouponRequest {
   status?: UpdateCouponRequestStatus;
 }
 
-export type UserRoleUpdateRequestRole = typeof UserRoleUpdateRequestRole[keyof typeof UserRoleUpdateRequestRole];
-
+export type UserRoleUpdateRequestRole =
+  (typeof UserRoleUpdateRequestRole)[keyof typeof UserRoleUpdateRequestRole];
 
 export const UserRoleUpdateRequestRole = {
-  ROLE_GUEST: 'ROLE_GUEST',
-  ROLE_CUSTOMER: 'ROLE_CUSTOMER',
-  ROLE_OWNER: 'ROLE_OWNER',
-  ROLE_ADMIN: 'ROLE_ADMIN',
+  ROLE_GUEST: "ROLE_GUEST",
+  ROLE_CUSTOMER: "ROLE_CUSTOMER",
+  ROLE_OWNER: "ROLE_OWNER",
+  ROLE_ADMIN: "ROLE_ADMIN",
 } as const;
 
 export interface UserRoleUpdateRequest {
@@ -483,13 +494,13 @@ export interface CommonResponseListUniversityResponse {
   data?: UniversityResponse[];
 }
 
-export type OrganizationResponseCategory = typeof OrganizationResponseCategory[keyof typeof OrganizationResponseCategory];
-
+export type OrganizationResponseCategory =
+  (typeof OrganizationResponseCategory)[keyof typeof OrganizationResponseCategory];
 
 export const OrganizationResponseCategory = {
-  COLLEGE: 'COLLEGE',
-  DEPARTMENT: 'DEPARTMENT',
-  STUDENT_COUNCIL: 'STUDENT_COUNCIL',
+  COLLEGE: "COLLEGE",
+  DEPARTMENT: "DEPARTMENT",
+  STUDENT_COUNCIL: "STUDENT_COUNCIL",
 } as const;
 
 export interface OrganizationResponse {
@@ -514,26 +525,26 @@ export interface Pageable {
   sort?: string[];
 }
 
-export type StoreResponseStoreCategoriesItem = typeof StoreResponseStoreCategoriesItem[keyof typeof StoreResponseStoreCategoriesItem];
-
+export type StoreResponseStoreCategoriesItem =
+  (typeof StoreResponseStoreCategoriesItem)[keyof typeof StoreResponseStoreCategoriesItem];
 
 export const StoreResponseStoreCategoriesItem = {
-  BAR: 'BAR',
-  CAFE: 'CAFE',
-  RESTAURANT: 'RESTAURANT',
-  ENTERTAINMENT: 'ENTERTAINMENT',
-  BEAUTY_HEALTH: 'BEAUTY_HEALTH',
-  ETC: 'ETC',
+  BAR: "BAR",
+  CAFE: "CAFE",
+  RESTAURANT: "RESTAURANT",
+  ENTERTAINMENT: "ENTERTAINMENT",
+  BEAUTY_HEALTH: "BEAUTY_HEALTH",
+  ETC: "ETC",
 } as const;
 
-export type StoreResponseStoreMoodsItem = typeof StoreResponseStoreMoodsItem[keyof typeof StoreResponseStoreMoodsItem];
-
+export type StoreResponseStoreMoodsItem =
+  (typeof StoreResponseStoreMoodsItem)[keyof typeof StoreResponseStoreMoodsItem];
 
 export const StoreResponseStoreMoodsItem = {
-  SOLO_DINING: 'SOLO_DINING',
-  GROUP_GATHERING: 'GROUP_GATHERING',
-  LATE_NIGHT: 'LATE_NIGHT',
-  ROMANTIC: 'ROMANTIC',
+  SOLO_DINING: "SOLO_DINING",
+  GROUP_GATHERING: "GROUP_GATHERING",
+  LATE_NIGHT: "LATE_NIGHT",
+  ROMANTIC: "ROMANTIC",
 } as const;
 
 export interface StoreResponse {
@@ -639,13 +650,13 @@ export interface CommonResponsePageResponseStoreNewsResponse {
   data?: PageResponseStoreNewsResponse;
 }
 
-export type ItemResponseBadge = typeof ItemResponseBadge[keyof typeof ItemResponseBadge];
-
+export type ItemResponseBadge =
+  (typeof ItemResponseBadge)[keyof typeof ItemResponseBadge];
 
 export const ItemResponseBadge = {
-  BEST: 'BEST',
-  NEW: 'NEW',
-  HOT: 'HOT',
+  BEST: "BEST",
+  NEW: "NEW",
+  HOT: "HOT",
 } as const;
 
 export interface ItemResponse {
@@ -667,15 +678,15 @@ export interface CommonResponseListItemResponse {
   data?: ItemResponse[];
 }
 
-export type CouponResponseStatus = typeof CouponResponseStatus[keyof typeof CouponResponseStatus];
-
+export type CouponResponseStatus =
+  (typeof CouponResponseStatus)[keyof typeof CouponResponseStatus];
 
 export const CouponResponseStatus = {
-  DRAFT: 'DRAFT',
-  SCHEDULED: 'SCHEDULED',
-  ACTIVE: 'ACTIVE',
-  STOPPED: 'STOPPED',
-  EXPIRED: 'EXPIRED',
+  DRAFT: "DRAFT",
+  SCHEDULED: "SCHEDULED",
+  ACTIVE: "ACTIVE",
+  STOPPED: "STOPPED",
+  EXPIRED: "EXPIRED",
 } as const;
 
 export interface CouponResponse {
@@ -740,16 +751,16 @@ export interface CommonResponseItemResponse {
   data?: ItemResponse;
 }
 
-export type FavoriteStoreResponseStoreCategoriesItem = typeof FavoriteStoreResponseStoreCategoriesItem[keyof typeof FavoriteStoreResponseStoreCategoriesItem];
-
+export type FavoriteStoreResponseStoreCategoriesItem =
+  (typeof FavoriteStoreResponseStoreCategoriesItem)[keyof typeof FavoriteStoreResponseStoreCategoriesItem];
 
 export const FavoriteStoreResponseStoreCategoriesItem = {
-  BAR: 'BAR',
-  CAFE: 'CAFE',
-  RESTAURANT: 'RESTAURANT',
-  ENTERTAINMENT: 'ENTERTAINMENT',
-  BEAUTY_HEALTH: 'BEAUTY_HEALTH',
-  ETC: 'ETC',
+  BAR: "BAR",
+  CAFE: "CAFE",
+  RESTAURANT: "RESTAURANT",
+  ENTERTAINMENT: "ENTERTAINMENT",
+  BEAUTY_HEALTH: "BEAUTY_HEALTH",
+  ETC: "ETC",
 } as const;
 
 export interface FavoriteStoreResponse {
@@ -775,25 +786,25 @@ export interface CommonResponsePageResponseFavoriteStoreResponse {
   data?: PageResponseFavoriteStoreResponse;
 }
 
-export type UserResponseRole = typeof UserResponseRole[keyof typeof UserResponseRole];
-
+export type UserResponseRole =
+  (typeof UserResponseRole)[keyof typeof UserResponseRole];
 
 export const UserResponseRole = {
-  ROLE_GUEST: 'ROLE_GUEST',
-  ROLE_CUSTOMER: 'ROLE_CUSTOMER',
-  ROLE_OWNER: 'ROLE_OWNER',
-  ROLE_ADMIN: 'ROLE_ADMIN',
+  ROLE_GUEST: "ROLE_GUEST",
+  ROLE_CUSTOMER: "ROLE_CUSTOMER",
+  ROLE_OWNER: "ROLE_OWNER",
+  ROLE_ADMIN: "ROLE_ADMIN",
 } as const;
 
-export type UserResponseSocialType = typeof UserResponseSocialType[keyof typeof UserResponseSocialType];
-
+export type UserResponseSocialType =
+  (typeof UserResponseSocialType)[keyof typeof UserResponseSocialType];
 
 export const UserResponseSocialType = {
-  LOCAL: 'LOCAL',
-  GOOGLE: 'GOOGLE',
-  NAVER: 'NAVER',
-  KAKAO: 'KAKAO',
-  FIREBASE: 'FIREBASE',
+  LOCAL: "LOCAL",
+  GOOGLE: "GOOGLE",
+  NAVER: "NAVER",
+  KAKAO: "KAKAO",
+  FIREBASE: "FIREBASE",
 } as const;
 
 export interface UserResponse {
@@ -832,30 +843,30 @@ export interface CommonResponseListRefreshTokenResponse {
 }
 
 export type GetStoresParams = {
-/**
- * 검색 키워드 (상점 이름)
- */
-keyword?: string;
-/**
- * 카테고리 필터
- */
-category?: GetStoresCategory;
-/**
- * 페이징 정보 (page, size, sort)
- */
-pageable: Pageable;
+  /**
+   * 검색 키워드 (상점 이름)
+   */
+  keyword?: string;
+  /**
+   * 카테고리 필터
+   */
+  category?: GetStoresCategory;
+  /**
+   * 페이징 정보 (page, size, sort)
+   */
+  pageable: Pageable;
 };
 
-export type GetStoresCategory = typeof GetStoresCategory[keyof typeof GetStoresCategory];
-
+export type GetStoresCategory =
+  (typeof GetStoresCategory)[keyof typeof GetStoresCategory];
 
 export const GetStoresCategory = {
-  BAR: 'BAR',
-  CAFE: 'CAFE',
-  RESTAURANT: 'RESTAURANT',
-  ENTERTAINMENT: 'ENTERTAINMENT',
-  BEAUTY_HEALTH: 'BEAUTY_HEALTH',
-  ETC: 'ETC',
+  BAR: "BAR",
+  CAFE: "CAFE",
+  RESTAURANT: "RESTAURANT",
+  ENTERTAINMENT: "ENTERTAINMENT",
+  BEAUTY_HEALTH: "BEAUTY_HEALTH",
+  ETC: "ETC",
 } as const;
 
 export type CreateStoreBody = {
@@ -865,10 +876,10 @@ export type CreateStoreBody = {
 };
 
 export type GetReviewsParams = {
-/**
- * 페이징 정보
- */
-pageable: Pageable;
+  /**
+   * 페이징 정보
+   */
+  pageable: Pageable;
 };
 
 export type CreateReviewBody = {
@@ -878,10 +889,10 @@ export type CreateReviewBody = {
 };
 
 export type GetStoreNewsListParams = {
-/**
- * 페이징 정보 (page, size, sort)
- */
-pageable: Pageable;
+  /**
+   * 페이징 정보 (page, size, sort)
+   */
+  pageable: Pageable;
 };
 
 export type CreateStoreNewsBody = {
@@ -897,15 +908,15 @@ export type CreateItemBody = {
 };
 
 export type GetCommentsParams = {
-/**
- * 페이징 정보
- */
-pageable: Pageable;
+  /**
+   * 페이징 정보
+   */
+  pageable: Pageable;
 };
 
 export type CompleteSocialSignupParams = {
-userId: number;
-request: CompleteSocialSignupRequest;
+  userId: number;
+  request: CompleteSocialSignupRequest;
 };
 
 export type UploadExcelBody = {
@@ -936,19 +947,18 @@ export type UpdateItemBody = {
   request: UpdateItemRequest;
 };
 
-export type HealthCheck200 = {[key: string]: { [key: string]: unknown }};
+export type HealthCheck200 = { [key: string]: { [key: string]: unknown } };
 
 export type GetMyFavoritesParams = {
-/**
- * 페이징 정보
- */
-pageable: Pageable;
+  /**
+   * 페이징 정보
+   */
+  pageable: Pageable;
 };
 
 export type GetAllUsersParams = {
-/**
- * 페이징 정보
- */
-pageable: Pageable;
+  /**
+   * 페이징 정보
+   */
+  pageable: Pageable;
 };
-
