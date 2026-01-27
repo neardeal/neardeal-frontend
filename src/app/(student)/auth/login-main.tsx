@@ -7,9 +7,18 @@ import { rs } from "@/src/shared/theme/scale";
 
 import { SignupIcons } from "@/assets/images/icons/signup";
 import NearDealLogo from "@/assets/images/logo/neardeal-logo.svg";
+import { useGoogleLogin } from "@/src/shared/lib/auth/use-google-login";
+import { useKakaoLogin } from "@/src/shared/lib/auth/use-kakao-login";
 
 export default function SignInPage() {
   const router = useRouter();
+  const { login: kakaoLogin, isReady: isKakaoReady } = useKakaoLogin();
+  const { login: googleLogin, isReady: isGoogleReady } = useGoogleLogin();
+
+  // 임시
+  const appleLogin = () => {
+    router.replace("/(student)/(tabs)")
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
@@ -43,19 +52,30 @@ export default function SignInPage() {
         </View>
 
         {/* Social Buttons */}
-        <Pressable style={styles.socialButton}>
+        <Pressable
+          style={[styles.socialButton, !isKakaoReady && styles.disabledButton]}
+          onPress={kakaoLogin}
+          disabled={!isKakaoReady}
+        >
           <SignupIcons.kakao width={20} height={20} />
           <Text style={styles.socialButtonText}>카카오로 시작하기</Text>
         </Pressable>
 
-        <Pressable style={styles.socialButton}>
+        <Pressable
+          style={[styles.socialButton, !isGoogleReady && styles.disabledButton]}
+          onPress={googleLogin}
+          disabled={!isGoogleReady}
+        >
           <SignupIcons.google width={20} height={20} />
           <Text style={styles.socialButtonText}>Google로 시작하기</Text>
         </Pressable>
 
-        <Pressable style={styles.socialButton}>
+        <Pressable 
+          style={styles.socialButton}
+          onPress={appleLogin}
+        >
           <SignupIcons.apple width={20} height={20} />
-          <Text style={styles.socialButtonText}>Apple로 시작하기</Text>
+          <Text style={styles.socialButtonText}>Apple로 시작하기(메인화면으로-임시)</Text>
         </Pressable>
 
         {/* Terms Text */}
@@ -158,5 +178,8 @@ const styles = StyleSheet.create({
   termsLink: {
     color: "#000000",
     fontWeight: "600",
+  },
+  disabledButton: {
+    opacity: 0.5,
   },
 });
