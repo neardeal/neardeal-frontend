@@ -3,6 +3,7 @@ import { BottomFixedBar } from '@/src/app/(student)/components/store/bottom-bar'
 import { StoreContent } from '@/src/app/(student)/components/store/content';
 import { StoreHeader } from '@/src/app/(student)/components/store/header';
 import { ThemedText } from '@/src/shared/common/themed-text';
+import { UNIVERSITY_OPTIONS } from '@/src/shared/constants/store';
 import { DUMMY_STORE_DETAILS } from '@/src/shared/data/mock/store';
 import { rs } from '@/src/shared/theme/scale';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -16,9 +17,29 @@ export default function StoreDetailScreen() {
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState('news');
   const [isLiked, setIsLiked] = useState(false);
+  const [selectedUniversityId, setSelectedUniversityId] = useState<number | null>(null);
 
   // TODO: API 연동 시 fetch로 교체
   const store = DUMMY_STORE_DETAILS.find((s) => s.id === id);
+
+  // const { data, isLoading, error } = useGetStore(Number(id));
+  // const store = data?.data?.data; // API 응답 구조에 맞게
+
+  // if (isLoading) return <LoadingSpinner />;
+  // if (error) return <ErrorView />;
+
+  // 선택된 대학 라벨 (없으면 store 기본값 사용)
+  const selectedUniversity = selectedUniversityId
+    ? UNIVERSITY_OPTIONS.find((opt) => opt.id === selectedUniversityId)?.label ?? store?.university
+    : store?.university;
+
+  // 선택된 단과대학에 맞는 쿠폰만 필터링
+  // targetOrganizationId가 없거나 null이면 전체 대상 쿠폰
+  const filteredCoupons = store?.coupons.filter(
+    (coupon) =>
+      !coupon.targetOrganizationId ||
+      coupon.targetOrganizationId === selectedUniversityId
+  ) ?? [];
 
   if (!store) {
     return (
@@ -68,16 +89,17 @@ export default function StoreDetailScreen() {
           reviewCount={store.reviewCount}
           address={store.address}
           openHours={store.openHours}
-          university={store.university}
+          university={selectedUniversity ?? store.university}
           isPartner={store.isPartner}
           onBack={handleBack}
           onLike={handleLike}
+          onUniversityChange={setSelectedUniversityId}
         />
 
         <View style={styles.content}>
           <StoreBenefits
             benefits={store.benefits}
-            coupons={store.coupons}
+            coupons={filteredCoupons}
           />
 
           <StoreContent
