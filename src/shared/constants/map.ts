@@ -26,6 +26,14 @@ export const BOTTOM_FILTERS = [
   { id: 'event', label: '이벤트' },
 ];
 
+// 거리 필터 옵션
+export const DISTANCE_OPTIONS = [
+  { id: '0', label: '0km' },
+  { id: '1', label: '1km' },
+  { id: '3', label: '3km' },
+  { id: '5', label: '5km' },
+];
+
 // 바텀시트 snap points 인덱스
 export const SNAP_INDEX = {
   COLLAPSED: 0,  // 접힌 상태 (탭바 보임)
