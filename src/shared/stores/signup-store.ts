@@ -18,7 +18,7 @@ interface SignupState {
   ownerEmail: string;
   ownerPhone: string;
 
-  // Step 2: student-verification.tsx에서 입력
+  // Step 2 (학생): student-verification.tsx에서 입력
   universityId: number | null;
   universityName: string;
   collegeId: number | null;
@@ -26,6 +26,14 @@ interface SignupState {
   departmentId: number | null;
   departmentName: string;
   studentEmail: string; // 학생 이메일 인증용
+
+  // Step 2 (점주): sign-up-owner.tsx에서 입력
+  storeName: string;
+  storePhone: string;
+  representativeName: string;
+  businessNumber: string;
+  openDate: string;
+  businessImageUri: string;
 
   // Actions
   setSignupField: <K extends keyof SignupState>(
@@ -54,6 +62,12 @@ const initialState: Omit<SignupState, "setSignupField" | "setSignupFields" | "re
   departmentId: null,
   departmentName: "",
   studentEmail: "",
+  storeName: "",
+  storePhone: "",
+  representativeName: "",
+  businessNumber: "",
+  openDate: "",
+  businessImageUri: "",
 };
 
 export const useSignupStore = create<SignupState>((set) => ({

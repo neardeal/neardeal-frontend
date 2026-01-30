@@ -134,6 +134,7 @@ export default function SignupTypePage() {
   const [birthDay, setBirthDay] = useState("");
   const [username, setUsername] = useState("");
   const [isUsernameChecked, setIsUsernameChecked] = useState(false);
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -169,13 +170,8 @@ export default function SignupTypePage() {
     if (isStudent) {
       return commonValid && nickname.length >= 2 && nickname.length <= 10;
     } else {
-      return (
-        commonValid &&
-        email.length > 0 &&
-        isEmailVerified &&
-        phone.length > 0 &&
-        isPhoneVerified
-      );
+      // TODO: 인증 API 연동 후 isEmailVerified && isPhoneVerified 조건 복원
+      return commonValid;
     }
   };
 
@@ -185,15 +181,26 @@ export default function SignupTypePage() {
 
   const handleCheckUsername = async () => {
     if (!username) return;
+    console.log("=== 아이디 중복 확인 시작 ===");
+    console.log("확인할 아이디:", username);
     try {
       const response = await checkUsernameAvailability({ username });
+      console.log("API 응답:", JSON.stringify(response.data, null, 2));
       const available = response.data?.data ?? false;
-      setIsUsernameChecked(available);
-      // TODO: 중복 시 에러 메시지 표시
+      console.log("사용 가능 여부:", available);
+      setIsUsernameChecked(true);
+      setUsernameAvailable(available);
+      if (available) {
+        console.log("✅ 사용 가능한 아이디입니다");
+      } else {
+        console.log("❌ 이미 사용중인 아이디입니다");
+      }
     } catch (error) {
       console.error("아이디 중복 확인 실패:", error);
       setIsUsernameChecked(false);
+      setUsernameAvailable(null);
     }
+    console.log("=== 아이디 중복 확인 완료 ===");
   };
 
   const handleRequestEmailCode = async () => {
@@ -240,7 +247,17 @@ export default function SignupTypePage() {
         ownerPhone: phone,
       });
 
-      router.push("/auth/sign-up-verify");
+      console.log("handleNext userType:", userType);
+      if (userType === "owner") {
+        try {
+          console.log("navigating to /auth/sign-up-owner");
+          router.push("/auth/sign-up-owner");
+        } catch (e) {
+          console.error("navigation error:", e);
+        }
+      } else {
+        router.push("/auth/sign-up-verify");
+      }
     }
   };
 
@@ -364,7 +381,11 @@ export default function SignupTypePage() {
 
                 {/* 아이디 */}
                 <View style={styles.inputGroup}>
-                  <View style={styles.inputContainer}>
+                  <View style={[
+                    styles.inputContainer,
+                    usernameAvailable === true && styles.inputSuccess,
+                    usernameAvailable === false && styles.inputError,
+                  ]}>
                     <TextInput
                       style={styles.input}
                       placeholder="아이디"
@@ -373,21 +394,39 @@ export default function SignupTypePage() {
                       onChangeText={(text) => {
                         setUsername(text);
                         setIsUsernameChecked(false);
+                        setUsernameAvailable(null);
                       }}
                       autoCapitalize="none"
                       maxLength={16}
                     />
                     <TouchableOpacity
-                      style={[styles.smallButton, { backgroundColor: username ? Gray.gray5 : Gray.gray5 }]}
+                      style={[
+                        styles.smallButton,
+                        { backgroundColor: usernameAvailable === true ? "#22C55E" : (username ? primaryColor : Gray.gray5) }
+                      ]}
                       onPress={handleCheckUsername}
                       disabled={!username}
                     >
-                      <ThemedText style={styles.smallButtonText}>중복 확인</ThemedText>
+                      <ThemedText style={styles.smallButtonText}>
+                        {usernameAvailable === true ? "확인완료" : "중복 확인"}
+                      </ThemedText>
                     </TouchableOpacity>
                   </View>
-                  <ThemedText style={styles.errorText}>
-                    아이디는 영어, 숫자를 포함한 4~16자 이내로 입력해주세요
-                  </ThemedText>
+                  {usernameAvailable === true && (
+                    <ThemedText style={styles.successText}>
+                      사용 가능한 아이디입니다
+                    </ThemedText>
+                  )}
+                  {usernameAvailable === false && (
+                    <ThemedText style={styles.errorText}>
+                      이미 사용중인 아이디입니다
+                    </ThemedText>
+                  )}
+                  {usernameAvailable === null && (
+                    <ThemedText style={styles.hintText}>
+                      아이디는 영어, 숫자를 포함한 4~16자 이내로 입력해주세요
+                    </ThemedText>
+                  )}
                 </View>
               </>
             )}
@@ -399,7 +438,11 @@ export default function SignupTypePage() {
               <>
                 {/* 아이디 */}
                 <View style={styles.inputGroup}>
-                  <View style={styles.inputContainer}>
+                  <View style={[
+                    styles.inputContainer,
+                    usernameAvailable === true && styles.inputSuccess,
+                    usernameAvailable === false && styles.inputError,
+                  ]}>
                     <TextInput
                       style={styles.input}
                       placeholder="아이디"
@@ -408,18 +451,39 @@ export default function SignupTypePage() {
                       onChangeText={(text) => {
                         setUsername(text);
                         setIsUsernameChecked(false);
+                        setUsernameAvailable(null);
                       }}
                       autoCapitalize="none"
                       maxLength={16}
                     />
                     <TouchableOpacity
-                      style={[styles.smallButton, { backgroundColor: username ? Gray.gray5 : Gray.gray5 }]}
+                      style={[
+                        styles.smallButton,
+                        { backgroundColor: usernameAvailable === true ? "#22C55E" : (username ? primaryColor : Gray.gray5) }
+                      ]}
                       onPress={handleCheckUsername}
                       disabled={!username}
                     >
-                      <ThemedText style={styles.smallButtonText}>중복 확인</ThemedText>
+                      <ThemedText style={styles.smallButtonText}>
+                        {usernameAvailable === true ? "확인완료" : "중복 확인"}
+                      </ThemedText>
                     </TouchableOpacity>
                   </View>
+                  {usernameAvailable === true && (
+                    <ThemedText style={styles.successText}>
+                      사용 가능한 아이디입니다
+                    </ThemedText>
+                  )}
+                  {usernameAvailable === false && (
+                    <ThemedText style={styles.errorText}>
+                      이미 사용중인 아이디입니다
+                    </ThemedText>
+                  )}
+                  {usernameAvailable === null && (
+                    <ThemedText style={styles.hintText}>
+                      아이디는 영어, 숫자를 포함한 4~16자 이내로 입력해주세요
+                    </ThemedText>
+                  )}
                 </View>
 
                 {/* 이메일 */}
@@ -664,6 +728,22 @@ const styles = StyleSheet.create({
     fontSize: rs(10),
     color: System.error,
     paddingLeft: rs(4),
+  },
+  successText: {
+    fontSize: rs(10),
+    color: "#22C55E",
+    paddingLeft: rs(4),
+  },
+  hintText: {
+    fontSize: rs(10),
+    color: Gray.gray5,
+    paddingLeft: rs(4),
+  },
+  inputSuccess: {
+    borderColor: "#22C55E",
+  },
+  inputError: {
+    borderColor: System.error,
   },
   bottomContent: {
     paddingTop: rs(16),

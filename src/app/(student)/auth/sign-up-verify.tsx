@@ -1,3 +1,6 @@
+import { useLogin, useSignupStudent } from "@/src/api/auth";
+import { CommonResponseLoginResponse } from "@/src/api/generated.schemas";
+import { useAuth } from "@/src/shared/lib/auth";
 import { OrganizationResponseCategory } from "@/src/api/generated.schemas";
 import { useGetOrganizations } from "@/src/api/organization";
 import { AppButton } from "@/src/shared/common/app-button";
@@ -37,9 +40,24 @@ function ChevronDownIcon({ color = Gray.gray6 }: { color?: string }) {
 export default function StudentVerificationPage() {
   const router = useRouter();
 
-  // Store에서 닉네임 가져오기
-  const nickname = useSignupStore((state) => state.nickname) || "닉네임";
-  const setSignupFields = useSignupStore((state) => state.setSignupFields);
+  // Store에서 회원가입 정보 가져오기
+  const {
+    nickname,
+    username,
+    password,
+    gender,
+    birthYear,
+    birthMonth,
+    birthDay,
+    setSignupFields,
+  } = useSignupStore();
+
+  // Auth
+  const { handleAuthSuccess } = useAuth();
+
+  // Mutations
+  const signupMutation = useSignupStudent();
+  const loginMutation = useLogin();
 
   // TODO: 실제로는 선택된 대학 ID 사용
   const universityId = 1;
@@ -49,7 +67,7 @@ export default function StudentVerificationPage() {
   const [verificationCode, setVerificationCode] = useState("");
   const [isCodeSent, setIsCodeSent] = useState(false);
   const [timer, setTimer] = useState(295); // 4:55
-  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [isEmailVerified, setIsEmailVerified] = useState(true); // TODO: 테스트용 - 나중에 false로 변경
 
   // 단과대학/학과 선택 상태
   const [selectedCollegeId, setSelectedCollegeId] = useState<number | null>(null);
@@ -133,21 +151,75 @@ export default function StudentVerificationPage() {
 
   // 완료 처리
   const handleComplete = () => {
-    if (!isFormValid) return;
+    if (!isFormValid || !selectedCollegeId || !selectedDepartmentId) return;
 
-    // Store에 학교 정보 저장
-    setSignupFields({
-      universityId,
-      universityName: "전북대학교", // TODO: 실제 대학명으로 교체
-      collegeId: selectedCollegeId,
-      collegeName: selectedCollegeName,
-      departmentId: selectedDepartmentId,
-      departmentName: selectedDepartmentName,
-      studentEmail: email,
-    });
+    // birthDate 생성 (YYYY-MM-DD)
+    const birthDate = `${birthYear}-${birthMonth.padStart(2, "0")}-${birthDay.padStart(2, "0")}`;
 
-    // TODO: API 호출 후 완료 화면으로 이동
-    router.push("/auth/sign-up-done");
+    // gender 변환 (male/female → MALE/FEMALE)
+    const apiGender = gender === "male" ? "MALE" : "FEMALE";
+
+    // 회원가입 API 호출
+    signupMutation.mutate(
+      {
+        data: {
+          username,
+          password,
+          nickname,
+          gender: apiGender,
+          birthDate,
+          universityId,
+          collegeId: selectedCollegeId,
+          departmentId: selectedDepartmentId,
+        },
+      },
+      {
+        onSuccess: (response) => {
+          console.log("회원가입 성공:", response);
+
+          // Store에 학교 정보 저장
+          setSignupFields({
+            universityId,
+            universityName: "전북대학교", // TODO: 실제 대학명으로 교체
+            collegeId: selectedCollegeId,
+            collegeName: selectedCollegeName,
+            departmentId: selectedDepartmentId,
+            departmentName: selectedDepartmentName,
+            studentEmail: email,
+          });
+
+          // 자동 로그인
+          loginMutation.mutate(
+            { data: { username, password } },
+            {
+              onSuccess: async (loginResponse) => {
+                console.log("로그인 성공:", loginResponse);
+                if (loginResponse.status === 200) {
+                  const data = loginResponse.data as unknown as CommonResponseLoginResponse;
+                  if (data?.data) {
+                    await handleAuthSuccess(
+                      data.data.accessToken ?? "",
+                      data.data.expiresIn ?? 3600,
+                      "ROLE_CUSTOMER"
+                    );
+                  }
+                }
+                router.push("/auth/sign-up-done");
+              },
+              onError: (loginError) => {
+                console.error("자동 로그인 실패:", loginError);
+                // 로그인 실패해도 완료 화면으로 이동 (수동 로그인 유도)
+                router.push("/auth/sign-up-done");
+              },
+            }
+          );
+        },
+        onError: (error) => {
+          console.error("회원가입 실패:", error);
+          // TODO: 에러 처리 (Alert 등)
+        },
+      }
+    );
   };
 
   return (
