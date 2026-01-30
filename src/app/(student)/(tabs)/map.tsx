@@ -184,7 +184,17 @@ export default function MapTab() {
   };
 
   const handleViewStoreDetail = (storeId: string) => {
-    router.push(`/store/${storeId}`);
+    const store = DUMMY_STORES.find(s => s.id === storeId);
+    router.push({
+      pathname: '/store/[id]',
+      params: {
+        id: storeId,
+        name: store?.name ?? '',
+        image: store?.image ?? '',
+        rating: String(store?.rating ?? 0),
+        reviewCount: String(store?.reviewCount ?? 0),
+      },
+    });
   };
 
   // 필터 모달 핸들러
