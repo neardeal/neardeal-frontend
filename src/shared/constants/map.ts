@@ -1,14 +1,22 @@
-// Re-export DUMMY_STORES from data/mock for backward compatibility
-export { DUMMY_STORES } from '@/src/shared/data/mock/store';
-
-// 필터 카테고리
-export const FILTER_CATEGORIES = [
-  { id: 'all', label: '전체', icon: '✓' },
-  { id: 'bungeoppang', label: '붕어빵', icon: '🐟' },
-  { id: 'student-council', label: '총학생회', icon: '👥' },
-  { id: 'club', label: '총동아리', icon: '🎭' },
-  { id: 'notice', label: '공고', icon: '📢' },
+// 카테고리 탭 (디자인 시안 기준)
+export const CATEGORY_TABS = [
+  { id: 'all', label: '전체' },
+  { id: 'EVENT', label: '이벤트' }, // TODO: 서버 이벤트 카테고리 지원 시 연동
+  { id: 'RESTAURANT', label: '식당' },
+  { id: 'BAR', label: '주점' },
+  { id: 'CAFE', label: '카페' },
+  { id: 'ENTERTAINMENT', label: '놀거리' },
 ];
+
+// 카테고리 탭 → API categories 파라미터 매핑
+export const CATEGORY_TO_API: Record<string, string | null> = {
+  all: null,
+  EVENT: null, // TODO: 서버 이벤트 카테고리 지원 시 연동
+  RESTAURANT: 'RESTAURANT',
+  BAR: 'BAR',
+  CAFE: 'CAFE',
+  ENTERTAINMENT: 'ENTERTAINMENT',
+};
 
 // 정렬 옵션
 export const SORT_OPTIONS = [
@@ -17,13 +25,6 @@ export const SORT_OPTIONS = [
   { id: 'rating', label: '별점순' },
   { id: 'reviews', label: '리뷰 많은순' },
   { id: 'benefits', label: '혜택 많은순' },
-];
-
-// 바텀 시트 필터 버튼
-export const BOTTOM_FILTERS = [
-  { id: 'nearby', label: '내 주변' },
-  { id: 'storeType', label: '가게 종류' },
-  { id: 'event', label: '이벤트' },
 ];
 
 // 거리 필터 옵션
@@ -36,9 +37,9 @@ export const DISTANCE_OPTIONS = [
 
 // 바텀시트 snap points 인덱스
 export const SNAP_INDEX = {
-  COLLAPSED: 0,  // 접힌 상태 (탭바 보임)
-  HALF: 1,       // 중간 상태 (탭바 숨김)
-  FULL: 2,       // 펼친 상태 (탭바 숨김)
+  COLLAPSED: 0, // 접힌 상태 (탭바 보임)
+  HALF: 1, // 중간 상태 (탭바 숨김)
+  FULL: 2, // 펼친 상태 (탭바 숨김)
 } as const;
 
 // 가게 종류 (API: categories)
