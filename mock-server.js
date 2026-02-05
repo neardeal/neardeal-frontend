@@ -14,151 +14,171 @@ const stores = [
     id: 1,
     userId: 5,
     name: "맛있는 파스타",
-    roadAddress: "서울시 강남구 역삼로 1",
-    jibunAddress: "서울시 강남구 역삼동 100-1",
-    phone: "02-1234-5678",
+    roadAddress: "전주시 덕진구 백제대로 567",
+    jibunAddress: "전주시 덕진구 덕진동1가 100-1",
+    phone: "063-1234-5678",
     introduction: "전통 이탈리안 파스타 전문점입니다.",
     operatingHours: "매일 11:00 - 22:00",
-    latitude: 37.498095,
-    longitude: 127.02761,
+    latitude: 35.8468,
+    longitude: 127.1293,
     storeCategories: ["RESTAURANT"],
     storeMoods: ["GROUP_GATHERING", "ROMANTIC"],
     imageUrls: ["https://picsum.photos/seed/store1/400/300"],
+    isPartner: true,
+    hasCoupon: true,
   },
   {
     id: 2,
     userId: 5,
     name: "아늑한 카페",
-    roadAddress: "서울시 종로구 명륜동 2",
-    jibunAddress: "서울시 종로구 명륜동 200-2",
-    phone: "02-2345-6789",
+    roadAddress: "전주시 덕진구 기린대로 460",
+    jibunAddress: "전주시 덕진구 금암동 200-2",
+    phone: "063-2345-6789",
     introduction: "넓고 쾌적한 스터디하기 좋은 카페",
     operatingHours: "매일 09:00 - 23:00",
-    latitude: 37.588284,
-    longitude: 126.992224,
+    latitude: 35.8425,
+    longitude: 127.1325,
     storeCategories: ["CAFE"],
     storeMoods: ["SOLO_DINING"],
     imageUrls: ["https://picsum.photos/seed/store2/400/300"],
+    isPartner: true,
+    hasCoupon: true,
   },
   {
     id: 3,
     userId: 6,
     name: "매운 떡볶이",
-    roadAddress: "서울시 서대문구 대현동 3",
-    jibunAddress: "서울시 서대문구 대현동 300-3",
-    phone: "02-3456-7890",
+    roadAddress: "전주시 덕진구 백제대로 680",
+    jibunAddress: "전주시 덕진구 덕진동2가 300-3",
+    phone: "063-3456-7890",
     introduction: "스트레스 한방에 날리는 매운맛!",
     operatingHours: "매일 14:00 - 02:00",
-    latitude: 37.556754,
-    longitude: 126.945892,
+    latitude: 35.8390,
+    longitude: 127.1260,
     storeCategories: ["RESTAURANT"],
     storeMoods: ["LATE_NIGHT", "GROUP_GATHERING"],
     imageUrls: ["https://picsum.photos/seed/store3/400/300"],
+    isPartner: true,
+    hasCoupon: true,
   },
   {
     id: 4,
     userId: 6,
     name: "든든 국밥",
-    roadAddress: "서울시 성북구 안암동 4",
-    jibunAddress: "서울시 성북구 안암동 400-4",
-    phone: "02-4567-8901",
+    roadAddress: "전주시 덕진구 기린대로 502",
+    jibunAddress: "전주시 덕진구 덕진동1가 400-4",
+    phone: "063-4567-8901",
     introduction: "24시간 정성껏 끓인 국밥",
     operatingHours: "24시간 영업",
-    latitude: 37.586419,
-    longitude: 127.029053,
+    latitude: 35.8375,
+    longitude: 127.1310,
     storeCategories: ["RESTAURANT"],
     storeMoods: ["SOLO_DINING", "LATE_NIGHT"],
     imageUrls: ["https://picsum.photos/seed/store4/400/300"],
+    isPartner: true,
+    hasCoupon: true,
   },
   {
     id: 5,
     userId: 7,
     name: "바삭 치킨",
-    roadAddress: "서울시 성동구 행당동 5",
-    jibunAddress: "서울시 성동구 행당동 500-5",
-    phone: "02-5678-9012",
+    roadAddress: "전주시 덕진구 백제대로 712",
+    jibunAddress: "전주시 덕진구 덕진동1가 500-5",
+    phone: "063-5678-9012",
     introduction: "겉바속이 치킨의 정석",
     operatingHours: "매일 16:00 - 04:00",
-    latitude: 37.561726,
-    longitude: 127.037409,
+    latitude: 35.8500,
+    longitude: 127.1340,
     storeCategories: ["RESTAURANT"],
     storeMoods: ["LATE_NIGHT", "GROUP_GATHERING"],
     imageUrls: ["https://picsum.photos/seed/store5/400/300"],
+    isPartner: true,
+    hasCoupon: true,
   },
   {
     id: 6,
     userId: 7,
     name: "피자 천국",
-    roadAddress: "서울시 동작구 흑석동 6",
-    jibunAddress: "서울시 동작구 흑석동 600-6",
-    phone: "02-6789-0123",
+    roadAddress: "전주시 덕진구 기린대로 388",
+    jibunAddress: "전주시 덕진구 금암동 600-6",
+    phone: "063-6789-0123",
     introduction: "토핑이 듬뿍 들어간 수제 피자",
     operatingHours: "매일 11:30 - 23:30",
-    latitude: 37.508821,
-    longitude: 126.963784,
+    latitude: 35.8335,
+    longitude: 127.1275,
     storeCategories: ["RESTAURANT"],
     storeMoods: ["GROUP_GATHERING"],
     imageUrls: ["https://picsum.photos/seed/store6/400/300"],
+    isPartner: true,
+    hasCoupon: true,
   },
   {
     id: 7,
     userId: null,
     name: "버거 농장",
-    roadAddress: "서울시 동대문구 휘기동 7",
-    jibunAddress: "서울시 동대문구 휘기동 700-7",
-    phone: "02-7890-1234",
+    roadAddress: "전주시 덕진구 백제대로 590",
+    jibunAddress: "전주시 덕진구 덕진동2가 700-7",
+    phone: "063-7890-1234",
     introduction: "육즙 가득한 수제 버거 맛집",
     operatingHours: "매일 10:30 - 21:00",
-    latitude: 37.589808,
-    longitude: 127.057913,
+    latitude: 35.8410,
+    longitude: 127.1225,
     storeCategories: ["RESTAURANT"],
     storeMoods: ["SOLO_DINING"],
     imageUrls: ["https://picsum.photos/seed/store7/400/300"],
+    isPartner: false,
+    hasCoupon: true,
   },
   {
     id: 8,
     userId: null,
     name: "이밥 달인",
-    roadAddress: "서울시 동대문구 이문동 8",
-    jibunAddress: "서울시 동대문구 이문동 800-8",
-    phone: "02-8901-2345",
+    roadAddress: "전주시 덕진구 기린대로 530",
+    jibunAddress: "전주시 덕진구 덕진동1가 800-8",
+    phone: "063-8901-2345",
     introduction: "신선한 재료로 만드는 프리미엄 이밥",
     operatingHours: "매일 11:30 - 22:00",
-    latitude: 37.595605,
-    longitude: 127.062831,
+    latitude: 35.8485,
+    longitude: 127.1355,
     storeCategories: ["RESTAURANT"],
     storeMoods: ["SOLO_DINING"],
     imageUrls: ["https://picsum.photos/seed/store8/400/300"],
+    isPartner: false,
+    hasCoupon: false,
   },
   {
     id: 9,
     userId: null,
     name: "감성 포차",
-    roadAddress: "서울시 마포구 전농동 9",
-    jibunAddress: "서울시 마포구 전농동 900-9",
-    phone: "02-9012-3456",
+    roadAddress: "전주시 덕진구 백제대로 645",
+    jibunAddress: "전주시 덕진구 금암동 900-9",
+    phone: "063-9012-3456",
     introduction: "분위기 좋은 감성 안주 주점",
     operatingHours: "매일 18:00 - 05:00",
-    latitude: 37.547146,
-    longitude: 126.936551,
+    latitude: 35.8352,
+    longitude: 127.1240,
     storeCategories: ["BAR"],
     storeMoods: ["LATE_NIGHT", "ROMANTIC"],
     imageUrls: ["https://picsum.photos/seed/store9/400/300"],
+    isPartner: false,
+    hasCoupon: false,
   },
   {
     id: 10,
     userId: null,
     name: "달콤 베이커리",
-    roadAddress: "서울시 성동구 성수동 10",
-    jibunAddress: "서울시 성동구 성수동 1000-10",
-    phone: "02-0123-4567",
+    roadAddress: "전주시 덕진구 기린대로 475",
+    jibunAddress: "전주시 덕진구 덕진동2가 1000-10",
+    phone: "063-0123-4567",
     introduction: "매일 아침 구워내는 신선한 빵",
     operatingHours: "매일 08:00 - 21:00",
-    latitude: 37.544569,
-    longitude: 127.056073,
+    latitude: 35.8440,
+    longitude: 127.1380,
     storeCategories: ["CAFE"],
     storeMoods: ["SOLO_DINING"],
     imageUrls: ["https://picsum.photos/seed/store10/400/300"],
+    isPartner: false,
+    hasCoupon: false,
   },
 ];
 
@@ -808,6 +828,145 @@ const favoriteCounts = {
   10: 7,
 };
 
+// ── 이벤트 데이터 ─────────────────────────────────────────────
+// 다양한 상태 테스트를 위해 날짜를 동적으로 생성
+const now = new Date();
+const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+function addDays(date, days) {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
+}
+
+function toISO(date, hour = 0, min = 0) {
+  const d = new Date(date);
+  d.setHours(hour, min, 0, 0);
+  return d.toISOString();
+}
+
+const events = [
+  // 1. 진행중 (live) - 오늘 진행
+  {
+    id: 1,
+    title: "2026년 한화생명 온라인 라이브 채용설명회",
+    description: "안녕하세요, 루키입니다 😊\n\n전북대학교 교내에서 진행되는 한화생명 채용설명회 소식을 안내드려요.\n이번 설명회에서는\n한화생명의 기업 소개부터 채용 절차, 직무 이야기까지\n학생분들께 도움이 될 만한 내용을 직접 들으실 수 있어요.\n\n📍 장소: 진수당 앞\n🕐 일시: 오후 1시~5시까지\n또한 설명회에 참여해 주신 분들께는\n아메리카노를 드립니다 ☕\n지금 진수당 앞에서 바로 참여해 보세요!\nURL: WWW.LOOKYGOD.COM",
+    eventTypes: ["SCHOOL_EVENT"],
+    latitude: 35.8468,
+    longitude: 127.1293,
+    startDateTime: toISO(today, 13, 0),
+    endDateTime: toISO(today, 17, 0),
+    status: "LIVE",
+    imageUrls: [
+      "https://picsum.photos/seed/event1/400/200",
+      "https://picsum.photos/seed/event1b/400/200",
+    ],
+    createdAt: toISO(addDays(today, -3)),
+  },
+  // 2. 진행중 (live) - 오늘부터 내일까지
+  {
+    id: 2,
+    title: "전북대 플리마켓 - 봄맞이 대축제",
+    description: "학생회관 앞 광장에서 열리는 봄맞이 플리마켓!\n\n다양한 수공예품, 빈티지 의류, 맛있는 먹거리가 준비되어 있습니다.\n\n📍 장소: 학생회관 앞 광장\n🕐 시간: 10:00 ~ 18:00",
+    eventTypes: ["FLEA_MARKET"],
+    latitude: 35.8425,
+    longitude: 127.1325,
+    startDateTime: toISO(today, 10, 0),
+    endDateTime: toISO(addDays(today, 1), 18, 0),
+    status: "LIVE",
+    imageUrls: ["https://picsum.photos/seed/event2/400/200"],
+    createdAt: toISO(addDays(today, -7)),
+  },
+  // 3. 예정 (upcoming) - 3일 후 시작
+  {
+    id: 3,
+    title: "캠퍼스 버스킹 페스티벌",
+    description: "음악과 함께하는 봄밤!\n\n교내 밴드부와 동아리의 라이브 공연을 즐겨보세요.\n\n📍 장소: 중앙도서관 앞 잔디광장\n🕐 시간: 18:00 ~ 21:00\n\n🎵 참여 팀: 락밴드 '폭풍', 어쿠스틱 듀오 '봄날'",
+    eventTypes: ["PERFORMANCE"],
+    latitude: 35.8390,
+    longitude: 127.1260,
+    startDateTime: toISO(addDays(today, 3), 18, 0),
+    endDateTime: toISO(addDays(today, 3), 21, 0),
+    status: "UPCOMING",
+    imageUrls: ["https://picsum.photos/seed/event3/400/200"],
+    createdAt: toISO(addDays(today, -5)),
+  },
+  // 4. 예정 (upcoming) - 5일 후 시작
+  {
+    id: 4,
+    title: "브랜드 팝업스토어 - 나이키 캠퍼스 투어",
+    description: "나이키가 전북대에 찾아옵니다!\n\n신상품 체험, 한정판 굿즈 증정, 포토존 운영\n\n📍 장소: 공과대학 1호관 로비\n🕐 시간: 11:00 ~ 19:00\n\n선착순 100명 한정 에코백 증정!",
+    eventTypes: ["POPUP_STORE"],
+    latitude: 35.8375,
+    longitude: 127.1310,
+    startDateTime: toISO(addDays(today, 5), 11, 0),
+    endDateTime: toISO(addDays(today, 7), 19, 0),
+    status: "UPCOMING",
+    imageUrls: [
+      "https://picsum.photos/seed/event4/400/200",
+      "https://picsum.photos/seed/event4b/400/200",
+      "https://picsum.photos/seed/event4c/400/200",
+    ],
+    createdAt: toISO(addDays(today, -10)),
+  },
+  // 5. 예정 (upcoming) - 6일 후 (D-6, 거의 일주일 전 경계)
+  {
+    id: 5,
+    title: "푸드트럭 페스티벌",
+    description: "전국 유명 푸드트럭 20대 집결!\n\n타코, 버거, 꼬치, 디저트까지 다양한 먹거리\n\n📍 장소: 운동장 주차장\n🕐 시간: 11:00 ~ 21:00\n\n학생증 제시 시 10% 할인!",
+    eventTypes: ["FOOD_EVENT"],
+    latitude: 35.8500,
+    longitude: 127.1340,
+    startDateTime: toISO(addDays(today, 6), 11, 0),
+    endDateTime: toISO(addDays(today, 8), 21, 0),
+    status: "UPCOMING",
+    imageUrls: ["https://picsum.photos/seed/event5/400/200"],
+    createdAt: toISO(addDays(today, -2)),
+  },
+  // 6. 종료 (ended) - 오늘 아침에 끝남 (자정까지 보임)
+  {
+    id: 6,
+    title: "새벽 요가 클래스",
+    description: "아침을 여는 힐링 요가!\n\n📍 장소: 체육관 앞 잔디\n🕐 시간: 06:00 ~ 07:30",
+    eventTypes: ["COMMUNITY"],
+    latitude: 35.8335,
+    longitude: 127.1275,
+    startDateTime: toISO(today, 6, 0),
+    endDateTime: toISO(today, 7, 30),
+    status: "ENDED",
+    imageUrls: ["https://picsum.photos/seed/event6/400/200"],
+    createdAt: toISO(addDays(today, -14)),
+  },
+  // 7. 안 보임 (8일 후 시작 - D-8이라 아직 안 보여야 함)
+  {
+    id: 7,
+    title: "동아리 박람회",
+    description: "새 학기 동아리 모집!\n\n📍 장소: 학생회관 대강당\n🕐 시간: 10:00 ~ 17:00",
+    eventTypes: ["SCHOOL_EVENT", "COMMUNITY"],
+    latitude: 35.8410,
+    longitude: 127.1225,
+    startDateTime: toISO(addDays(today, 8), 10, 0),
+    endDateTime: toISO(addDays(today, 8), 17, 0),
+    status: "UPCOMING",
+    imageUrls: ["https://picsum.photos/seed/event7/400/200"],
+    createdAt: toISO(addDays(today, -1)),
+  },
+  // 8. 안 보임 (어제 끝남 - 자정 지나서 안 보여야 함)
+  {
+    id: 8,
+    title: "영화 상영회 - 클래식 무비 나잇",
+    description: "야외에서 즐기는 클래식 영화!\n\n📍 장소: 도서관 앞 광장\n🕐 시간: 19:00 ~ 22:00",
+    eventTypes: ["PERFORMANCE"],
+    latitude: 35.8485,
+    longitude: 127.1355,
+    startDateTime: toISO(addDays(today, -1), 19, 0),
+    endDateTime: toISO(addDays(today, -1), 22, 0),
+    status: "ENDED",
+    imageUrls: ["https://picsum.photos/seed/event8/400/200"],
+    createdAt: toISO(addDays(today, -10)),
+  },
+];
+
 // ── 헬퍼 ────────────────────────────────────────────────────
 
 function ok(data) {
@@ -953,6 +1112,35 @@ const server = http.createServer((req, res) => {
     return res.end(ok(pageResponse(filtered, page, size)));
   }
 
+  // GET /api/events (이벤트 목록)
+  if (path === "/api/events" && req.method === "GET") {
+    const page = parseInt(query.page || "0");
+    const size = parseInt(query.size || "50");
+
+    // status 필터 (UPCOMING, LIVE, ENDED)
+    const statusFilter = query.status ? query.status.split(",") : null;
+
+    let filtered = events;
+    if (statusFilter) {
+      filtered = events.filter((e) => statusFilter.includes(e.status));
+    }
+
+    res.writeHead(200);
+    return res.end(ok(pageResponse(filtered, page, size)));
+  }
+
+  // GET /api/events/:id (이벤트 상세)
+  m = path.match(/^\/api\/events\/(\d+)$/);
+  if (m && req.method === "GET") {
+    const event = events.find((e) => e.id === +m[1]);
+    if (!event) {
+      res.writeHead(404);
+      return res.end(JSON.stringify({ isSuccess: false, data: null }));
+    }
+    res.writeHead(200);
+    return res.end(ok(event));
+  }
+
   // POST /api/auth/login (더미 토큰)
   if (path === "/api/auth/login" && req.method === "POST") {
     res.writeHead(200);
@@ -981,6 +1169,9 @@ server.listen(4010, () => {
   console.log("  GET /api/stores/:id/news?page=0&size=20");
   console.log("  GET /api/stores/:id/items");
   console.log("  GET /api/stores");
+  console.log("  GET /api/events");
+  console.log("  GET /api/events/:id");
   console.log("");
-  console.log("Stores: 1~10 | Try: curl http://localhost:4010/api/stores/1");
+  console.log("Stores: 1~10 | Events: 1~8");
+  console.log("Try: curl http://localhost:4010/api/events");
 });
