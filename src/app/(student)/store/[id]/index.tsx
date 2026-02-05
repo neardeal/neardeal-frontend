@@ -86,7 +86,8 @@ export default function StoreDetailScreen() {
 
   // 쿠폰 목록
   const { data: couponsRes } = useGetCouponsByStore(storeId);
-  const apiCoupons = ((couponsRes as any)?.data?.data ?? []) as CouponResponse[];
+  const rawCoupons = (couponsRes as any)?.data?.data;
+  const apiCoupons = (Array.isArray(rawCoupons) ? rawCoupons : []) as CouponResponse[];
 
   // 소식 (paginated)
   const { data: newsRes, isLoading: isNewsLoading } = useGetStoreNewsList(
