@@ -143,18 +143,39 @@ export function useMapSearch() {
     return transformStoreResponses(storeResponses, myLocation);
   }, [storeResponses, myLocation]);
 
-  // 거리 필터 적용 (클라이언트 필터링)
+  // 거리 필터 + 정렬 적용 (클라이언트)
   const filteredStores: Store[] = useMemo(() => {
+    let result = [...stores];
+
+    // 거리 필터
     const maxKm = parseInt(selectedDistance);
-    if (maxKm === 0 || !myLocation) return stores;
-    return stores.filter((store) => {
-      if (!store.lat || !store.lng) return false;
-      return (
-        getDistanceKm(myLocation.lat, myLocation.lng, store.lat, store.lng) <=
-        maxKm
-      );
-    });
-  }, [stores, myLocation, selectedDistance]);
+    if (maxKm > 0 && myLocation) {
+      result = result.filter((store) => {
+        if (!store.lat || !store.lng) return false;
+        return (
+          getDistanceKm(myLocation.lat, myLocation.lng, store.lat, store.lng) <=
+          maxKm
+        );
+      });
+    }
+
+    // 정렬
+    if (selectedSort === 'distance' && myLocation) {
+      result.sort((a, b) => {
+        const distA =
+          a.lat && a.lng
+            ? getDistanceKm(myLocation.lat, myLocation.lng, a.lat, a.lng)
+            : Infinity;
+        const distB =
+          b.lat && b.lng
+            ? getDistanceKm(myLocation.lat, myLocation.lng, b.lat, b.lng)
+            : Infinity;
+        return distA - distB;
+      });
+    }
+
+    return result;
+  }, [stores, myLocation, selectedDistance, selectedSort]);
 
   // 마커 생성
   const markers = useMemo(
@@ -164,6 +185,8 @@ export function useMapSearch() {
         lat: store.lat,
         lng: store.lng,
         title: store.name,
+        isPartner: store.isPartner,
+        hasCoupon: store.hasCoupon,
       })),
     [filteredStores],
   );
@@ -231,6 +254,12 @@ export function useMapSearch() {
     // queryParams가 자동으로 바뀌고 → useQuery 자동 refetch
   }, []);
 
+  const handleFilterReset = useCallback(() => {
+    setSelectedStoreTypes([]);
+    setSelectedMoods([]);
+    setSelectedEvents([]);
+  }, []);
+
   const handleStoreTypeToggle = useCallback((id: string) => {
     setSelectedStoreTypes((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
@@ -288,6 +317,7 @@ export function useMapSearch() {
     handleMapClick,
     handleBack,
     handleFilterApply,
+    handleFilterReset,
     handleStoreTypeToggle,
     handleMoodToggle,
     handleEventToggle,
