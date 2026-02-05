@@ -45,18 +45,26 @@ export function transformStoreResponse(
     distance = formatDistance(km);
   }
 
+  // 확장 필드 (Mock 서버에서 제공)
+  const extendedResponse = response as StoreResponse & {
+    isPartner?: boolean;
+    hasCoupon?: boolean;
+  };
+
   return {
     id: String(response.id ?? 0),
     name: response.name ?? '',
     image: response.imageUrls?.[0] ?? '',
-    rating: 0, // TODO: 서버에서 averageRating 제공 시 연동
-    reviewCount: 0, // TODO: 서버에서 reviewCount 제공 시 연동
+    rating: response.averageRating ?? 0,
+    reviewCount: response.reviewCount ?? 0,
     distance,
     openStatus: '', // TODO: 서버에서 영업상태 제공 시 연동
     openHours: response.operatingHours ?? '',
     benefits: [], // TODO: 서버에서 혜택 목록 제공 시 연동
     lat,
     lng,
+    isPartner: extendedResponse.isPartner ?? false,
+    hasCoupon: extendedResponse.hasCoupon ?? false,
   };
 }
 
