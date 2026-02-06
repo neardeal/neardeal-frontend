@@ -121,9 +121,9 @@ export default function StoreDetailScreen() {
     ?.map((m) => MOOD_LABEL[m] ?? m)
     .join(' · ') ?? '';
 
-  // 리뷰 통계 → rating, reviewCount
-  const storeRating = reviewStats?.averageRating ?? (Number(rating) || 0);
-  const storeReviewCount = reviewStats?.totalReviews ?? (Number(reviewCount) || 0);
+  // 리뷰 통계 → rating, reviewCount (StoreResponse에서 우선 사용, 없으면 route params)
+  const storeRating = apiStore?.averageRating ?? (Number(rating) || 0);
+  const storeReviewCount = apiStore?.reviewCount ?? (Number(reviewCount) || 0);
 
   // 즐겨찾기 수
   const storeLikeCount = favoriteCount ?? 0;
