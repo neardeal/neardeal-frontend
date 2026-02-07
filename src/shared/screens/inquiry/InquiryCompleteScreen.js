@@ -13,8 +13,7 @@ import {
 export default function InquiryCompleteScreen({ navigation }) {
 
   const handleConfirm = () => {
-    console.log("문의내역 페이지로 이동");
-    navigation.replace('InquiryHistory');
+    navigation.replace('Inquiry', { initialTab: 'history' });
   };
 
   return (
