@@ -21,7 +21,8 @@ import TermsScreen from './mypage/TermsScreen';
 import VersionScreen from './mypage/VersionScreen';
 import WithdrawCompleteScreen from './mypage/WithdrawCompleteScreen';
 import WithdrawScreen from './mypage/WithdrawScreen';
-import LikedStoreScreen from './patron/LikedStoreScreen';
+import EditReviewScreen from './patron/studentReview/EditReviewScreen';
+import MyReviewScreen from './patron/studentReview/MyReviewScreen';
 import ReviewScreen from './review/ReviewScreen';
 import StoreScreen from './store/StoreScreen';
 
@@ -70,8 +71,8 @@ function MainTabNavigator() {
 
 export default function ShopOwnerNavigator() {
   return (
-    <Stack.Navigator initialRouteName="LikedStore" screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="LikedStore" component={LikedStoreScreen} />
+    <Stack.Navigator initialRouteName="MyReview" screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="MyReview" component={MyReviewScreen} />
       {/* 1. 기본 화면 탭 네비게이터 */}
       <Stack.Screen name="MainTabs" component={MainTabNavigator} />
       {/* 2. 알림 화면 스택 화면 */}
@@ -106,6 +107,7 @@ export default function ShopOwnerNavigator() {
       <Stack.Screen name="Version" component={VersionScreen} options={{ headerShown: false }} />
       {/* 17. 쿠폰/단골 페이지- 전체 쿠폰 스택 화면 */}
       <Stack.Screen name="CouponList" component={CouponListScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="EditReview" component={EditReviewScreen} />
     </Stack.Navigator>
   );
 }
