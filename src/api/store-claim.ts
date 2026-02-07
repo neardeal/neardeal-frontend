@@ -28,6 +28,7 @@ import type {
   BizVerificationRequest,
   CreateStoreClaimsBody,
   GetStoreClaimsParams,
+  SearchUnclaimedStoresParams,
   StoreClaimRejectionRequest
 } from './generated.schemas';
 
@@ -456,6 +457,124 @@ export const useUpdateMemo = <TError = unknown,
       return useMutation(getUpdateMemoMutationOptions(options), queryClient);
     }
     /**
+ * 시스템에 등록된 미등록 상점을 이름 또는 주소로 검색합니다.
+ * @summary [점주] 미등록 상점 검색
+ */
+export type searchUnclaimedStoresResponse200 = {
+  data: Blob
+  status: 200
+}
+    
+export type searchUnclaimedStoresResponseSuccess = (searchUnclaimedStoresResponse200) & {
+  headers: Headers;
+};
+;
+
+export type searchUnclaimedStoresResponse = (searchUnclaimedStoresResponseSuccess)
+
+export const getSearchUnclaimedStoresUrl = (params: SearchUnclaimedStoresParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/store-claims/search?${stringifiedParams}` : `/api/store-claims/search`
+}
+
+export const searchUnclaimedStores = async (params: SearchUnclaimedStoresParams, options?: RequestInit): Promise<searchUnclaimedStoresResponse> => {
+  
+  return customFetch<searchUnclaimedStoresResponse>(getSearchUnclaimedStoresUrl(params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getSearchUnclaimedStoresQueryKey = (params?: SearchUnclaimedStoresParams,) => {
+    return [
+    `/api/store-claims/search`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+    
+export const getSearchUnclaimedStoresQueryOptions = <TData = Awaited<ReturnType<typeof searchUnclaimedStores>>, TError = unknown>(params: SearchUnclaimedStoresParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchUnclaimedStores>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSearchUnclaimedStoresQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchUnclaimedStores>>> = ({ signal }) => searchUnclaimedStores(params, { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof searchUnclaimedStores>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type SearchUnclaimedStoresQueryResult = NonNullable<Awaited<ReturnType<typeof searchUnclaimedStores>>>
+export type SearchUnclaimedStoresQueryError = unknown
+
+
+export function useSearchUnclaimedStores<TData = Awaited<ReturnType<typeof searchUnclaimedStores>>, TError = unknown>(
+ params: SearchUnclaimedStoresParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchUnclaimedStores>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof searchUnclaimedStores>>,
+          TError,
+          Awaited<ReturnType<typeof searchUnclaimedStores>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSearchUnclaimedStores<TData = Awaited<ReturnType<typeof searchUnclaimedStores>>, TError = unknown>(
+ params: SearchUnclaimedStoresParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchUnclaimedStores>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof searchUnclaimedStores>>,
+          TError,
+          Awaited<ReturnType<typeof searchUnclaimedStores>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSearchUnclaimedStores<TData = Awaited<ReturnType<typeof searchUnclaimedStores>>, TError = unknown>(
+ params: SearchUnclaimedStoresParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchUnclaimedStores>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary [점주] 미등록 상점 검색
+ */
+
+export function useSearchUnclaimedStores<TData = Awaited<ReturnType<typeof searchUnclaimedStores>>, TError = unknown>(
+ params: SearchUnclaimedStoresParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchUnclaimedStores>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getSearchUnclaimedStoresQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+/**
  * 상점 소유권 요청 목록을 조회합니다. status 파라미터로 상태별 조회가 가능합니다.
  * @summary [관리자] 상점 소유권 요청 목록 조회
  */

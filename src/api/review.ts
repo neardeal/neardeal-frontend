@@ -173,8 +173,8 @@ export function useGetReviews<TData = Awaited<ReturnType<typeof getReviews>>, TE
 
 
 /**
- * 상점에 대한 리뷰를 작성합니다.
- * @summary [학생] 리뷰 작성
+ * 상점에 대한 리뷰(학생) 또는 답글(점주, 학생)을 작성합니다.
+ * @summary [공통] 리뷰 및 답글 작성
  */
 export type createReviewResponse201 = {
   data: Blob
@@ -184,6 +184,11 @@ export type createReviewResponse201 = {
 export type createReviewResponse400 = {
   data: Blob
   status: 400
+}
+
+export type createReviewResponse403 = {
+  data: Blob
+  status: 403
 }
 
 export type createReviewResponse404 = {
@@ -199,7 +204,7 @@ export type createReviewResponse409 = {
 export type createReviewResponseSuccess = (createReviewResponse201) & {
   headers: Headers;
 };
-export type createReviewResponseError = (createReviewResponse400 | createReviewResponse404 | createReviewResponse409) & {
+export type createReviewResponseError = (createReviewResponse400 | createReviewResponse403 | createReviewResponse404 | createReviewResponse409) & {
   headers: Headers;
 };
 
@@ -261,7 +266,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type CreateReviewMutationError = Blob
 
     /**
- * @summary [학생] 리뷰 작성
+ * @summary [공통] 리뷰 및 답글 작성
  */
 export const useCreateReview = <TError = Blob,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createReview>>, TError,{storeId: number;data: CreateReviewBody}, TContext>, request?: SecondParameter<typeof customFetch>}
@@ -553,8 +558,8 @@ export const useRemoveLike = <TError = Blob,
       return useMutation(getRemoveLikeMutationOptions(options), queryClient);
     }
     /**
- * 작성한 리뷰를 삭제합니다. (본인만 가능)
- * @summary [학생] 리뷰 삭제
+ * 작성한 리뷰 또는 답글을 삭제합니다. (본인만 가능)
+ * @summary [공통] 리뷰 삭제
  */
 export type deleteReviewResponse204 = {
   data: Blob
@@ -634,7 +639,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type DeleteReviewMutationError = Blob
 
     /**
- * @summary [학생] 리뷰 삭제
+ * @summary [공통] 리뷰 삭제
  */
 export const useDeleteReview = <TError = Blob,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteReview>>, TError,{reviewId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
@@ -647,8 +652,8 @@ export const useDeleteReview = <TError = Blob,
       return useMutation(getDeleteReviewMutationOptions(options), queryClient);
     }
     /**
- * 작성한 리뷰를 수정합니다. (본인만 가능)
- * @summary [학생] 리뷰 수정
+ * 작성한 리뷰 또는 답글을 수정합니다. (본인만 가능)
+ * @summary [공통] 리뷰 수정
  */
 export type updateReviewResponse200 = {
   data: Blob
@@ -730,7 +735,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type UpdateReviewMutationError = Blob
 
     /**
- * @summary [학생] 리뷰 수정
+ * @summary [공통] 리뷰 수정
  */
 export const useUpdateReview = <TError = Blob,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateReview>>, TError,{reviewId: number;data: UpdateReviewBody}, TContext>, request?: SecondParameter<typeof customFetch>}

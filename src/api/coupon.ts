@@ -732,6 +732,124 @@ export const useUpdateCoupon = <TError = Blob,
       return useMutation(getUpdateCouponMutationOptions(options), queryClient);
     }
     /**
+ * 학생의 학교와 제휴된 매장에서 오늘 발급된 쿠폰 목록을 조회합니다.
+ * @summary [학생] 오늘의 신규 쿠폰 조회
+ */
+export type getTodayCouponsResponse200 = {
+  data: Blob
+  status: 200
+}
+
+export type getTodayCouponsResponse403 = {
+  data: Blob
+  status: 403
+}
+    
+export type getTodayCouponsResponseSuccess = (getTodayCouponsResponse200) & {
+  headers: Headers;
+};
+export type getTodayCouponsResponseError = (getTodayCouponsResponse403) & {
+  headers: Headers;
+};
+
+export type getTodayCouponsResponse = (getTodayCouponsResponseSuccess | getTodayCouponsResponseError)
+
+export const getGetTodayCouponsUrl = () => {
+
+
+  
+
+  return `/api/today`
+}
+
+export const getTodayCoupons = async ( options?: RequestInit): Promise<getTodayCouponsResponse> => {
+  
+  return customFetch<getTodayCouponsResponse>(getGetTodayCouponsUrl(),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getGetTodayCouponsQueryKey = () => {
+    return [
+    `/api/today`
+    ] as const;
+    }
+
+    
+export const getGetTodayCouponsQueryOptions = <TData = Awaited<ReturnType<typeof getTodayCoupons>>, TError = Blob>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTodayCoupons>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTodayCouponsQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTodayCoupons>>> = ({ signal }) => getTodayCoupons({ signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTodayCoupons>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetTodayCouponsQueryResult = NonNullable<Awaited<ReturnType<typeof getTodayCoupons>>>
+export type GetTodayCouponsQueryError = Blob
+
+
+export function useGetTodayCoupons<TData = Awaited<ReturnType<typeof getTodayCoupons>>, TError = Blob>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTodayCoupons>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTodayCoupons>>,
+          TError,
+          Awaited<ReturnType<typeof getTodayCoupons>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTodayCoupons<TData = Awaited<ReturnType<typeof getTodayCoupons>>, TError = Blob>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTodayCoupons>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTodayCoupons>>,
+          TError,
+          Awaited<ReturnType<typeof getTodayCoupons>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTodayCoupons<TData = Awaited<ReturnType<typeof getTodayCoupons>>, TError = Blob>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTodayCoupons>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary [학생] 오늘의 신규 쿠폰 조회
+ */
+
+export function useGetTodayCoupons<TData = Awaited<ReturnType<typeof getTodayCoupons>>, TError = Blob>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTodayCoupons>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetTodayCouponsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+/**
  * 사용자가 발급받은 쿠폰 목록을 조회합니다.
  * @summary [학생] 내 쿠폰 조회
  */
@@ -833,124 +951,6 @@ export function useGetMyCoupons<TData = Awaited<ReturnType<typeof getMyCoupons>>
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetMyCouponsQueryOptions(options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-
-
-
-/**
- * 특정 상품에 적용 가능한 쿠폰 목록을 조회합니다.
- * @summary [공통] 상품별 적용 가능 쿠폰 조회
- */
-export type getCouponsByItemResponse200 = {
-  data: Blob
-  status: 200
-}
-
-export type getCouponsByItemResponse404 = {
-  data: Blob
-  status: 404
-}
-    
-export type getCouponsByItemResponseSuccess = (getCouponsByItemResponse200) & {
-  headers: Headers;
-};
-export type getCouponsByItemResponseError = (getCouponsByItemResponse404) & {
-  headers: Headers;
-};
-
-export type getCouponsByItemResponse = (getCouponsByItemResponseSuccess | getCouponsByItemResponseError)
-
-export const getGetCouponsByItemUrl = (itemId: number,) => {
-
-
-  
-
-  return `/api/items/${itemId}/coupons`
-}
-
-export const getCouponsByItem = async (itemId: number, options?: RequestInit): Promise<getCouponsByItemResponse> => {
-  
-  return customFetch<getCouponsByItemResponse>(getGetCouponsByItemUrl(itemId),
-  {      
-    ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
-
-
-
-
-export const getGetCouponsByItemQueryKey = (itemId?: number,) => {
-    return [
-    `/api/items/${itemId}/coupons`
-    ] as const;
-    }
-
-    
-export const getGetCouponsByItemQueryOptions = <TData = Awaited<ReturnType<typeof getCouponsByItem>>, TError = Blob>(itemId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCouponsByItem>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetCouponsByItemQueryKey(itemId);
-
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCouponsByItem>>> = ({ signal }) => getCouponsByItem(itemId, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(itemId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCouponsByItem>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetCouponsByItemQueryResult = NonNullable<Awaited<ReturnType<typeof getCouponsByItem>>>
-export type GetCouponsByItemQueryError = Blob
-
-
-export function useGetCouponsByItem<TData = Awaited<ReturnType<typeof getCouponsByItem>>, TError = Blob>(
- itemId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCouponsByItem>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getCouponsByItem>>,
-          TError,
-          Awaited<ReturnType<typeof getCouponsByItem>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetCouponsByItem<TData = Awaited<ReturnType<typeof getCouponsByItem>>, TError = Blob>(
- itemId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCouponsByItem>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getCouponsByItem>>,
-          TError,
-          Awaited<ReturnType<typeof getCouponsByItem>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetCouponsByItem<TData = Awaited<ReturnType<typeof getCouponsByItem>>, TError = Blob>(
- itemId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCouponsByItem>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
- * @summary [공통] 상품별 적용 가능 쿠폰 조회
- */
-
-export function useGetCouponsByItem<TData = Awaited<ReturnType<typeof getCouponsByItem>>, TError = Blob>(
- itemId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCouponsByItem>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetCouponsByItemQueryOptions(itemId,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

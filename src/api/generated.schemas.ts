@@ -96,7 +96,8 @@ export interface CreateReviewRequest {
    * @minimum 1
    * @maximum 5
    */
-  rating: number;
+  rating?: number;
+  parentReviewId?: number;
 }
 
 export type StoreReportRequestReasonsItem = typeof StoreReportRequestReasonsItem[keyof typeof StoreReportRequestReasonsItem];
@@ -156,6 +157,15 @@ export interface CreateItemRequest {
   representative?: boolean;
 }
 
+export type CreateCouponRequestBenefitType = typeof CreateCouponRequestBenefitType[keyof typeof CreateCouponRequestBenefitType];
+
+
+export const CreateCouponRequestBenefitType = {
+  FIXED_DISCOUNT: 'FIXED_DISCOUNT',
+  PERCENTAGE_DISCOUNT: 'PERCENTAGE_DISCOUNT',
+  SERVICE_GIFT: 'SERVICE_GIFT',
+} as const;
+
 export type CreateCouponRequestStatus = typeof CreateCouponRequestStatus[keyof typeof CreateCouponRequestStatus];
 
 
@@ -170,13 +180,14 @@ export const CreateCouponRequestStatus = {
 export interface CreateCouponRequest {
   title: string;
   description?: string;
-  targetOrganizationId?: number;
   issueStartsAt?: string;
   issueEndsAt?: string;
   totalQuantity: number;
   limitPerUser: number;
+  benefitType: CreateCouponRequestBenefitType;
+  benefitValue?: string;
+  minOrderAmount?: number;
   status?: CreateCouponRequestStatus;
-  targetItemIds?: number[];
 }
 
 export interface VerifyCouponRequest {
@@ -230,6 +241,32 @@ export interface ReportRequest {
 export interface CommonResponseString {
   isSuccess?: boolean;
   data?: string;
+}
+
+export type CreateInquiryRequestType = typeof CreateInquiryRequestType[keyof typeof CreateInquiryRequestType];
+
+
+export const CreateInquiryRequestType = {
+  COUPON_BENEFIT: 'COUPON_BENEFIT',
+  MAP_LOCATION: 'MAP_LOCATION',
+  STORE_INFO_ERROR: 'STORE_INFO_ERROR',
+  EVENT_PARTICIPATION: 'EVENT_PARTICIPATION',
+  ALERT_ACCOUNT: 'ALERT_ACCOUNT',
+  PROPOSAL_OTHER: 'PROPOSAL_OTHER',
+} as const;
+
+export interface CreateInquiryRequest {
+  type: CreateInquiryRequestType;
+  /**
+   * @minLength 1
+   * @maxLength 14
+   */
+  title: string;
+  /**
+   * @minLength 0
+   * @maxLength 500
+   */
+  content: string;
 }
 
 export type IssueCouponResponseStatus = typeof IssueCouponResponseStatus[keyof typeof IssueCouponResponseStatus];
@@ -363,6 +400,17 @@ export interface LoginRequest {
   password?: string;
 }
 
+export interface VerifyEmailCodeRequest {
+  /** @pattern ^[A-Za-z0-9._%+-]+@jbnu\.ac\.kr$ */
+  email: string;
+  code: string;
+}
+
+export interface SendEmailCodeRequest {
+  /** @pattern ^[A-Za-z0-9._%+-]+@jbnu\.ac\.kr$ */
+  email: string;
+}
+
 export type CompleteSocialSignupRequestRole = typeof CompleteSocialSignupRequestRole[keyof typeof CompleteSocialSignupRequestRole];
 
 
@@ -482,6 +530,9 @@ export interface UpdateStoreRequest {
   operatingHours?: string;
   storeCategories?: UpdateStoreRequestStoreCategoriesItem[];
   storeMoods?: UpdateStoreRequestStoreMoodsItem[];
+  holidayStartsAt?: string;
+  holidayEndsAt?: string;
+  isSuspended?: boolean;
 }
 
 /**
@@ -541,6 +592,15 @@ export interface UpdateItemRequest {
   removeItemCategory?: boolean;
 }
 
+export type UpdateCouponRequestBenefitType = typeof UpdateCouponRequestBenefitType[keyof typeof UpdateCouponRequestBenefitType];
+
+
+export const UpdateCouponRequestBenefitType = {
+  FIXED_DISCOUNT: 'FIXED_DISCOUNT',
+  PERCENTAGE_DISCOUNT: 'PERCENTAGE_DISCOUNT',
+  SERVICE_GIFT: 'SERVICE_GIFT',
+} as const;
+
 export type UpdateCouponRequestStatus = typeof UpdateCouponRequestStatus[keyof typeof UpdateCouponRequestStatus];
 
 
@@ -559,6 +619,9 @@ export interface UpdateCouponRequest {
   issueEndsAt?: string;
   totalQuantity?: number;
   limitPerUser?: number;
+  benefitType?: UpdateCouponRequestBenefitType;
+  benefitValue?: string;
+  minOrderAmount?: number;
   status?: UpdateCouponRequestStatus;
 }
 
@@ -667,6 +730,47 @@ export interface CommonResponseListOrganizationResponse {
   data?: OrganizationResponse[];
 }
 
+export type CouponResponseStatus = typeof CouponResponseStatus[keyof typeof CouponResponseStatus];
+
+
+export const CouponResponseStatus = {
+  DRAFT: 'DRAFT',
+  SCHEDULED: 'SCHEDULED',
+  ACTIVE: 'ACTIVE',
+  STOPPED: 'STOPPED',
+  EXPIRED: 'EXPIRED',
+} as const;
+
+export type CouponResponseBenefitType = typeof CouponResponseBenefitType[keyof typeof CouponResponseBenefitType];
+
+
+export const CouponResponseBenefitType = {
+  FIXED_DISCOUNT: 'FIXED_DISCOUNT',
+  PERCENTAGE_DISCOUNT: 'PERCENTAGE_DISCOUNT',
+  SERVICE_GIFT: 'SERVICE_GIFT',
+} as const;
+
+export interface CouponResponse {
+  id?: number;
+  storeId?: number;
+  title?: string;
+  description?: string;
+  issueStartsAt?: string;
+  issueEndsAt?: string;
+  totalQuantity?: number;
+  limitPerUser?: number;
+  status?: CouponResponseStatus;
+  benefitType?: CouponResponseBenefitType;
+  benefitValue?: string;
+  minOrderAmount?: number;
+  isIssued?: boolean;
+}
+
+export interface CommonResponseListCouponResponse {
+  isSuccess?: boolean;
+  data?: CouponResponse[];
+}
+
 export interface Pageable {
   /** @minimum 0 */
   page?: number;
@@ -714,6 +818,11 @@ export interface StoreResponse {
   imageUrls?: string[];
   averageRating?: number;
   reviewCount?: number;
+  holidayStartsAt?: string;
+  holidayEndsAt?: string;
+  isSuspended?: boolean;
+  isPartnership?: boolean;
+  hasCoupon?: boolean;
 }
 
 export interface PageResponseStoreResponse {
@@ -964,6 +1073,9 @@ export interface Store {
   storeMoods?: StoreStoreMoodsItem[];
   user?: User;
   images?: StoreImage[];
+  holidayStartsAt?: string;
+  holidayEndsAt?: string;
+  isSuspended?: boolean;
   universities?: StoreUniversity[];
 }
 
@@ -982,39 +1094,22 @@ export interface CommonResponseListItemCategory {
   data?: ItemCategory[];
 }
 
-export type CouponResponseStatus = typeof CouponResponseStatus[keyof typeof CouponResponseStatus];
-
-
-export const CouponResponseStatus = {
-  DRAFT: 'DRAFT',
-  SCHEDULED: 'SCHEDULED',
-  ACTIVE: 'ACTIVE',
-  STOPPED: 'STOPPED',
-  EXPIRED: 'EXPIRED',
-} as const;
-
-export interface CouponResponse {
-  id?: number;
-  storeId?: number;
-  title?: string;
-  description?: string;
-  targetOrganizationId?: number;
-  issueStartsAt?: string;
-  issueEndsAt?: string;
-  totalQuantity?: number;
-  limitPerUser?: number;
-  status?: CouponResponseStatus;
-  isIssued?: boolean;
-}
-
-export interface CommonResponseListCouponResponse {
-  isSuccess?: boolean;
-  data?: CouponResponse[];
-}
-
 export interface CommonResponseListStoreResponse {
   isSuccess?: boolean;
   data?: StoreResponse[];
+}
+
+export interface HotStoreResponse {
+  storeId?: number;
+  name?: string;
+  categories?: string[];
+  benefitContent?: string;
+  favoriteGain?: number;
+}
+
+export interface CommonResponseListHotStoreResponse {
+  isSuccess?: boolean;
+  data?: HotStoreResponse[];
 }
 
 export interface CommonResponseStoreNewsResponse {
@@ -1053,6 +1148,68 @@ export interface CommonResponseListIssueCouponResponse {
 export interface CommonResponseItemResponse {
   isSuccess?: boolean;
   data?: ItemResponse;
+}
+
+export interface SortObject {
+  sorted?: boolean;
+  empty?: boolean;
+  unsorted?: boolean;
+}
+
+export interface PageableObject {
+  paged?: boolean;
+  pageNumber?: number;
+  pageSize?: number;
+  offset?: number;
+  sort?: SortObject;
+  unpaged?: boolean;
+}
+
+export type InquiryResponseType = typeof InquiryResponseType[keyof typeof InquiryResponseType];
+
+
+export const InquiryResponseType = {
+  COUPON_BENEFIT: 'COUPON_BENEFIT',
+  MAP_LOCATION: 'MAP_LOCATION',
+  STORE_INFO_ERROR: 'STORE_INFO_ERROR',
+  EVENT_PARTICIPATION: 'EVENT_PARTICIPATION',
+  ALERT_ACCOUNT: 'ALERT_ACCOUNT',
+  PROPOSAL_OTHER: 'PROPOSAL_OTHER',
+} as const;
+
+export interface InquiryResponse {
+  id?: number;
+  userId?: number;
+  username?: string;
+  type?: InquiryResponseType;
+  title?: string;
+  content?: string;
+  imageUrls?: string[];
+  createdAt?: string;
+}
+
+export interface PageInquiryResponse {
+  totalElements?: number;
+  totalPages?: number;
+  pageable?: PageableObject;
+  first?: boolean;
+  size?: number;
+  content?: InquiryResponse[];
+  number?: number;
+  sort?: SortObject;
+  numberOfElements?: number;
+  last?: boolean;
+  empty?: boolean;
+}
+
+export interface CommonResponsePageInquiryResponse {
+  isSuccess?: boolean;
+  data?: PageInquiryResponse;
+}
+
+export interface CommonResponseInquiryResponse {
+  isSuccess?: boolean;
+  data?: InquiryResponse;
 }
 
 export type FavoriteStoreResponseStoreCategoriesItem = typeof FavoriteStoreResponseStoreCategoriesItem[keyof typeof FavoriteStoreResponseStoreCategoriesItem];
@@ -1218,21 +1375,6 @@ export interface CommonResponseListPartnershipResponse {
   data?: PartnershipResponse[];
 }
 
-export interface SortObject {
-  sorted?: boolean;
-  empty?: boolean;
-  unsorted?: boolean;
-}
-
-export interface PageableObject {
-  paged?: boolean;
-  pageNumber?: number;
-  pageSize?: number;
-  offset?: number;
-  sort?: SortObject;
-  unpaged?: boolean;
-}
-
 export type StoreClaimResponseStatus = typeof StoreClaimResponseStatus[keyof typeof StoreClaimResponseStatus];
 
 
@@ -1275,6 +1417,21 @@ export interface PageStoreClaimResponse {
 export interface CommonResponsePageStoreClaimResponse {
   isSuccess?: boolean;
   data?: PageStoreClaimResponse;
+}
+
+export interface PageResponseInquiryResponse {
+  content?: InquiryResponse[];
+  pageNumber?: number;
+  pageSize?: number;
+  totalElements?: number;
+  totalPages?: number;
+  sort?: string;
+  last?: boolean;
+}
+
+export interface CommonResponsePageResponseInquiryResponse {
+  isSuccess?: boolean;
+  data?: PageResponseInquiryResponse;
 }
 
 export type WithdrawRequestReasonsItem = typeof WithdrawRequestReasonsItem[keyof typeof WithdrawRequestReasonsItem];
@@ -1392,6 +1549,18 @@ export type CreateStoreClaimsBody = {
   image: string;
 };
 
+export type GetInquiriesParams = {
+/**
+ * 페이징 정보
+ */
+pageable: Pageable;
+};
+
+export type CreateInquiryBody = {
+  request: CreateInquiryRequest;
+  images?: string[];
+};
+
 export type CompleteSocialSignupParams = {
 userId: number;
 request: CompleteSocialSignupRequest;
@@ -1466,6 +1635,10 @@ longitude: number;
  * 반경(km)
  */
 radius: number;
+};
+
+export type SearchUnclaimedStoresParams = {
+keyword: string;
 };
 
 export type GetMyFavoritesParams = {
@@ -1549,5 +1722,12 @@ export type ExportPartnershipTemplateParams = {
  * 대상 대학 ID
  */
 universityId: number;
+};
+
+export type GetAllInquiriesParams = {
+/**
+ * 페이징 정보
+ */
+pageable: Pageable;
 };
 
