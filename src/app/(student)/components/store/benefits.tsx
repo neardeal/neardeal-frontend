@@ -11,6 +11,9 @@ export type { Coupon };
 interface StoreBenefitsProps {
   benefits: string[];
   coupons: Coupon[];
+  issuedCouponIds?: number[];
+  onIssueCoupon?: (couponId: string) => void;
+  isIssuing?: boolean;
 }
 
 // ============================================
@@ -33,33 +36,58 @@ function BenefitBanner({ benefits }: { benefits: string[] }) {
 // CouponSection
 // ============================================
 
-function CouponSection({ coupons }: { coupons: Coupon[] }) {
+function CouponSection({
+  coupons,
+  issuedCouponIds = [],
+  onIssueCoupon,
+  isIssuing = false,
+}: {
+  coupons: Coupon[];
+  issuedCouponIds?: number[];
+  onIssueCoupon?: (couponId: string) => void;
+  isIssuing?: boolean;
+}) {
   if (coupons.length === 0) return null;
 
   return (
     <View style={styles.couponContainer}>
-      {coupons.map((coupon) => (
-        <View key={coupon.id} style={styles.couponCard}>
-          <View style={styles.couponLeft}>
-            <View style={styles.discountBadge}>
-              <ThemedText style={styles.percentIcon}>%</ThemedText>
+      {coupons.map((coupon) => {
+        const isIssued = issuedCouponIds.includes(Number(coupon.id));
+        return (
+          <View key={coupon.id} style={styles.couponCard}>
+            <View style={styles.couponLeft}>
+              <View style={styles.discountBadge}>
+                <ThemedText style={styles.percentIcon}>%</ThemedText>
+              </View>
+            </View>
+            <View style={styles.couponContent}>
+              <View style={styles.couponHeader}>
+                <ThemedText type="defaultSemiBold">{coupon.title}</ThemedText>
+                <ThemedText type='defaultSemiBold' lightColor={System.hotSoldOut}>{coupon.discount}</ThemedText>
+              </View>
+              <ThemedText style={styles.couponDescription}>{coupon.description}</ThemedText>
+              <View style={styles.couponFooter}>
+                <ThemedText style={styles.couponExpiry}>{coupon.expiryDate}</ThemedText>
+                {isIssued ? (
+                  <View style={styles.issuedBadge}>
+                    <ThemedText type="default" lightColor={Gray.gray500}>
+                      발급완료
+                    </ThemedText>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    style={[styles.couponButton, isIssuing && styles.couponButtonDisabled]}
+                    onPress={() => onIssueCoupon?.(coupon.id)}
+                    disabled={isIssuing || !onIssueCoupon}
+                  >
+                    <ThemedText type="default" lightColor={Gray.white}>쿠폰 받기</ThemedText>
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
           </View>
-          <View style={styles.couponContent}>
-            <View style={styles.couponHeader}>
-              <ThemedText type="defaultSemiBold">{coupon.title}</ThemedText>
-              <ThemedText type='defaultSemiBold' lightColor={System.hotSoldOut}>{coupon.discount}</ThemedText>
-            </View>
-            <ThemedText style={styles.couponDescription}>{coupon.description}</ThemedText>
-            <View style={styles.couponFooter}>
-              <ThemedText style={styles.couponExpiry}>{coupon.expiryDate}</ThemedText>
-              <TouchableOpacity style={styles.couponButton}>
-                <ThemedText type="default" lightColor={Gray.white}>쿠폰 받기</ThemedText>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      ))}
+        );
+      })}
     </View>
   );
 }
@@ -68,11 +96,22 @@ function CouponSection({ coupons }: { coupons: Coupon[] }) {
 // StoreBenefits (Combined Export)
 // ============================================
 
-export function StoreBenefits({ benefits, coupons }: StoreBenefitsProps) {
+export function StoreBenefits({
+  benefits,
+  coupons,
+  issuedCouponIds,
+  onIssueCoupon,
+  isIssuing,
+}: StoreBenefitsProps) {
   return (
     <View style={styles.container}>
       <BenefitBanner benefits={benefits} />
-      <CouponSection coupons={coupons} />
+      <CouponSection
+        coupons={coupons}
+        issuedCouponIds={issuedCouponIds}
+        onIssueCoupon={onIssueCoupon}
+        isIssuing={isIssuing}
+      />
     </View>
   );
 }
@@ -165,5 +204,15 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingHorizontal: rs(12),
     paddingVertical: rs(8),
-  }
+  },
+  couponButtonDisabled: {
+    backgroundColor: '#ccc',
+    opacity: 0.6,
+  },
+  issuedBadge: {
+    backgroundColor: '#f5f5f5',
+    borderRadius: 16,
+    paddingHorizontal: rs(12),
+    paddingVertical: rs(8),
+  },
 });

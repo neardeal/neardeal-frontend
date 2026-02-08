@@ -78,6 +78,35 @@ export function formatOperatingHours(operatingHours: string): string {
 }
 
 /**
+ * 전체 요일별 영업시간 파싱
+ * 입력: '{"Mon": "11:00-21:00", "Tue": "11:00-21:00", ..., "Sun": "Closed"}'
+ * 출력: [{ day: '월요일', hours: '11:00-21:00' }, ...]
+ */
+export function parseAllOperatingHours(operatingHours: string): Array<{ day: string; hours: string }> {
+  const dayLabels = {
+    Mon: '월요일',
+    Tue: '화요일',
+    Wed: '수요일',
+    Thu: '목요일',
+    Fri: '금요일',
+    Sat: '토요일',
+    Sun: '일요일',
+  };
+
+  if (!operatingHours) return [];
+
+  try {
+    const parsed = JSON.parse(operatingHours);
+    return Object.entries(dayLabels).map(([key, label]) => ({
+      day: label,
+      hours: parsed[key] === 'Closed' ? '휴무' : parsed[key] || '-',
+    }));
+  } catch {
+    return [];
+  }
+}
+
+/**
  * 현재 영업 중인지 확인
  * 입력: '{"Mon": "11:00-21:00", ...}' 또는 "11:00-21:00"
  * 출력: "영업중" | "휴무" | "영업종료"

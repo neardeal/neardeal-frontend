@@ -1,18 +1,27 @@
 import { SelectModal } from '@/src/shared/common/select-modal';
 import { ThemedText } from '@/src/shared/common/themed-text';
+import { ThemedView } from '@/src/shared/common/themed-view';
 import { UNIVERSITY_OPTIONS } from '@/src/shared/constants/store';
 import { rs } from '@/src/shared/theme/scale';
-import { System, Text } from '@/src/shared/theme/theme';
-import { formatOperatingHours } from '@/src/shared/utils/store-transform';
+import { Gray, Owner, System, Text } from '@/src/shared/theme/theme';
+import { formatOperatingHours, parseAllOperatingHours } from '@/src/shared/utils/store-transform';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
   Image,
+  LayoutAnimation,
+  Platform,
   StyleSheet,
   TouchableOpacity,
+  UIManager,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+// Android LayoutAnimation 활성화
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 // ============================================
 // Types
@@ -55,14 +64,14 @@ function MainImageSection({
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={styles.imageContainer}>
+    <ThemedView style={styles.imageContainer}>
       <Image source={{ uri: image }} style={styles.image} />
 
       <TouchableOpacity
         style={[styles.backButton, { top: insets.top + rs(8) }]}
         onPress={onBack}
       >
-        <Ionicons name="chevron-back" size={24} color="#fff" />
+        <Ionicons name="chevron-back" size={24} color={Gray.white} />
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -72,17 +81,17 @@ function MainImageSection({
         <Ionicons
           name={isLiked ? 'heart' : 'heart-outline'}
           size={24}
-          color={isLiked ? '#ff4d4d' : '#fff'}
+          color={isLiked ? System.error : Gray.white}
         />
       </TouchableOpacity>
 
-      <View style={styles.cloverBadge}>
-        <View style={styles.cloverIcon}>
+      <ThemedView style={styles.cloverBadge}>
+        <ThemedView style={styles.cloverIcon}>
           <ThemedText style={styles.cloverEmoji}>🍀</ThemedText>
-        </View>
+        </ThemedView>
         <ThemedText style={styles.cloverText}>{cloverGrowth}%</ThemedText>
-      </View>
-    </View>
+      </ThemedView>
+    </ThemedView>
   );
 }
 
@@ -105,33 +114,59 @@ function StoreInfoSection({
   address: string;
   openHours: string;
 }) {
+  const [isHoursExpanded, setIsHoursExpanded] = useState(false);
+
+  const allHours = parseAllOperatingHours(openHours);
+
+  const handleToggleHours = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setIsHoursExpanded(!isHoursExpanded);
+  };
+
   return (
-    <View style={styles.infoContainer}>
-      <View style={styles.titleRow}>
+    <ThemedView style={styles.infoContainer}>
+      <ThemedView style={styles.titleRow}>
         <ThemedText type='title' lightColor={Text.primary}>{name}</ThemedText>
-        <View style={styles.ratingContainer}>
+        <ThemedView style={styles.ratingContainer}>
           <Ionicons name="star" size={rs(16)} color={System.star} />
           <ThemedText type='defaultSemiBold' lightColor={Text.primary}>{rating}</ThemedText>
-        </View>
-      </View>
+        </ThemedView>
+      </ThemedView>
 
       <TouchableOpacity style={styles.categoryRow}>
         <ThemedText style={styles.category}>{category}</ThemedText>
         <ThemedText style={styles.divider}>|</ThemedText>
         <ThemedText style={styles.reviewCount}>리뷰 {reviewCount}개</ThemedText>
-        <Ionicons name="chevron-forward" size={rs(12)} color="#999" />
+        <Ionicons name="chevron-forward" size={rs(12)} color={Text.tertiary} />
       </TouchableOpacity>
 
-      <View style={styles.infoRow}>
-        <Ionicons name="location-outline" size={rs(14)} color="#666" />
+      <ThemedView style={styles.infoRow}>
+        <Ionicons name="location-outline" size={rs(14)} color={Text.secondary} />
         <ThemedText style={styles.infoText}>{address}</ThemedText>
-      </View>
+      </ThemedView>
 
-      <View style={styles.infoRow}>
-        <Ionicons name="time-outline" size={rs(14)} color="#666" />
+      <TouchableOpacity style={styles.infoRow} onPress={handleToggleHours}>
+        <Ionicons name="time-outline" size={rs(14)} color={Text.secondary} />
         <ThemedText style={styles.infoText}>{formatOperatingHours(openHours)}</ThemedText>
-      </View>
-    </View>
+        <Ionicons
+          name={isHoursExpanded ? "chevron-up" : "chevron-down"}
+          size={rs(14)}
+          color={Text.secondary}
+          style={styles.chevron}
+        />
+      </TouchableOpacity>
+
+      {isHoursExpanded && allHours.length > 0 && (
+        <ThemedView style={styles.expandedHours}>
+          {allHours.map(({ day, hours }) => (
+            <ThemedView key={day} style={styles.hourRow}>
+              <ThemedText style={styles.dayText}>{day}</ThemedText>
+              <ThemedText style={styles.hourText}>{hours}</ThemedText>
+            </ThemedView>
+          ))}
+        </ThemedView>
+      )}
+    </ThemedView>
   );
 }
 
@@ -149,19 +184,19 @@ function TagSection({
   onUniversityPress: () => void;
 }) {
   return (
-    <View style={styles.tagContainer}>
+    <ThemedView style={styles.tagContainer}>
       <TouchableOpacity style={styles.universityTag} onPress={onUniversityPress}>
-        <Ionicons name="school-outline" size={rs(14)} color="#34b262" />
+        <Ionicons name="school-outline" size={rs(14)} color={Owner.primary} />
         <ThemedText style={styles.universityText}>{university}</ThemedText>
-        <Ionicons name="chevron-down" size={rs(12)} color="#666" />
+        <Ionicons name="chevron-down" size={rs(12)} color={Text.secondary} />
       </TouchableOpacity>
 
       {isPartner && (
-        <View style={styles.partnerBadge}>
+        <ThemedView style={styles.partnerBadge}>
           <ThemedText style={styles.partnerText}>내 제휴</ThemedText>
-        </View>
+        </ThemedView>
       )}
-    </View>
+    </ThemedView>
   );
 }
 
@@ -208,7 +243,7 @@ export function StoreHeader({
         onBack={onBack}
         onLike={onLike}
       />
-      <View style={styles.headerContent}>
+      <ThemedView style={styles.headerContent}>
         <StoreInfoSection
           name={name}
           rating={rating}
@@ -222,7 +257,7 @@ export function StoreHeader({
           isPartner={isPartner}
           onUniversityPress={() => setShowUniversityModal(true)}
         />
-      </View>
+      </ThemedView>
 
       <SelectModal
         visible={showUniversityModal}
@@ -296,7 +331,7 @@ const styles = StyleSheet.create({
   cloverText: {
     fontSize: rs(12),
     fontWeight: '600',
-    color: '#000000',
+    color: Text.primary,
   },
 
   // StoreInfoSection
@@ -325,15 +360,15 @@ const styles = StyleSheet.create({
   },
   category: {
     fontSize: rs(12),
-    color: '#000000',
+    color: Text.primary,
   },
   divider: {
     fontSize: rs(12),
-    color: '#F5F5F5',
+    color: Gray.gray2,
   },
   reviewCount: {
     fontSize: rs(12),
-    color: '#828282',
+    color: Text.placeholder,
   },
   infoRow: {
     flexDirection: 'row',
@@ -342,7 +377,33 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: rs(12),
-    color: '#000000',
+    color: Text.primary,
+    flex: 1,
+  },
+  chevron: {
+    marginLeft: 'auto',
+  },
+  expandedHours: {
+    marginLeft: rs(20),
+    paddingLeft: rs(12),
+    gap: rs(4),
+    borderLeftWidth: 2,
+    borderLeftColor: Gray.gray3,
+  },
+  hourRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: rs(4),
+  },
+  dayText: {
+    fontSize: rs(12),
+    color: Text.secondary,
+    width: rs(60),
+  },
+  hourText: {
+    fontSize: rs(12),
+    color: Text.primary,
+    flex: 1,
   },
 
   // TagSection
@@ -355,7 +416,7 @@ const styles = StyleSheet.create({
   universityTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f5fff8',
+    backgroundColor: Owner.textBg,
     borderRadius: 16,
     paddingHorizontal: rs(12),
     paddingVertical: rs(8),
@@ -363,18 +424,18 @@ const styles = StyleSheet.create({
   },
   universityText: {
     fontSize: rs(12),
-    color: '#34b262',
+    color: Owner.primary,
     fontWeight: '500',
   },
   partnerBadge: {
-    backgroundColor: '#34b262',
+    backgroundColor: Owner.primary,
     borderRadius: 16,
     paddingHorizontal: rs(12),
     paddingVertical: rs(8),
   },
   partnerText: {
     fontSize: rs(12),
-    color: '#fff',
+    color: Gray.white,
     fontWeight: '600',
   },
 });
