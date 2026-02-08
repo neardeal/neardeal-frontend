@@ -7,6 +7,7 @@ import type { Coupon } from '@/src/shared/types/store';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Modal, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface CouponModalProps {
   visible: boolean;
@@ -25,6 +26,8 @@ export function CouponModal({
   onIssueCoupon,
   isIssuing,
 }: CouponModalProps) {
+  const insets = useSafeAreaInsets();
+
   return (
     <Modal
       visible={visible}
@@ -33,7 +36,7 @@ export function CouponModal({
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        <ThemedView style={styles.container}>
+        <ThemedView style={[styles.container, { paddingBottom: insets.bottom || rs(20) }]}>
           <View style={styles.header}>
             <ThemedText type="title">쿠폰 받기</ThemedText>
             <TouchableOpacity onPress={onClose} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
@@ -51,10 +54,10 @@ export function CouponModal({
                 <ThemedText style={styles.emptyText}>발급 가능한 쿠폰이 없습니다</ThemedText>
               </View>
             ) : (
-              coupons.map((coupon) => {
+              coupons.map((coupon, index) => {
                 const isIssued = issuedCouponIds.includes(Number(coupon.id));
                 return (
-                  <View key={coupon.id} style={styles.couponCard}>
+                  <View key={coupon.id} style={[styles.couponCard, index > 0 && { marginTop: rs(12) }]}>
                     <View style={styles.couponLeft}>
                       <View style={styles.discountBadge}>
                         <ThemedText style={styles.percentIcon}>%</ThemedText>
@@ -105,6 +108,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   container: {
+    minHeight: '40%',
     maxHeight: '80%',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
@@ -120,11 +124,12 @@ const styles = StyleSheet.create({
     borderBottomColor: '#f0f0f0',
   },
   scrollView: {
-    flex: 1,
+    flexGrow: 0,
   },
   scrollContent: {
-    padding: rs(20),
-    gap: rs(12),
+    paddingHorizontal: rs(20),
+    paddingTop: rs(20),
+    paddingBottom: rs(20),
   },
   emptyContainer: {
     paddingVertical: rs(40),

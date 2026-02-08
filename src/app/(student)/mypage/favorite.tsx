@@ -11,18 +11,17 @@ import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import {
   Image,
-  Platform,
-  SafeAreaView,
   ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function Favorite() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filterType, setFilterType] = useState<'recent' | 'rating'>('recent');
 
@@ -59,13 +58,7 @@ export default function Favorite() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View
-        style={{
-          height: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
-          backgroundColor: 'white',
-        }}
-      />
+    <View style={[styles.container, { paddingTop: insets.top }]}>
 
       <View style={styles.header}>
         <TouchableOpacity
@@ -166,7 +159,7 @@ export default function Favorite() {
           )}
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 

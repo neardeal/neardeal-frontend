@@ -7,18 +7,18 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
-  SafeAreaView,
   ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function EditReview() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const {
     reviewId,
     storeName,
@@ -73,8 +73,7 @@ export default function EditReview() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="white" />
+    <View style={[styles.container, { paddingTop: insets.top }]}>
 
       <View style={styles.header}>
         <TouchableOpacity
@@ -186,7 +185,7 @@ export default function EditReview() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 

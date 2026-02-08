@@ -1,39 +1,47 @@
-import { useDeleteReview } from '@/src/api/review';
+import type {
+  PageResponseReviewResponse,
+  ReviewResponse,
+} from '@/src/api/generated.schemas';
+import { useDeleteReview, useGetMyReviews } from '@/src/api/review';
 import { rs } from '@/src/shared/theme/scale';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Modal,
-  SafeAreaView,
   ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-
-// TODO: 백엔드에 GET /api/my-reviews (내가 쓴 리뷰 목록 조회) 엔드포인트 요청 필요
-type ReviewItem = {
-  id: number;
-  storeId: number;
-  store: string;
-  date: string;
-  rating: number;
-  content: string;
-  photos: number;
-  hasReply: boolean;
-  replyDate?: string;
-  replyContent?: string;
-};
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function MyReview() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
-  // API 미구현 - GET /api/my-reviews 연동 시 교체 필요
-  const [reviews, setReviews] = useState<ReviewItem[]>([]);
+  const { data: myReviewsRes, refetch } = useGetMyReviews({
+    pageable: { page: 0, size: 100 },
+  });
+
+  const allReviews = useMemo(() => {
+    const raw = (myReviewsRes as any)?.data?.data as
+      | PageResponseReviewResponse
+      | undefined;
+    return raw?.content ?? [];
+  }, [myReviewsRes]);
+
+  // 학생이 직접 쓴 리뷰만 (ownerReply가 아닌 것)
+  const reviews = useMemo(
+    () => allReviews.filter((r) => !r.ownerReply),
+    [allReviews]
+  );
+
+  // reviewId 기준으로 사장님 답글 찾기
+  const findReply = (reviewId?: number): ReviewResponse | undefined =>
+    allReviews.find((r) => r.ownerReply && r.parentReviewId === reviewId);
   const [isReplyOpen, setIsReplyOpen] = useState<Record<number, boolean>>({});
   const [activeMenuId, setActiveMenuId] = useState<number | null>(null);
   const [deletePopupVisible, setDeletePopupVisible] = useState(false);
@@ -52,13 +60,14 @@ export default function MyReview() {
 
   const handleEditPress = (id: number) => {
     closeMenu();
-    const review = reviews.find((r) => r.id === id);
+    const review = reviews.find((r) => r.reviewId === id);
     if (!review) return;
-    if (review.hasReply) {
+    const reply = findReply(review.reviewId);
+    if (reply) {
       setEditErrorPopupVisible(true);
     } else {
       router.push(
-        `/mypage/edit-review?reviewId=${review.id}&storeName=${encodeURIComponent(review.store)}&rating=${review.rating}&content=${encodeURIComponent(review.content)}`
+        `/mypage/edit-review?reviewId=${review.reviewId}&storeName=${encodeURIComponent(review.storeName ?? '')}&rating=${review.rating}&content=${encodeURIComponent(review.content ?? '')}`
       );
     }
   };
@@ -75,7 +84,7 @@ export default function MyReview() {
       { reviewId: selectedReviewId },
       {
         onSuccess: () => {
-          setReviews((prev) => prev.filter((r) => r.id !== selectedReviewId));
+          refetch();
           setDeletePopupVisible(false);
           setSelectedReviewId(null);
         },
@@ -85,8 +94,7 @@ export default function MyReview() {
 
   return (
     <TouchableWithoutFeedback onPress={closeMenu}>
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="#F7F7F7" />
+      <View style={[styles.container, { paddingTop: insets.top }]}>
 
         <View style={styles.header}>
           <TouchableOpacity
@@ -118,89 +126,105 @@ export default function MyReview() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {reviews.map((review) => (
-            <View key={review.id} style={styles.reviewCard}>
-              <View style={styles.reviewHeader}>
-                <View>
-                  <Text style={styles.storeName}>{review.store}</Text>
-                  <Text style={styles.reviewDate}>{review.date}</Text>
-                </View>
-                <View style={{ position: 'relative', zIndex: 10 }}>
-                  <TouchableOpacity
-                    onPress={() => toggleMenu(review.id)}
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                  >
-                    <Ionicons name="ellipsis-vertical" size={rs(16)} color="#BDBDBD" />
-                  </TouchableOpacity>
-                  {activeMenuId === review.id && (
-                    <View style={styles.menuPopup}>
-                      <TouchableOpacity
-                        style={styles.menuItem}
-                        onPress={() => handleEditPress(review.id)}
-                      >
-                        <Text style={styles.menuText}>수정</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={styles.menuItem}
-                        onPress={() => handleDeletePress(review.id)}
-                      >
-                        <Text style={styles.menuText}>삭제</Text>
-                      </TouchableOpacity>
-                    </View>
-                  )}
-                </View>
-              </View>
-
-              <View style={styles.starRow}>
-                {[...Array(5)].map((_, i) => (
-                  <Ionicons
-                    key={i}
-                    name="star"
-                    size={rs(14)}
-                    color={i < review.rating ? '#FBBC05' : '#E0E0E0'}
-                  />
-                ))}
-              </View>
-
-              <Text style={styles.reviewContent}>{review.content}</Text>
-
-              {review.hasReply && (
-                <>
-                  <View style={styles.divider} />
-                  <View style={styles.replySection}>
+          {reviews.map((review) => {
+            const reply = findReply(review.reviewId);
+            const dateStr = review.createdAt
+              ? new Date(review.createdAt).toLocaleDateString('ko-KR', {
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: '2-digit',
+                })
+              : '';
+            return (
+              <View key={review.reviewId} style={styles.reviewCard}>
+                <View style={styles.reviewHeader}>
+                  <View>
+                    <Text style={styles.storeName}>{review.storeName}</Text>
+                    <Text style={styles.reviewDate}>{dateStr}</Text>
+                  </View>
+                  <View style={{ position: 'relative', zIndex: 10 }}>
                     <TouchableOpacity
-                      style={styles.replyHeader}
-                      onPress={() => toggleReply(review.id)}
+                      onPress={() => toggleMenu(review.reviewId!)}
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
-                      <View
-                        style={{ flexDirection: 'row', alignItems: 'center', gap: rs(5) }}
-                      >
-                        <Ionicons
-                          name="chatbubble-ellipses-outline"
-                          size={rs(16)}
-                          color="#444444"
-                        />
-                        <Text style={styles.replyTitle}>사장님 답글</Text>
-                      </View>
-                      <Ionicons
-                        name={isReplyOpen[review.id] ? 'chevron-up' : 'chevron-down'}
-                        size={rs(16)}
-                        color="#828282"
-                      />
+                      <Ionicons name="ellipsis-vertical" size={rs(16)} color="#BDBDBD" />
                     </TouchableOpacity>
-                    {isReplyOpen[review.id] && (
-                      <View style={styles.replyContentBox}>
-                        {review.replyDate ? (
-                          <Text style={styles.replyDate}>{review.replyDate}</Text>
-                        ) : null}
-                        <Text style={styles.replyText}>{review.replyContent}</Text>
+                    {activeMenuId === review.reviewId && (
+                      <View style={styles.menuPopup}>
+                        <TouchableOpacity
+                          style={styles.menuItem}
+                          onPress={() => handleEditPress(review.reviewId!)}
+                        >
+                          <Text style={styles.menuText}>수정</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.menuItem}
+                          onPress={() => handleDeletePress(review.reviewId!)}
+                        >
+                          <Text style={styles.menuText}>삭제</Text>
+                        </TouchableOpacity>
                       </View>
                     )}
                   </View>
-                </>
-              )}
-            </View>
-          ))}
+                </View>
+
+                <View style={styles.starRow}>
+                  {[...Array(5)].map((_, i) => (
+                    <Ionicons
+                      key={i}
+                      name="star"
+                      size={rs(14)}
+                      color={i < (review.rating ?? 0) ? '#FBBC05' : '#E0E0E0'}
+                    />
+                  ))}
+                </View>
+
+                <Text style={styles.reviewContent}>{review.content}</Text>
+
+                {reply && (
+                  <>
+                    <View style={styles.divider} />
+                    <View style={styles.replySection}>
+                      <TouchableOpacity
+                        style={styles.replyHeader}
+                        onPress={() => toggleReply(review.reviewId!)}
+                      >
+                        <View
+                          style={{ flexDirection: 'row', alignItems: 'center', gap: rs(5) }}
+                        >
+                          <Ionicons
+                            name="chatbubble-ellipses-outline"
+                            size={rs(16)}
+                            color="#444444"
+                          />
+                          <Text style={styles.replyTitle}>사장님 답글</Text>
+                        </View>
+                        <Ionicons
+                          name={isReplyOpen[review.reviewId!] ? 'chevron-up' : 'chevron-down'}
+                          size={rs(16)}
+                          color="#828282"
+                        />
+                      </TouchableOpacity>
+                      {isReplyOpen[review.reviewId!] && (
+                        <View style={styles.replyContentBox}>
+                          {reply.createdAt ? (
+                            <Text style={styles.replyDate}>
+                              {new Date(reply.createdAt).toLocaleDateString('ko-KR', {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                              })}
+                            </Text>
+                          ) : null}
+                          <Text style={styles.replyText}>{reply.content}</Text>
+                        </View>
+                      )}
+                    </View>
+                  </>
+                )}
+              </View>
+            );
+          })}
           <View style={{ height: rs(50) }} />
         </ScrollView>
 
@@ -256,7 +280,7 @@ export default function MyReview() {
             </View>
           </View>
         </Modal>
-      </SafeAreaView>
+      </View>
     </TouchableWithoutFeedback>
   );
 }
