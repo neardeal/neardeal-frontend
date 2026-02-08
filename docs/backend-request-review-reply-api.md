@@ -1,151 +1,106 @@
-# 백엔드 API 요청사항 — 점주 리뷰 답글 기능
+# 백엔드 API 요청사항 — 리뷰 답글 OpenAPI 문서 업데이트
 
 ## 요약
 
-점주(STORE_OWNER)가 리뷰에 답글을 달 수 있는 기능이 필요합니다.
-현재 openapi.json에 리뷰 답글 관련 API가 없어 신규 개발이 필요합니다.
+리뷰 답글 API는 이미 구현되어 있으나, **openapi.json에 문서화가 누락**되어 프론트엔드에서 타입 생성이 불가능한 상태입니다.
 
 ---
 
-## 1. 점주 리뷰 답글 작성 API (신규)
+## 현재 상태
 
-| 항목 | 내용 |
-|------|------|
-| **Method** | `POST` |
-| **Endpoint** | `/api/reviews/{reviewId}/reply` |
-| **Summary** | [점주] 리뷰 답글 작성 |
-| **권한** | STORE_OWNER (해당 매장 소유자만) |
+### ✅ 백엔드 구현 완료 (Java 코드 확인)
 
-### Path Parameters
-
-| 이름 | 타입 | 필수 | 설명 |
-|------|------|------|------|
-| reviewId | int64 | Y | 리뷰 ID |
-
-### Request Body
-
-```json
-{
-  "content": "감사합니다! 또 방문해주세요 😊"
-}
+```java
+// ReviewResponse.java
+private Long reviewId;
+private Long storeId;
+private String username;
+private String content;
+private Integer rating;
+private LocalDateTime createdAt;
+private int likeCount;
+private List<String> imageUrls;
+private List<ReviewResponse> replies;  // ← 답글 리스트 (중첩 구조)
 ```
 
-| 필드 | 타입 | 필수 | 제약조건 | 설명 |
-|------|------|------|---------|------|
-| content | string | Y | minLength: 1, maxLength: 500 | 답글 내용 |
+### ❌ OpenAPI 문서 누락
 
-### Response
-
-- **201 Created** — 답글 작성 성공
-- **403 Forbidden** — 해당 매장 소유자가 아닌 경우
-- **404 Not Found** — 리뷰 없음
-- **409 Conflict** — 이미 답글이 존재하는 경우
-
----
-
-## 2. 점주 리뷰 답글 수정 API (신규)
-
-| 항목 | 내용 |
-|------|------|
-| **Method** | `PATCH` |
-| **Endpoint** | `/api/reviews/{reviewId}/reply` |
-| **Summary** | [점주] 리뷰 답글 수정 |
-| **권한** | STORE_OWNER (해당 매장 소유자만) |
-
-### Request Body
+`openapi.json`의 `ReviewResponse` 스키마에 `replies` 필드가 없음:
 
 ```json
-{
-  "content": "수정된 답글 내용입니다."
-}
-```
-
-### Response
-
-- **200 OK** — 수정 성공
-- **403 Forbidden** — 해당 매장 소유자가 아닌 경우
-- **404 Not Found** — 리뷰 또는 답글 없음
-
----
-
-## 3. 점주 리뷰 답글 삭제 API (신규)
-
-| 항목 | 내용 |
-|------|------|
-| **Method** | `DELETE` |
-| **Endpoint** | `/api/reviews/{reviewId}/reply` |
-| **Summary** | [점주] 리뷰 답글 삭제 |
-| **권한** | STORE_OWNER (해당 매장 소유자만) |
-
-### Response
-
-- **204 No Content** — 삭제 성공
-- **403 Forbidden** — 해당 매장 소유자가 아닌 경우
-- **404 Not Found** — 리뷰 또는 답글 없음
-
----
-
-## 4. ReviewResponse 스키마 변경 요청
-
-현재 `ReviewResponse`에 답글 관련 필드가 없습니다. 다음 필드 추가가 필요합니다:
-
-### 현재 스키마
-
-```json
-{
-  "reviewId": 1,
-  "storeId": 1,
-  "username": "배고프당",
-  "content": "떡볶이가 정말 맛있어요!",
-  "rating": 5,
-  "createdAt": "2026-01-08T12:00:00",
-  "likeCount": 3,
-  "imageUrls": ["https://..."]
-}
-```
-
-### 추가 요청 필드
-
-| 필드 | 타입 | 설명 |
-|------|------|------|
-| `reply` | object \| null | 점주 답글 (없으면 null) |
-| `reply.content` | string | 답글 내용 |
-| `reply.createdAt` | string (date-time) | 답글 작성일시 |
-| `reply.updatedAt` | string (date-time) | 답글 수정일시 |
-
-### 변경 후 스키마 예시
-
-```json
-{
-  "reviewId": 1,
-  "storeId": 1,
-  "username": "배고프당",
-  "content": "떡볶이가 정말 맛있어요!",
-  "rating": 5,
-  "createdAt": "2026-01-08T12:00:00",
-  "likeCount": 3,
-  "imageUrls": ["https://..."],
-  "reply": {
-    "content": "감사합니다! 또 방문해주세요 😊",
-    "createdAt": "2026-01-09T10:00:00",
-    "updatedAt": "2026-01-09T10:00:00"
+"ReviewResponse": {
+  "type": "object",
+  "properties": {
+    "reviewId": { "type": "integer", "format": "int64" },
+    "storeId": { "type": "integer", "format": "int64" },
+    "username": { "type": "string" },
+    "content": { "type": "string" },
+    "rating": { "type": "integer", "format": "int32" },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "likeCount": { "type": "integer", "format": "int32" },
+    "imageUrls": { "type": "array", "items": { "type": "string" } }
+    // ❌ "replies" 필드 누락
   }
 }
 ```
 
 ---
 
-## 프론트 사용 시나리오
+## 요청 사항
 
-1. **리뷰 목록 조회** (`GET /api/stores/{storeId}/reviews`)
-   - `reply`가 null → "미답변" 뱃지 표시 + "답글 달기" 버튼
-   - `reply`가 있음 → "답변완료" 뱃지 표시 + 사장님 답글 박스
+### 1. OpenAPI 스키마 업데이트 (P0 - 필수)
 
-2. **답글 작성** (`POST /api/reviews/{reviewId}/reply`)
-   - 점주가 "답글 달기" → 모달에서 작성 → API 호출 → 목록 새로고침
+`ReviewResponse`에 `replies` 필드 추가:
 
-3. **리뷰 신고** (`POST /api/reviews/{reviewId}/reports`)
-   - 이미 구현됨, 프론트 연동 완료
+```json
+"ReviewResponse": {
+  "type": "object",
+  "properties": {
+    "reviewId": { "type": "integer", "format": "int64" },
+    "storeId": { "type": "integer", "format": "int64" },
+    "username": { "type": "string" },
+    "content": { "type": "string" },
+    "rating": { "type": "integer", "format": "int32" },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "likeCount": { "type": "integer", "format": "int32" },
+    "imageUrls": { "type": "array", "items": { "type": "string" } },
+    "replies": {
+      "type": "array",
+      "items": { "$ref": "#/components/schemas/ReviewResponse" }
+    }
+  }
+}
+```
+
+### 2. API 엔드포인트 문서 정확성 확인
+
+현재 `POST /api/stores/{storeId}/reviews`의 summary:
+- ✅ "[공통] 리뷰 및 답글 작성" (이미 업데이트됨)
+
+`CreateReviewRequest` 스키마:
+- ✅ `parentReviewId` 필드 포함 확인됨
+
+---
+
+## 프론트엔드 구현 완료 항목
+
+| 기능 | 상태 | 비고 |
+|------|------|------|
+| 리뷰 목록 조회 | ✅ | `useGetReviews` 연동 완료 |
+| 리뷰 통계 조회 | ✅ | `useGetReviewStats` 연동 완료 |
+| 답글 작성 | ✅ | `parentReviewId` 파라미터로 구현 |
+| 리뷰 신고 | ✅ | `useReportReview` 연동 완료 |
+| 미답변/답변완료 필터 | ✅ | `replies` 필드 기반 구현 |
+| 답글 UI 표시 | ✅ | 중첩 구조 처리 완료 |
+
+---
+
+## 영향 범위
+
+OpenAPI 문서가 업데이트되면:
+1. `npm run generate:api` 실행 시 `ReviewResponse` 타입에 `replies` 필드 포함
+2. TypeScript 타입 안정성 확보
+3. 추가 프론트 코드 수정 불필요 (이미 런타임에서 정상 동작 중)
 
 ---
 
@@ -153,7 +108,4 @@
 
 | 순위 | 항목 | 사유 |
 |------|------|------|
-| **P0** | ReviewResponse에 reply 필드 추가 | 미답변/답변완료 구분이 불가 |
-| **P0** | 답글 작성 API | 핵심 기능 |
-| P1 | 답글 수정 API | 오타 수정 등 |
-| P2 | 답글 삭제 API | 부가 기능 |
+| **P0** | openapi.json에 `replies` 필드 추가 | 타입 생성 및 문서 정확성 |
