@@ -397,6 +397,88 @@ export const useLeaveOrganization = <TError = unknown,
       return useMutation(getLeaveOrganizationMutationOptions(options), queryClient);
     }
     /**
+ * 학생이 소속을 변경합니다. (기존 동종 소속 자동 탈퇴)
+ * @summary [학생] 소속 변경
+ */
+export type changeOrganizationResponse200 = {
+  data: Blob
+  status: 200
+}
+    
+export type changeOrganizationResponseSuccess = (changeOrganizationResponse200) & {
+  headers: Headers;
+};
+;
+
+export type changeOrganizationResponse = (changeOrganizationResponseSuccess)
+
+export const getChangeOrganizationUrl = (organizationId: number,) => {
+
+
+  
+
+  return `/api/organizations/${organizationId}/membership`
+}
+
+export const changeOrganization = async (organizationId: number, options?: RequestInit): Promise<changeOrganizationResponse> => {
+  
+  return customFetch<changeOrganizationResponse>(getChangeOrganizationUrl(organizationId),
+  {      
+    ...options,
+    method: 'PATCH'
+    
+    
+  }
+);}
+
+
+
+
+export const getChangeOrganizationMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changeOrganization>>, TError,{organizationId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof changeOrganization>>, TError,{organizationId: number}, TContext> => {
+
+const mutationKey = ['changeOrganization'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof changeOrganization>>, {organizationId: number}> = (props) => {
+          const {organizationId} = props ?? {};
+
+          return  changeOrganization(organizationId,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ChangeOrganizationMutationResult = NonNullable<Awaited<ReturnType<typeof changeOrganization>>>
+    
+    export type ChangeOrganizationMutationError = unknown
+
+    /**
+ * @summary [학생] 소속 변경
+ */
+export const useChangeOrganization = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changeOrganization>>, TError,{organizationId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof changeOrganization>>,
+        TError,
+        {organizationId: number},
+        TContext
+      > => {
+      return useMutation(getChangeOrganizationMutationOptions(options), queryClient);
+    }
+    /**
  * 소속을 삭제합니다.
  * @summary [학생회] 소속 삭제
  */
@@ -562,4 +644,114 @@ export const useUpdateOrganization = <TError = unknown,
       > => {
       return useMutation(getUpdateOrganizationMutationOptions(options), queryClient);
     }
+    /**
+ * 단과대학에 속한 학과 목록을 조회합니다.
+ * @summary [공통] 특정 단과대학의 학과 목록 조회
+ */
+export type getDepartmentsByCollegeResponse200 = {
+  data: Blob
+  status: 200
+}
     
+export type getDepartmentsByCollegeResponseSuccess = (getDepartmentsByCollegeResponse200) & {
+  headers: Headers;
+};
+;
+
+export type getDepartmentsByCollegeResponse = (getDepartmentsByCollegeResponseSuccess)
+
+export const getGetDepartmentsByCollegeUrl = (collegeId: number,) => {
+
+
+  
+
+  return `/api/organizations/${collegeId}/departments`
+}
+
+export const getDepartmentsByCollege = async (collegeId: number, options?: RequestInit): Promise<getDepartmentsByCollegeResponse> => {
+  
+  return customFetch<getDepartmentsByCollegeResponse>(getGetDepartmentsByCollegeUrl(collegeId),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getGetDepartmentsByCollegeQueryKey = (collegeId?: number,) => {
+    return [
+    `/api/organizations/${collegeId}/departments`
+    ] as const;
+    }
+
+    
+export const getGetDepartmentsByCollegeQueryOptions = <TData = Awaited<ReturnType<typeof getDepartmentsByCollege>>, TError = unknown>(collegeId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDepartmentsByCollege>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDepartmentsByCollegeQueryKey(collegeId);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDepartmentsByCollege>>> = ({ signal }) => getDepartmentsByCollege(collegeId, { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(collegeId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDepartmentsByCollege>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetDepartmentsByCollegeQueryResult = NonNullable<Awaited<ReturnType<typeof getDepartmentsByCollege>>>
+export type GetDepartmentsByCollegeQueryError = unknown
+
+
+export function useGetDepartmentsByCollege<TData = Awaited<ReturnType<typeof getDepartmentsByCollege>>, TError = unknown>(
+ collegeId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDepartmentsByCollege>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDepartmentsByCollege>>,
+          TError,
+          Awaited<ReturnType<typeof getDepartmentsByCollege>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDepartmentsByCollege<TData = Awaited<ReturnType<typeof getDepartmentsByCollege>>, TError = unknown>(
+ collegeId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDepartmentsByCollege>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDepartmentsByCollege>>,
+          TError,
+          Awaited<ReturnType<typeof getDepartmentsByCollege>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDepartmentsByCollege<TData = Awaited<ReturnType<typeof getDepartmentsByCollege>>, TError = unknown>(
+ collegeId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDepartmentsByCollege>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary [공통] 특정 단과대학의 학과 목록 조회
+ */
+
+export function useGetDepartmentsByCollege<TData = Awaited<ReturnType<typeof getDepartmentsByCollege>>, TError = unknown>(
+ collegeId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDepartmentsByCollege>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetDepartmentsByCollegeQueryOptions(collegeId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+

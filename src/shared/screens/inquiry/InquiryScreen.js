@@ -1,3 +1,4 @@
+import { useCreateInquiry, useGetInquiries } from '@/src/api/고객센터-api';
 import { rs } from '@/src/shared/theme/scale';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -19,6 +20,7 @@ import {
     View
 } from 'react-native';
 
+<<<<<<< HEAD:src/app/(shopowner)/mypage/InquiryScreen.js
 // [API] 문의 관련 함수 임포트
 import { createInquiry, getInquiries } from '@/src/api/inquiry';
 
@@ -31,6 +33,32 @@ const INQUIRY_TYPES = [
     "행운 제안·기타"
 ];
 
+=======
+// enum -> 한글 매핑
+const INQUIRY_TYPE_MAP = {
+    COUPON_BENEFIT: "쿠폰·혜택 사용",
+    MAP_LOCATION: "지도·위치 문의",
+    STORE_INFO_ERROR: "매장 정보 오류",
+    EVENT_PARTICIPATION: "이벤트 참여",
+    ALERT_ACCOUNT: "알림·계정",
+    PROPOSAL_OTHER: "행운 제안·기타"
+};
+
+const INQUIRY_TYPES = Object.entries(INQUIRY_TYPE_MAP).map(([key, label]) => ({
+    key,
+    label,
+}));
+
+const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}.${m}.${d}`;
+};
+
+>>>>>>> 8fa48b68313a1615e211f5269495ba30ae8cebd4:src/shared/screens/inquiry/InquiryScreen.js
 export default function InquiryScreen({ navigation, route }) {
   const initialTab = route.params?.initialTab || 'form';
   const [activeTab, setActiveTab] = useState(initialTab);
@@ -42,19 +70,25 @@ export default function InquiryScreen({ navigation, route }) {
       }
   }, [route.params]);
 
+<<<<<<< HEAD:src/app/(shopowner)/mypage/InquiryScreen.js
   // ================= [Form 관련 상태] =================
   const [inquiryType, setInquiryType] = useState('');
+=======
+  // ================= [Form 관련 상태 & 로직] =================
+  const [inquiryTypeKey, setInquiryTypeKey] = useState('');
+>>>>>>> 8fa48b68313a1615e211f5269495ba30ae8cebd4:src/shared/screens/inquiry/InquiryScreen.js
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [attachedFile, setAttachedFile] = useState(null);
   const [typeModalVisible, setTypeModalVisible] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false); // 등록 로딩 상태
 
-  const isTypeSelected = inquiryType !== '';
-  const isTitleValid = title.trim().length >= 1 && title.trim().length <= 30;
-  const isContentValid = content.trim().length >= 5 && content.trim().length <= 1000;
+  const isTypeSelected = inquiryTypeKey !== '';
+  const isTitleValid = title.trim().length >= 1 && title.trim().length <= 14;
+  const isContentValid = content.trim().length >= 1 && content.trim().length <= 500;
   const canSubmit = isTypeSelected && isTitleValid && isContentValid;
 
+<<<<<<< HEAD:src/app/(shopowner)/mypage/InquiryScreen.js
   // ================= [History 관련 상태] =================
   const [historyData, setHistoryData] = useState([]); // 문의 내역 데이터
   const [isLoadingHistory, setIsLoadingHistory] = useState(false); // 목록 로딩 상태
@@ -120,6 +154,10 @@ export default function InquiryScreen({ navigation, route }) {
   };
 
   // 이미지 피커
+=======
+  const { mutate: submitInquiry, isPending: isSubmitting } = useCreateInquiry();
+
+>>>>>>> 8fa48b68313a1615e211f5269495ba30ae8cebd4:src/shared/screens/inquiry/InquiryScreen.js
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
@@ -142,12 +180,61 @@ export default function InquiryScreen({ navigation, route }) {
   };
 
   const removeFile = () => setAttachedFile(null);
+<<<<<<< HEAD:src/app/(shopowner)/mypage/InquiryScreen.js
   
+=======
+
+  const handleSubmit = () => {
+    if (!canSubmit || isSubmitting) return;
+
+    const images = [];
+    if (attachedFile) {
+      images.push({
+        uri: attachedFile.uri,
+        type: attachedFile.mimeType || 'image/jpeg',
+        name: attachedFile.fileName || 'image.jpg',
+      });
+    }
+
+    submitInquiry(
+      {
+        data: {
+          request: {
+            type: inquiryTypeKey,
+            title: title.trim(),
+            content: content.trim(),
+          },
+          ...(images.length > 0 ? { images } : {}),
+        },
+      },
+      {
+        onSuccess: () => {
+          navigation.navigate('InquiryComplete');
+        },
+        onError: () => {
+          Alert.alert('오류', '문의 등록에 실패했습니다. 다시 시도해주세요.');
+        },
+      }
+    );
+  };
+
+  // ================= [History 관련 상태 & 로직] =================
+  const [expandedId, setExpandedId] = useState(null);
+>>>>>>> 8fa48b68313a1615e211f5269495ba30ae8cebd4:src/shared/screens/inquiry/InquiryScreen.js
   const toggleExpand = (id) => {
       setExpandedId(expandedId === id ? null : id);
   };
 
+<<<<<<< HEAD:src/app/(shopowner)/mypage/InquiryScreen.js
   // ================= [렌더링 함수] =================
+=======
+  const { data: inquiriesData, isLoading: isHistoryLoading } = useGetInquiries(
+    { page: 0, size: 20 },
+    { query: { enabled: activeTab === 'history' } }
+  );
+
+  const historyList = inquiriesData?.data?.data?.content ?? [];
+>>>>>>> 8fa48b68313a1615e211f5269495ba30ae8cebd4:src/shared/screens/inquiry/InquiryScreen.js
 
   // 1. 문의하기 폼
   const renderFormView = () => (
@@ -155,13 +242,13 @@ export default function InquiryScreen({ navigation, route }) {
         {/* 문의 유형 */}
         <View style={styles.inputGroup}>
             <Text style={styles.label}>문의 유형</Text>
-            <TouchableOpacity 
-                style={styles.dropdownBox} 
+            <TouchableOpacity
+                style={styles.dropdownBox}
                 onPress={() => setTypeModalVisible(true)}
                 activeOpacity={0.8}
             >
                 <Text style={[styles.inputText, !isTypeSelected && styles.placeholderText]}>
-                    {isTypeSelected ? inquiryType : "유형을 선택해주세요"}
+                    {isTypeSelected ? INQUIRY_TYPE_MAP[inquiryTypeKey] : "유형을 선택해주세요"}
                 </Text>
                 <Ionicons name="chevron-down" size={rs(16)} color="#828282" />
             </TouchableOpacity>
@@ -171,13 +258,17 @@ export default function InquiryScreen({ navigation, route }) {
         <View style={styles.inputGroup}>
             <Text style={styles.label}>제목</Text>
             <View style={styles.textInputBox}>
-                <TextInput 
+                <TextInput
                     style={styles.inputText}
                     value={title}
                     onChangeText={setTitle}
                     placeholder="제목을 입력해주세요"
                     placeholderTextColor="#BDBDBD"
+<<<<<<< HEAD:src/app/(shopowner)/mypage/InquiryScreen.js
                     maxLength={30}
+=======
+                    maxLength={14}
+>>>>>>> 8fa48b68313a1615e211f5269495ba30ae8cebd4:src/shared/screens/inquiry/InquiryScreen.js
                 />
             </View>
         </View>
@@ -186,7 +277,7 @@ export default function InquiryScreen({ navigation, route }) {
         <View style={styles.inputGroup}>
             <Text style={styles.label}>상세 내용</Text>
             <View style={styles.textAreaBox}>
-                <TextInput 
+                <TextInput
                     style={[styles.inputText, { height: '100%' }]}
                     value={content}
                     onChangeText={setContent}
@@ -194,10 +285,10 @@ export default function InquiryScreen({ navigation, route }) {
                     placeholderTextColor="#BDBDBD"
                     multiline
                     textAlignVertical="top"
-                    maxLength={1000}
+                    maxLength={500}
                 />
             </View>
-            <Text style={styles.charCount}>{content.length}/1000</Text>
+            <Text style={styles.charCount}>{content.length}/500</Text>
         </View>
 
         {/* 첨부파일 */}
@@ -206,7 +297,7 @@ export default function InquiryScreen({ navigation, route }) {
                 <Text style={styles.label}>첨부파일 (선택)</Text>
                 <Text style={styles.subLabel}>최대 10MB</Text>
             </View>
-            
+
             {attachedFile ? (
                 <View style={styles.fileBox}>
                     <Text style={styles.fileName} numberOfLines={1}>
@@ -226,6 +317,7 @@ export default function InquiryScreen({ navigation, route }) {
     </View>
   );
 
+<<<<<<< HEAD:src/app/(shopowner)/mypage/InquiryScreen.js
   // 2. 문의 내역 리스트
   const renderHistoryView = () => (
     <View style={styles.listContainer}>
@@ -286,6 +378,70 @@ export default function InquiryScreen({ navigation, route }) {
         )}
     </View>
   );
+=======
+  // 2. 문의 내역 리스트 렌더링
+  const renderHistoryView = () => {
+    if (isHistoryLoading) {
+      return (
+        <View style={styles.emptyContainer}>
+          <ActivityIndicator size="small" color="#828282" />
+        </View>
+      );
+    }
+
+    if (historyList.length === 0) {
+      return (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>문의 내역이 없습니다.</Text>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.listContainer}>
+          {historyList.map((item) => {
+              const isExpanded = expandedId === item.id;
+
+              return (
+                  <View key={item.id}>
+                      <TouchableOpacity
+                          style={styles.historyItem}
+                          activeOpacity={0.8}
+                          onPress={() => toggleExpand(item.id)}
+                      >
+                          <Text style={styles.itemTitle} numberOfLines={1} ellipsizeMode="tail">
+                              {item.title}
+                          </Text>
+                          <View style={styles.rightGroup}>
+                              <Text style={styles.dateText}>{formatDate(item.createdAt)}</Text>
+                              <View style={[styles.badge, styles.badgeGray]}>
+                                  <Text style={styles.badgeText}>
+                                      {INQUIRY_TYPE_MAP[item.type] ?? item.type}
+                                  </Text>
+                              </View>
+                              <Ionicons
+                                  name={isExpanded ? "chevron-up" : "chevron-down"}
+                                  size={rs(16)}
+                                  color="#828282"
+                              />
+                          </View>
+                      </TouchableOpacity>
+
+                      {isExpanded && (
+                          <View style={styles.accordionBody}>
+                              <View style={styles.qBox}>
+                                  <Text style={styles.qText}>{item.content}</Text>
+                              </View>
+                          </View>
+                      )}
+                      <View style={styles.divider} />
+                  </View>
+              );
+          })}
+      </View>
+    );
+  };
+>>>>>>> 8fa48b68313a1615e211f5269495ba30ae8cebd4:src/shared/screens/inquiry/InquiryScreen.js
 
   return (
     <SafeAreaView style={styles.container}>
@@ -305,18 +461,18 @@ export default function InquiryScreen({ navigation, route }) {
               찾으시는 행운에 문제가 생겼나요?{'\n'}
               루키가 해결해 드릴게요!
           </Text>
-          
+
           {/* 탭 버튼 */}
           <View style={styles.tabContainer}>
-              <TouchableOpacity 
+              <TouchableOpacity
                   style={activeTab === 'form' ? styles.tabActive : styles.tabInactive}
                   onPress={() => setActiveTab('form')}
                   activeOpacity={0.8}
               >
                   <Text style={activeTab === 'form' ? styles.tabTextActive : styles.tabTextInactive}>문의하기</Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                   style={activeTab === 'history' ? styles.tabActive : styles.tabInactive}
                   onPress={() => setActiveTab('history')}
                   activeOpacity={0.8}
@@ -326,9 +482,15 @@ export default function InquiryScreen({ navigation, route }) {
           </View>
       </View>
 
+<<<<<<< HEAD:src/app/(shopowner)/mypage/InquiryScreen.js
       {/* 컨텐츠 영역 */}
       <KeyboardAvoidingView 
         style={{ flex: 1 }} 
+=======
+      {/* 컨텐츠 영역 (키보드 회피 적용) */}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+>>>>>>> 8fa48b68313a1615e211f5269495ba30ae8cebd4:src/shared/screens/inquiry/InquiryScreen.js
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView 
@@ -346,13 +508,17 @@ export default function InquiryScreen({ navigation, route }) {
       {/* 하단 버튼 (문의하기 탭일 때만) */}
       {activeTab === 'form' && (
           <View style={styles.bottomContainer}>
-            <TouchableOpacity 
-                style={[styles.submitBtn, canSubmit ? styles.submitBtnActive : styles.submitBtnDisabled]} 
+            <TouchableOpacity
+                style={[styles.submitBtn, canSubmit ? styles.submitBtnActive : styles.submitBtnDisabled]}
                 onPress={handleSubmit}
                 disabled={!canSubmit || isSubmitting}
             >
                 {isSubmitting ? (
+<<<<<<< HEAD:src/app/(shopowner)/mypage/InquiryScreen.js
                     <ActivityIndicator color="white" />
+=======
+                    <ActivityIndicator color="white" size="small" />
+>>>>>>> 8fa48b68313a1615e211f5269495ba30ae8cebd4:src/shared/screens/inquiry/InquiryScreen.js
                 ) : (
                     <Text style={styles.submitBtnText}>문의하기</Text>
                 )}
@@ -365,19 +531,19 @@ export default function InquiryScreen({ navigation, route }) {
           <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setTypeModalVisible(false)}>
               <View style={styles.modalContent}>
                   <Text style={styles.modalTitle}>문의 유형 선택</Text>
-                  {INQUIRY_TYPES.map((type, index) => (
-                      <TouchableOpacity 
-                          key={index} 
+                  {INQUIRY_TYPES.map((type) => (
+                      <TouchableOpacity
+                          key={type.key}
                           style={styles.modalItem}
                           onPress={() => {
-                              setInquiryType(type);
+                              setInquiryTypeKey(type.key);
                               setTypeModalVisible(false);
                           }}
                       >
-                          <Text style={[styles.modalItemText, inquiryType === type && styles.modalItemTextActive]}>
-                              {type}
+                          <Text style={[styles.modalItemText, inquiryTypeKey === type.key && styles.modalItemTextActive]}>
+                              {type.label}
                           </Text>
-                          {inquiryType === type && <Ionicons name="checkmark" size={rs(18)} color="#34B262" />}
+                          {inquiryTypeKey === type.key && <Ionicons name="checkmark" size={rs(18)} color="#34B262" />}
                       </TouchableOpacity>
                   ))}
               </View>
@@ -397,18 +563,18 @@ const styles = StyleSheet.create({
   topSection: { paddingHorizontal: rs(20), marginTop: rs(10), backgroundColor: '#FAFAFA' },
   pageTitle: { fontSize: rs(20), fontWeight: '600', color: 'black', fontFamily: 'Pretendard', marginBottom: rs(5) },
   pageSubtitle: { fontSize: rs(14), fontWeight: '600', color: '#A6A6A6', fontFamily: 'Pretendard', lineHeight: rs(20) },
-  
+
   tabContainer: { flexDirection: 'row', gap: rs(8), marginTop: rs(20), marginBottom: rs(10) },
-  tabActive: { 
-      paddingHorizontal: rs(12), paddingVertical: rs(6), 
-      backgroundColor: 'black', borderRadius: rs(20), 
-      justifyContent: 'center', alignItems: 'center' 
+  tabActive: {
+      paddingHorizontal: rs(12), paddingVertical: rs(6),
+      backgroundColor: 'black', borderRadius: rs(20),
+      justifyContent: 'center', alignItems: 'center'
   },
-  tabInactive: { 
-      paddingHorizontal: rs(12), paddingVertical: rs(6), 
-      backgroundColor: 'white', borderRadius: rs(20), 
-      borderWidth: 1, borderColor: '#E0E0E0', 
-      justifyContent: 'center', alignItems: 'center' 
+  tabInactive: {
+      paddingHorizontal: rs(12), paddingVertical: rs(6),
+      backgroundColor: 'white', borderRadius: rs(20),
+      borderWidth: 1, borderColor: '#E0E0E0',
+      justifyContent: 'center', alignItems: 'center'
   },
   tabTextActive: { color: 'white', fontSize: rs(12), fontWeight: '700', fontFamily: 'Pretendard' },
   tabTextInactive: { color: 'black', fontSize: rs(12), fontWeight: '700', fontFamily: 'Pretendard' },
@@ -443,9 +609,6 @@ const styles = StyleSheet.create({
   accordionBody: { backgroundColor: '#F9F9F9', padding: rs(15), marginBottom: rs(10), borderRadius: rs(8) },
   qBox: { marginBottom: rs(10) },
   qText: { fontSize: rs(13), color: '#333', fontFamily: 'Pretendard', lineHeight: rs(18) },
-  aBox: { marginTop: rs(5), paddingTop: rs(10), borderTopWidth: 1, borderTopColor: '#EEE' },
-  aTitle: { fontSize: rs(13), fontWeight: '700', color: '#34B262', marginBottom: rs(5) },
-  aText: { fontSize: rs(13), color: '#555', fontFamily: 'Pretendard', lineHeight: rs(18) },
   emptyContainer: { paddingVertical: rs(40), alignItems: 'center' },
   emptyText: { color: '#828282', fontSize: rs(14) },
 

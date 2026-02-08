@@ -1,187 +1,165 @@
-import { rs } from "@/src/shared/theme/scale";
+import { CategorySection } from '@/src/app/(student)/components/home/category-section';
 import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+  CouponItem,
+  CouponSection,
+} from '@/src/app/(student)/components/home/coupon-section';
+import { EventSection } from '@/src/app/(student)/components/home/event-section';
+import {
+  HotPlaceItem,
+  HotPlaceSection,
+} from '@/src/app/(student)/components/home/hot-place-section';
+import { WelcomeBanner } from '@/src/app/(student)/components/home/welcome-banner';
+import { ThemedText } from '@/src/shared/common/themed-text';
+import { rs } from '@/src/shared/theme/scale';
+import { Gray, Notify } from '@/src/shared/theme/theme';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import NearDealLogo from "@/assets/images/logo/neardeal-logo.svg";
+import NearDealLogo from '@/assets/images/logo/neardeal-logo.svg';
+
+// Mock 데이터
+const MOCK_USER = {
+  name: '선지원',
+  university: '전북대학교',
+  department: '공과대학 IT시스템 공학과',
+};
+
+const MOCK_EVENTS = [
+  {
+    id: 1,
+    title: '전수당 앞! 총학생회 체육행사회',
+    description: '참여하고 커피 받아가세요!',
+    startDateTime: '2026-01-28T10:00:00',
+    endDateTime: '2026-01-28T14:00:00',
+    status: 'LIVE' as const,
+    imageUrls: [],
+  },
+  {
+    id: 2,
+    title: '알뜰이네 거리 총학생회 개강행사',
+    description: '참여하고 햄버거 받아가세요!',
+    startDateTime: '2026-01-29T10:00:00',
+    endDateTime: '2026-01-29T15:00:00',
+    status: 'UPCOMING' as const,
+    imageUrls: [],
+  },
+];
+
+const MOCK_COUPONS: CouponItem[] = [
+  {
+    id: 1,
+    storeId: 1,
+    storeName: '파리바게트',
+    title: '마감 빵 세트',
+    description: '',
+    discountType: 'PERCENT',
+    discountValue: 20,
+    createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 2,
+    storeId: 2,
+    storeName: '카페 디딤',
+    title: '아메리카노',
+    description: '',
+    discountType: 'AMOUNT',
+    discountValue: 1500,
+    createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 3,
+    storeId: 3,
+    storeName: '롯데리아',
+    title: '치즈볼 3구',
+    description: '',
+    discountType: 'SERVICE',
+    discountValue: 0,
+    createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+  },
+];
+
+const MOCK_HOT_PLACES: HotPlaceItem[] = [
+  {
+    id: 1,
+    rank: 1,
+    name: '000 돈까스',
+    category: '식당',
+    organization: '1,000원 할인',
+    weeklyFavoriteCount: 33,
+  },
+  {
+    id: 2,
+    rank: 2,
+    name: '카페 00',
+    category: '카페',
+    organization: '음료 1+1',
+    weeklyFavoriteCount: 20,
+  },
+  {
+    id: 3,
+    rank: 3,
+    name: '00 헬스',
+    category: '뷰티•헬스',
+    organization: '회원할인',
+    weeklyFavoriteCount: 15,
+  },
+];
 
 export default function HomePage() {
+  const router = useRouter();
+
+  const handleNotificationPress = () => {
+    router.push('/notification');
+  };
+
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header with Logo and Icons */}
+        {/* Header */}
         <View style={styles.header}>
           <NearDealLogo width={rs(92)} height={rs(28)} />
-          <View style={styles.headerIcons}>
-            <TouchableOpacity style={styles.iconButton}>
-              <View style={styles.iconCircle}>
-                <Text style={styles.iconText}>🔍</Text>
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton}>
-              <View style={styles.iconCircle}>
-                <Text style={styles.iconText}>🔔</Text>
-              </View>
-              <View style={styles.notificationDot} />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Profile Section */}
-        <View style={styles.profileSection}>
-          <View style={styles.profileGradient}>
-            <View style={styles.profileContent}>
-              <View style={styles.greetingContainer}>
-                <Text style={styles.greetingSubtext}>
-                  시험 기간 힘내세요! 💪
-                </Text>
-                <Text style={styles.greetingText}>니어딜님, 반가워요!</Text>
-              </View>
-              <View style={styles.statsContainer}>
-                <View style={styles.statItem}>
-                  <View style={styles.statHeader}>
-                    <View style={styles.pointIcon}>
-                      <Text style={styles.pointIconText}>🪙</Text>
-                    </View>
-                    <Text style={styles.statLabel}>포인트</Text>
-                  </View>
-                  <Text style={styles.statValue}>3,500 P</Text>
-                </View>
-                <View style={styles.statDivider} />
-                <View style={styles.statItem}>
-                  <View style={styles.statHeader}>
-                    <View style={styles.couponIcon}>
-                      <Text style={styles.couponIconText}>🎟️</Text>
-                    </View>
-                    <Text style={styles.statLabel}>쿠폰</Text>
-                  </View>
-                  <Text style={styles.statValue}>3장</Text>
-                </View>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        {/* Event Banner */}
-        <View style={styles.eventBanner}>
-          <View style={styles.eventBannerGradient}>
-            <Text style={styles.eventEmoji}>☕</Text>
-            <View style={styles.eventTextContainer}>
-              <Text style={styles.eventTitle}>니어딜 독점!</Text>
-              <Text style={styles.eventDescription}>
-                학교 앞 '00 카페' 아메리카노 1,000원!
-              </Text>
-            </View>
-            <View style={styles.bannerIndicator}>
-              <View style={styles.indicatorDotActive} />
-              <View style={styles.indicatorDot} />
-              <View style={styles.indicatorDot} />
-            </View>
-          </View>
-        </View>
-
-        {/* Category Grid - Row 1 */}
-        <View style={styles.categoryContainer}>
-          <View style={styles.categoryRow}>
-            <CategoryItem icon="📋" label="전체" color="#6c7993" />
-            <CategoryItem icon="🍽️" label="식당" color="#ef6939" />
-            <CategoryItem icon="🍺" label="주점" color="#d98026" />
-            <CategoryItem icon="☕" label="카페" color="#19a2e6" />
-          </View>
-          <View style={styles.categoryRow}>
-            <CategoryItem icon="🎮" label="놀거리" color="#7547d1" />
-            <CategoryItem icon="💆" label="뷰티•헬스" color="#dd3c71" />
-            <CategoryItem icon="···" label="ETC" color="#e052b1" />
-            <CategoryItem icon="🎁" label="이벤트" color="#2eb85c" />
-          </View>
-        </View>
-
-        {/* 지금 아니면 못 받아요! Section */}
-        <View style={styles.sectionHeader}>
-          <View style={styles.sectionTitleContainer}>
-            <Text style={styles.sectionIcon}>⚡</Text>
-            <Text style={styles.sectionTitle}>지금 아니면 못 받아요!</Text>
-          </View>
-          <TouchableOpacity style={styles.moreButton}>
-            <Text style={styles.moreButtonText}>더 보기</Text>
-            <Text style={styles.moreArrow}>›</Text>
+          <TouchableOpacity
+            style={styles.notificationButton}
+            onPress={handleNotificationPress}
+          >
+            <Ionicons name="notifications-outline" size={rs(24)} color={Gray.black} />
+            <View style={styles.notificationDot} />
           </TouchableOpacity>
         </View>
 
-        {/* 사용 임박 쿠폰 모음 Section */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.couponScrollView}
-          contentContainerStyle={styles.couponScrollContent}
-        >
-          <ExpiringCouponCard
-            emoji="🥐"
-            storeName="파리바게트"
-            productName="마감 빵 세트"
-            discount="4,000원 할인"
-            timeLeft="00:28:40"
-          />
-          <ExpiringCouponCard
-            emoji="☕"
-            storeName="카페 디딤"
-            productName="아메리카노"
-            discount="1,500원 쿠폰"
-            timeLeft="00:52:13"
-          />
-          <ExpiringCouponCard
-            emoji="🍔"
-            storeName="롯데리아"
-            productName="치즈볼 3구"
-            discount="치즈볼 증정 쿠폰"
-            timeLeft="01:34:58"
-          />
-        </ScrollView>
+        {/* Welcome Banner */}
+        <WelcomeBanner
+          userName={MOCK_USER.name}
+          university={MOCK_USER.university}
+          department={MOCK_USER.department}
+          couponCount={3}
+          eventCount={3}
+        />
 
-        {/* 지금 인기있는 곳 Section */}
-        <View style={styles.sectionHeader}>
-          <View style={styles.sectionTitleContainer}>
-            <Text style={styles.sectionIcon}>🔥</Text>
-            <Text style={styles.sectionTitle}>지금 인기있는 곳</Text>
-          </View>
-          <TouchableOpacity style={styles.moreButton}>
-            <Text style={styles.moreButtonText}>더 보기</Text>
-            <Text style={styles.moreArrow}>›</Text>
-          </TouchableOpacity>
+        {/* Event Section */}
+        <View style={styles.section}>
+          <EventSection events={MOCK_EVENTS} />
         </View>
 
-        {/* Popular Places Ranking */}
-        <View style={styles.rankingContainer}>
-          <RankingItem
-            rank={1}
-            name="000 돈까스"
-            category="식당"
-            benefit="1,000원 할인"
-            discount="15%"
-          />
-          <RankingItem
-            rank={2}
-            name="카페 00"
-            category="카페"
-            benefit="음료 1+1"
-            discount="12%"
-          />
-          <RankingItem
-            rank={3}
-            name="00 헬스"
-            category="뷰티•헬스"
-            benefit="피티 3회 무료"
-            discount="8%"
-          />
+        {/* Category Section */}
+        <View style={styles.section}>
+          <CategorySection />
+        </View>
+
+        {/* Coupon Section */}
+        <View style={styles.section}>
+          <CouponSection coupons={MOCK_COUPONS} />
+        </View>
+
+        {/* Hot Place Section */}
+        <View style={styles.section}>
+          <HotPlaceSection places={MOCK_HOT_PLACES} />
         </View>
 
         <View style={styles.bottomSpacer} />
@@ -190,468 +168,39 @@ export default function HomePage() {
   );
 }
 
-// Category Item Component
-interface CategoryItemProps {
-  icon: string;
-  label: string;
-  color: string;
-}
-
-function CategoryItem({ icon, label, color }: CategoryItemProps) {
-  return (
-    <TouchableOpacity style={styles.categoryItem}>
-      <View style={[styles.categoryIconCircle, { backgroundColor: color }]}>
-        <Text style={styles.categoryIconText}>{icon}</Text>
-      </View>
-      <Text style={styles.categoryLabel}>{label}</Text>
-    </TouchableOpacity>
-  );
-}
-
-// Ranking Item Component
-interface RankingItemProps {
-  rank: number;
-  name: string;
-  category: string;
-  benefit: string;
-  discount: string;
-}
-
-function RankingItem({
-  rank,
-  name,
-  category,
-  benefit,
-  discount,
-}: RankingItemProps) {
-  const rankColors = ["#34b262", "#4a90d9", "#f5a623"];
-
-  return (
-    <View style={styles.rankingItem}>
-      <View
-        style={[
-          styles.rankCircle,
-          { backgroundColor: rankColors[rank - 1] || "#888" },
-        ]}
-      >
-        <Text style={styles.rankNumber}>{rank}</Text>
-      </View>
-      <View style={styles.rankingInfo}>
-        <View style={styles.rankingNameRow}>
-          <Text style={styles.rankingName}>{name}</Text>
-          <Text style={styles.rankingCategory}>{category}</Text>
-        </View>
-        <Text style={styles.rankingBenefit}>{benefit}</Text>
-      </View>
-      <View style={styles.discountBadge}>
-        <Text style={styles.discountArrow}>↗</Text>
-        <Text style={styles.discountText}>{discount}</Text>
-      </View>
-    </View>
-  );
-}
-
-// Expiring Coupon Card Component
-interface ExpiringCouponCardProps {
-  emoji: string;
-  storeName: string;
-  productName: string;
-  discount: string;
-  timeLeft: string;
-}
-
-function ExpiringCouponCard({
-  emoji,
-  storeName,
-  productName,
-  discount,
-  timeLeft,
-}: ExpiringCouponCardProps) {
-  return (
-    <View style={styles.couponCard}>
-      <View style={styles.couponTopSection}>
-        <Text style={styles.couponEmoji}>{emoji}</Text>
-      </View>
-      <View style={styles.couponBottomSection}>
-        <View style={styles.timerContainer}>
-          <Text style={styles.timerIcon}>⏰</Text>
-          <Text style={styles.timerText}>{timeLeft}</Text>
-        </View>
-        <Text style={styles.couponStoreName}>{storeName}</Text>
-        <Text style={styles.couponProductName}>{productName}</Text>
-        <Text style={styles.couponDiscount}>{discount}</Text>
-      </View>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f7f7f7",
+    backgroundColor: Gray.gray1,
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: rs(22),
+    paddingHorizontal: rs(20),
   },
-
-  // Header
   header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingTop: rs(10),
-    paddingBottom: rs(16),
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: rs(12),
   },
-  headerIcons: {
-    flexDirection: "row",
-    gap: rs(11),
-  },
-  iconButton: {
-    position: "relative",
-  },
-  iconCircle: {
-    width: rs(30),
-    height: rs(30),
-    borderRadius: rs(15),
-    backgroundColor: "#ffffff",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  iconText: {
-    fontSize: rs(14),
+  notificationButton: {
+    position: 'relative',
+    padding: rs(4),
   },
   notificationDot: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    width: rs(7),
-    height: rs(7),
-    borderRadius: rs(3.5),
-    backgroundColor: "#ff3e41",
+    position: 'absolute',
+    top: rs(4),
+    right: rs(4),
+    width: rs(8),
+    height: rs(8),
+    borderRadius: rs(4),
+    backgroundColor: Notify.importHeart,
   },
-
-  // Profile Section
-  profileSection: {
-    width: "100%",
-  },
-  profileGradient: {
-    backgroundColor: "#34b262",
-    borderRadius: rs(16),
-    padding: rs(20),
-  },
-  profileContent: {
-    gap: rs(20),
-  },
-  greetingContainer: {
-    gap: rs(4),
-  },
-  greetingSubtext: {
-    fontSize: rs(12),
-    fontWeight: "500",
-    color: "#ffffff",
-    opacity: 0.9,
-  },
-  greetingText: {
-    fontSize: rs(18),
-    fontWeight: "700",
-    color: "#ffffff",
-  },
-  statsContainer: {
-    flexDirection: "row",
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    borderRadius: rs(12),
-    padding: rs(16),
-  },
-  statItem: {
-    flex: 1,
-    alignItems: "center",
-    gap: rs(8),
-  },
-  statHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: rs(4),
-  },
-  pointIcon: {
-    width: rs(12),
-    height: rs(12),
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  pointIconText: {
-    fontSize: rs(10),
-  },
-  couponIcon: {
-    width: rs(12),
-    height: rs(12),
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  couponIconText: {
-    fontSize: rs(10),
-  },
-  statLabel: {
-    fontSize: rs(12),
-    fontWeight: "500",
-    color: "#ffffff",
-  },
-  statValue: {
-    fontSize: rs(18),
-    fontWeight: "700",
-    color: "#ffffff",
-  },
-  statDivider: {
-    width: rs(1),
-    backgroundColor: "rgba(255, 255, 255, 0.3)",
-  },
-
-  // Event Banner
-  eventBanner: {
+  section: {
     marginTop: rs(16),
   },
-  eventBannerGradient: {
-    backgroundColor: "#ff8c42",
-    borderRadius: rs(16),
-    padding: rs(16),
-    flexDirection: "row",
-    alignItems: "center",
-    position: "relative",
-  },
-  eventEmoji: {
-    fontSize: rs(32),
-  },
-  eventTextContainer: {
-    flex: 1,
-    paddingLeft: rs(12),
-  },
-  eventTitle: {
-    fontSize: rs(12),
-    fontWeight: "600",
-    color: "#ffffff",
-    opacity: 0.9,
-  },
-  eventDescription: {
-    fontSize: rs(14),
-    fontWeight: "700",
-    color: "#ffffff",
-    marginTop: rs(2),
-  },
-  bannerIndicator: {
-    position: "absolute",
-    bottom: rs(8),
-    right: rs(16),
-    flexDirection: "row",
-    gap: rs(4),
-  },
-  indicatorDotActive: {
-    width: rs(15),
-    height: rs(6),
-    borderRadius: rs(3),
-    backgroundColor: "#ffffff",
-  },
-  indicatorDot: {
-    width: rs(6),
-    height: rs(6),
-    borderRadius: rs(3),
-    backgroundColor: "rgba(255, 255, 255, 0.5)",
-  },
-
-  // Category
-  categoryContainer: {
-    marginTop: rs(20),
-    gap: rs(8),
-  },
-  categoryRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  categoryItem: {
-    width: rs(72),
-    height: rs(75),
-    backgroundColor: "#ffffff",
-    borderRadius: rs(12),
-    alignItems: "center",
-    justifyContent: "center",
-    gap: rs(8),
-  },
-  categoryIconCircle: {
-    width: rs(37),
-    height: rs(37),
-    borderRadius: rs(18.5),
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  categoryIconText: {
-    fontSize: rs(18),
-    color: "#ffffff",
-  },
-  categoryLabel: {
-    fontSize: rs(12),
-    fontWeight: "500",
-    color: "#000000",
-  },
-
-  // Section Header
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: rs(24),
-    paddingBottom: rs(12),
-  },
-  sectionTitleContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: rs(4),
-  },
-  sectionIcon: {
-    fontSize: rs(18),
-  },
-  sectionTitle: {
-    fontSize: rs(16),
-    fontWeight: "700",
-    color: "#000000",
-  },
-  moreButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: rs(2),
-  },
-  moreButtonText: {
-    fontSize: rs(12),
-    color: "#828282",
-  },
-  moreArrow: {
-    fontSize: rs(14),
-    color: "#828282",
-  },
-
-  // Ranking
-  rankingContainer: {
-    backgroundColor: "#ffffff",
-    borderRadius: rs(12),
-    overflow: "hidden",
-  },
-  rankingItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: rs(16),
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-  },
-  rankCircle: {
-    width: rs(30),
-    height: rs(30),
-    borderRadius: rs(15),
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  rankNumber: {
-    fontSize: rs(14),
-    fontWeight: "700",
-    color: "#ffffff",
-  },
-  rankingInfo: {
-    flex: 1,
-    paddingLeft: rs(12),
-  },
-  rankingNameRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: rs(8),
-  },
-  rankingName: {
-    fontSize: rs(14),
-    fontWeight: "600",
-    color: "#000000",
-  },
-  rankingCategory: {
-    fontSize: rs(12),
-    color: "#828282",
-  },
-  rankingBenefit: {
-    fontSize: rs(12),
-    color: "#4bbb6d",
-    marginTop: rs(4),
-  },
-  discountBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: rs(2),
-  },
-  discountArrow: {
-    fontSize: rs(10),
-    color: "#34b262",
-  },
-  discountText: {
-    fontSize: rs(12),
-    fontWeight: "600",
-    color: "#34b262",
-  },
-
-  // Expiring Coupons
-  couponScrollView: {
-    marginTop: rs(8),
-    marginHorizontal: rs(-22),
-  },
-  couponScrollContent: {
-    paddingHorizontal: rs(22),
-    gap: rs(12),
-  },
-  couponCard: {
-    width: rs(120),
-    height: rs(151),
-    backgroundColor: "#ffffff",
-    borderRadius: rs(12),
-    overflow: "hidden",
-  },
-  couponTopSection: {
-    height: rs(52),
-    backgroundColor: "#fff4e6",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  couponEmoji: {
-    fontSize: rs(24),
-  },
-  couponBottomSection: {
-    flex: 1,
-    padding: rs(10),
-  },
-  timerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: rs(4),
-  },
-  timerIcon: {
-    fontSize: rs(10),
-  },
-  timerText: {
-    fontSize: rs(10),
-    color: "#dc2626",
-    fontWeight: "600",
-  },
-  couponStoreName: {
-    fontSize: rs(10),
-    color: "#828282",
-    marginTop: rs(6),
-  },
-  couponProductName: {
-    fontSize: rs(12),
-    fontWeight: "600",
-    color: "#000000",
-    marginTop: rs(2),
-  },
-  couponDiscount: {
-    fontSize: rs(12),
-    fontWeight: "700",
-    color: "#ef6239",
-    marginTop: rs(4),
-  },
-
   bottomSpacer: {
     height: rs(100),
   },

@@ -5,6 +5,43 @@
  * API 명세서
  * OpenAPI spec version: v1.0.0
  */
+export interface UpdateStudentProfileRequest {
+  nickname?: string;
+  collegeId?: number;
+  departmentId?: number;
+  isClubMember?: boolean;
+}
+
+export interface ErrorDetail {
+  field?: string;
+  value?: string;
+  reason?: string;
+}
+
+export interface ErrorResponse {
+  timestamp?: string;
+  path?: string;
+  code?: string;
+  message?: string;
+  details?: ErrorDetail[];
+}
+
+/**
+ * 공통 에러 응답
+ */
+export interface SwaggerErrorResponse {
+  /** 성공 여부 */
+  isSuccess?: boolean;
+  data?: ErrorResponse;
+}
+
+export type CommonResponseVoidData = { [key: string]: unknown };
+
+export interface CommonResponseVoid {
+  isSuccess?: boolean;
+  data?: CommonResponseVoidData;
+}
+
 export interface CreateUniversityRequest {
   name: string;
   emailDomain: string;
@@ -65,29 +102,7 @@ export interface CreateStoreRequest {
   operatingHours?: string;
   storeCategories: CreateStoreRequestStoreCategoriesItem[];
   storeMoods?: CreateStoreRequestStoreMoodsItem[];
-}
-
-export interface ErrorDetail {
-  field?: string;
-  value?: string;
-  reason?: string;
-}
-
-export interface ErrorResponse {
-  timestamp?: string;
-  path?: string;
-  code?: string;
-  message?: string;
-  details?: ErrorDetail[];
-}
-
-/**
- * 공통 에러 응답
- */
-export interface SwaggerErrorResponse {
-  /** 성공 여부 */
-  isSuccess?: boolean;
-  data?: ErrorResponse;
+  universityIds?: number[];
 }
 
 export interface CreateReviewRequest {
@@ -96,7 +111,8 @@ export interface CreateReviewRequest {
    * @minimum 1
    * @maximum 5
    */
-  rating: number;
+  rating?: number;
+  parentReviewId?: number;
 }
 
 export type StoreReportRequestReasonsItem = typeof StoreReportRequestReasonsItem[keyof typeof StoreReportRequestReasonsItem];
@@ -115,13 +131,6 @@ export const StoreReportRequestReasonsItem = {
 export interface StoreReportRequest {
   reasons: StoreReportRequestReasonsItem[];
   detail?: string;
-}
-
-export type CommonResponseVoidData = { [key: string]: unknown };
-
-export interface CommonResponseVoid {
-  isSuccess?: boolean;
-  data?: CommonResponseVoidData;
 }
 
 /**
@@ -150,10 +159,20 @@ export interface CreateItemRequest {
   description?: string;
   itemOrder?: number;
   badge?: CreateItemRequestBadge;
+  itemCategoryId?: number;
   hidden?: boolean;
-  representative?: boolean;
   soldOut?: boolean;
+  representative?: boolean;
 }
+
+export type CreateCouponRequestBenefitType = typeof CreateCouponRequestBenefitType[keyof typeof CreateCouponRequestBenefitType];
+
+
+export const CreateCouponRequestBenefitType = {
+  FIXED_DISCOUNT: 'FIXED_DISCOUNT',
+  PERCENTAGE_DISCOUNT: 'PERCENTAGE_DISCOUNT',
+  SERVICE_GIFT: 'SERVICE_GIFT',
+} as const;
 
 export type CreateCouponRequestStatus = typeof CreateCouponRequestStatus[keyof typeof CreateCouponRequestStatus];
 
@@ -169,13 +188,14 @@ export const CreateCouponRequestStatus = {
 export interface CreateCouponRequest {
   title: string;
   description?: string;
-  targetOrganizationId?: number;
   issueStartsAt?: string;
   issueEndsAt?: string;
   totalQuantity: number;
   limitPerUser: number;
+  benefitType: CreateCouponRequestBenefitType;
+  benefitValue?: string;
+  minOrderAmount?: number;
   status?: CreateCouponRequestStatus;
-  targetItemIds?: number[];
 }
 
 export interface VerifyCouponRequest {
@@ -226,9 +246,48 @@ export interface ReportRequest {
   detail?: string;
 }
 
+export interface UpdateUniversityRequest {
+  universityId: number;
+}
+
+export interface ChangeUsernameRequest {
+  newUsername: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
 export interface CommonResponseString {
   isSuccess?: boolean;
   data?: string;
+}
+
+export type CreateInquiryRequestType = typeof CreateInquiryRequestType[keyof typeof CreateInquiryRequestType];
+
+
+export const CreateInquiryRequestType = {
+  COUPON_BENEFIT: 'COUPON_BENEFIT',
+  MAP_LOCATION: 'MAP_LOCATION',
+  STORE_INFO_ERROR: 'STORE_INFO_ERROR',
+  EVENT_PARTICIPATION: 'EVENT_PARTICIPATION',
+  ALERT_ACCOUNT: 'ALERT_ACCOUNT',
+  PROPOSAL_OTHER: 'PROPOSAL_OTHER',
+} as const;
+
+export interface CreateInquiryRequest {
+  type: CreateInquiryRequestType;
+  /**
+   * @minLength 1
+   * @maxLength 14
+   */
+  title: string;
+  /**
+   * @minLength 0
+   * @maxLength 500
+   */
+  content: string;
 }
 
 export type IssueCouponResponseStatus = typeof IssueCouponResponseStatus[keyof typeof IssueCouponResponseStatus];
@@ -241,12 +300,26 @@ export const IssueCouponResponseStatus = {
   EXPIRED: 'EXPIRED',
 } as const;
 
+export type IssueCouponResponseBenefitType = typeof IssueCouponResponseBenefitType[keyof typeof IssueCouponResponseBenefitType];
+
+
+export const IssueCouponResponseBenefitType = {
+  FIXED_DISCOUNT: 'FIXED_DISCOUNT',
+  PERCENTAGE_DISCOUNT: 'PERCENTAGE_DISCOUNT',
+  SERVICE_GIFT: 'SERVICE_GIFT',
+} as const;
+
 export interface IssueCouponResponse {
   studentCouponId?: number;
   couponCode?: string;
   status?: IssueCouponResponseStatus;
   issuedAt?: string;
   expiresAt?: string;
+  title?: string;
+  description?: string;
+  benefitType?: IssueCouponResponseBenefitType;
+  benefitValue?: string;
+  storeName?: string;
 }
 
 export interface CommonResponseIssueCouponResponse {
@@ -255,8 +328,8 @@ export interface CommonResponseIssueCouponResponse {
 }
 
 export interface BizInfo {
-  bno?: string;
   pnm?: string;
+  bno?: string;
   b_no?: string;
   start_dt?: string;
   p_nm?: string;
@@ -303,6 +376,7 @@ export const StudentSignupRequestGender = {
 export interface StudentSignupRequest {
   username?: string;
   password?: string;
+  email?: string;
   nickname?: string;
   gender?: StudentSignupRequestGender;
   birthDate?: string;
@@ -320,24 +394,13 @@ export const OwnerSignupRequestGender = {
   UNKNOWN: 'UNKNOWN',
 } as const;
 
-export interface StoreCreateRequest {
-  name?: string;
-  roadAddress?: string;
-  jibunAddress?: string;
-  partnerUniversityId?: number;
-  partnerOrganizationIds?: number[];
-  bizRegNo?: string;
-}
-
 export interface OwnerSignupRequest {
   username?: string;
   password?: string;
-  name?: string;
   email?: string;
-  phone?: string;
   gender?: OwnerSignupRequestGender;
   birthDate?: string;
-  storeList?: StoreCreateRequest[];
+  name?: string;
 }
 
 export interface CouncilSignupRequest {
@@ -360,6 +423,27 @@ export interface CommonResponseLoginResponse {
 export interface LoginRequest {
   username?: string;
   password?: string;
+}
+
+export interface VerifyEmailCodeRequest {
+  /** @pattern ^[A-Za-z0-9._%+-]+@jbnu\.ac\.kr$ */
+  email: string;
+  code: string;
+}
+
+export interface FindPasswordSendCodeRequest {
+  username: string;
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  resetToken: string;
+  newPassword: string;
+}
+
+export interface SendEmailCodeRequest {
+  email: string;
+  universityId?: number;
 }
 
 export type CompleteSocialSignupRequestRole = typeof CompleteSocialSignupRequestRole[keyof typeof CompleteSocialSignupRequestRole];
@@ -392,7 +476,6 @@ export interface CompleteSocialSignupRequest {
   departmentId?: number;
   name?: string;
   email?: string;
-  phone?: string;
 }
 
 export interface CreatePartnershipRequest {
@@ -407,9 +490,41 @@ export interface StoreClaimRejectionRequest {
   reason?: string;
 }
 
-export interface UpdateUniversityRequest {
-  name: string;
-  emailDomain: string;
+/**
+ * 이벤트 타입 목록
+ */
+export type CreateEventRequestEventTypesItem = typeof CreateEventRequestEventTypesItem[keyof typeof CreateEventRequestEventTypesItem];
+
+
+export const CreateEventRequestEventTypesItem = {
+  FOOD_EVENT: 'FOOD_EVENT',
+  POPUP_STORE: 'POPUP_STORE',
+  SCHOOL_EVENT: 'SCHOOL_EVENT',
+  FLEA_MARKET: 'FLEA_MARKET',
+  PERFORMANCE: 'PERFORMANCE',
+  COMMUNITY: 'COMMUNITY',
+} as const;
+
+/**
+ * 이벤트 생성 요청
+ */
+export interface CreateEventRequest {
+  /** 이벤트 제목 */
+  title: string;
+  /** 이벤트 설명 */
+  description?: string;
+  /** 이벤트 타입 목록 */
+  eventTypes: CreateEventRequestEventTypesItem[];
+  /** 위도 */
+  latitude?: number;
+  /** 경도 */
+  longitude?: number;
+  /** 이벤트 시작일시 */
+  startDateTime: string;
+  /** 이벤트 종료일시 */
+  endDateTime: string;
+  /** 대학교 ID */
+  universityId: number;
 }
 
 export type UpdateStoreRequestStoreCategoriesItem = typeof UpdateStoreRequestStoreCategoriesItem[keyof typeof UpdateStoreRequestStoreCategoriesItem];
@@ -446,6 +561,9 @@ export interface UpdateStoreRequest {
   operatingHours?: string;
   storeCategories?: UpdateStoreRequestStoreCategoriesItem[];
   storeMoods?: UpdateStoreRequestStoreMoodsItem[];
+  holidayStartsAt?: string;
+  holidayEndsAt?: string;
+  isSuspended?: boolean;
 }
 
 /**
@@ -501,7 +619,18 @@ export interface UpdateItemRequest {
   isRepresentative?: boolean;
   isHidden?: boolean;
   badge?: UpdateItemRequestBadge;
+  itemCategoryId?: number;
+  removeItemCategory?: boolean;
 }
+
+export type UpdateCouponRequestBenefitType = typeof UpdateCouponRequestBenefitType[keyof typeof UpdateCouponRequestBenefitType];
+
+
+export const UpdateCouponRequestBenefitType = {
+  FIXED_DISCOUNT: 'FIXED_DISCOUNT',
+  PERCENTAGE_DISCOUNT: 'PERCENTAGE_DISCOUNT',
+  SERVICE_GIFT: 'SERVICE_GIFT',
+} as const;
 
 export type UpdateCouponRequestStatus = typeof UpdateCouponRequestStatus[keyof typeof UpdateCouponRequestStatus];
 
@@ -521,6 +650,9 @@ export interface UpdateCouponRequest {
   issueEndsAt?: string;
   totalQuantity?: number;
   limitPerUser?: number;
+  benefitType?: UpdateCouponRequestBenefitType;
+  benefitValue?: string;
+  minOrderAmount?: number;
   status?: UpdateCouponRequestStatus;
 }
 
@@ -543,6 +675,55 @@ export interface UpdatePartnershipRequest {
   benefit: string;
   startsAt?: string;
   endsAt?: string;
+}
+
+/**
+ * 이벤트 타입 목록
+ */
+export type UpdateEventRequestEventTypesItem = typeof UpdateEventRequestEventTypesItem[keyof typeof UpdateEventRequestEventTypesItem];
+
+
+export const UpdateEventRequestEventTypesItem = {
+  FOOD_EVENT: 'FOOD_EVENT',
+  POPUP_STORE: 'POPUP_STORE',
+  SCHOOL_EVENT: 'SCHOOL_EVENT',
+  FLEA_MARKET: 'FLEA_MARKET',
+  PERFORMANCE: 'PERFORMANCE',
+  COMMUNITY: 'COMMUNITY',
+} as const;
+
+/**
+ * 이벤트 상태
+ */
+export type UpdateEventRequestStatus = typeof UpdateEventRequestStatus[keyof typeof UpdateEventRequestStatus];
+
+
+export const UpdateEventRequestStatus = {
+  UPCOMING: 'UPCOMING',
+  LIVE: 'LIVE',
+  ENDED: 'ENDED',
+} as const;
+
+/**
+ * 이벤트 수정 요청
+ */
+export interface UpdateEventRequest {
+  /** 이벤트 제목 */
+  title?: string;
+  /** 이벤트 설명 */
+  description?: string;
+  /** 이벤트 타입 목록 */
+  eventTypes?: UpdateEventRequestEventTypesItem[];
+  /** 위도 */
+  latitude?: number;
+  /** 경도 */
+  longitude?: number;
+  /** 이벤트 시작일시 */
+  startDateTime?: string;
+  /** 이벤트 종료일시 */
+  endDateTime?: string;
+  /** 이벤트 상태 */
+  status?: UpdateEventRequestStatus;
 }
 
 export interface UniversityResponse {
@@ -580,6 +761,47 @@ export interface CommonResponseListOrganizationResponse {
   data?: OrganizationResponse[];
 }
 
+export type CouponResponseStatus = typeof CouponResponseStatus[keyof typeof CouponResponseStatus];
+
+
+export const CouponResponseStatus = {
+  DRAFT: 'DRAFT',
+  SCHEDULED: 'SCHEDULED',
+  ACTIVE: 'ACTIVE',
+  STOPPED: 'STOPPED',
+  EXPIRED: 'EXPIRED',
+} as const;
+
+export type CouponResponseBenefitType = typeof CouponResponseBenefitType[keyof typeof CouponResponseBenefitType];
+
+
+export const CouponResponseBenefitType = {
+  FIXED_DISCOUNT: 'FIXED_DISCOUNT',
+  PERCENTAGE_DISCOUNT: 'PERCENTAGE_DISCOUNT',
+  SERVICE_GIFT: 'SERVICE_GIFT',
+} as const;
+
+export interface CouponResponse {
+  id?: number;
+  storeId?: number;
+  title?: string;
+  description?: string;
+  issueStartsAt?: string;
+  issueEndsAt?: string;
+  totalQuantity?: number;
+  limitPerUser?: number;
+  status?: CouponResponseStatus;
+  benefitType?: CouponResponseBenefitType;
+  benefitValue?: string;
+  minOrderAmount?: number;
+  isIssued?: boolean;
+}
+
+export interface CommonResponseListCouponResponse {
+  isSuccess?: boolean;
+  data?: CouponResponse[];
+}
+
 export interface Pageable {
   /** @minimum 0 */
   page?: number;
@@ -610,6 +832,15 @@ export const StoreResponseStoreMoodsItem = {
   ROMANTIC: 'ROMANTIC',
 } as const;
 
+export type StoreResponseCloverGrade = typeof StoreResponseCloverGrade[keyof typeof StoreResponseCloverGrade];
+
+
+export const StoreResponseCloverGrade = {
+  SEED: 'SEED',
+  SPROUT: 'SPROUT',
+  THREE_LEAF: 'THREE_LEAF',
+} as const;
+
 export interface StoreResponse {
   id?: number;
   userId?: number;
@@ -625,6 +856,14 @@ export interface StoreResponse {
   storeCategories?: StoreResponseStoreCategoriesItem[];
   storeMoods?: StoreResponseStoreMoodsItem[];
   imageUrls?: string[];
+  averageRating?: number;
+  reviewCount?: number;
+  holidayStartsAt?: string;
+  holidayEndsAt?: string;
+  isSuspended?: boolean;
+  isPartnership?: boolean;
+  hasCoupon?: boolean;
+  cloverGrade?: StoreResponseCloverGrade;
 }
 
 export interface PageResponseStoreResponse {
@@ -647,15 +886,30 @@ export interface CommonResponseStoreResponse {
   data?: StoreResponse;
 }
 
+export interface StoreStatsResponse {
+  totalRegulars?: number;
+  totalIssuedCoupons?: number;
+  totalUsedCoupons?: number;
+  totalReviews?: number;
+}
+
+export interface CommonResponseStoreStatsResponse {
+  isSuccess?: boolean;
+  data?: StoreStatsResponse;
+}
+
 export interface ReviewResponse {
   reviewId?: number;
   storeId?: number;
+  storeName?: string;
+  parentReviewId?: number;
   username?: string;
   content?: string;
   rating?: number;
   createdAt?: string;
   likeCount?: number;
   imageUrls?: string[];
+  ownerReply?: boolean;
 }
 
 export interface PageResponseReviewResponse {
@@ -686,6 +940,16 @@ export interface ReviewStatsResponse {
 export interface CommonResponseReviewStatsResponse {
   isSuccess?: boolean;
   data?: ReviewStatsResponse;
+}
+
+export interface StoreRegistrationStatusResponse {
+  hasMenu?: boolean;
+  hasStoreInfo?: boolean;
+}
+
+export interface CommonResponseStoreRegistrationStatusResponse {
+  isSuccess?: boolean;
+  data?: StoreRegistrationStatusResponse;
 }
 
 export interface StoreNewsResponse {
@@ -734,8 +998,8 @@ export interface ItemResponse {
   itemOrder?: number;
   badge?: ItemResponseBadge;
   hidden?: boolean;
-  representative?: boolean;
   soldOut?: boolean;
+  representative?: boolean;
 }
 
 export interface CommonResponseListItemResponse {
@@ -743,38 +1007,176 @@ export interface CommonResponseListItemResponse {
   data?: ItemResponse[];
 }
 
-export type CouponResponseStatus = typeof CouponResponseStatus[keyof typeof CouponResponseStatus];
+export type StoreStoreStatus = typeof StoreStoreStatus[keyof typeof StoreStoreStatus];
 
 
-export const CouponResponseStatus = {
-  DRAFT: 'DRAFT',
-  SCHEDULED: 'SCHEDULED',
+export const StoreStoreStatus = {
+  UNCLAIMED: 'UNCLAIMED',
   ACTIVE: 'ACTIVE',
-  STOPPED: 'STOPPED',
-  EXPIRED: 'EXPIRED',
+  BANNED: 'BANNED',
 } as const;
 
-export interface CouponResponse {
+export type StoreStoreCategoriesItem = typeof StoreStoreCategoriesItem[keyof typeof StoreStoreCategoriesItem];
+
+
+export const StoreStoreCategoriesItem = {
+  BAR: 'BAR',
+  CAFE: 'CAFE',
+  RESTAURANT: 'RESTAURANT',
+  ENTERTAINMENT: 'ENTERTAINMENT',
+  BEAUTY_HEALTH: 'BEAUTY_HEALTH',
+  ETC: 'ETC',
+} as const;
+
+export type StoreStoreMoodsItem = typeof StoreStoreMoodsItem[keyof typeof StoreStoreMoodsItem];
+
+
+export const StoreStoreMoodsItem = {
+  SOLO_DINING: 'SOLO_DINING',
+  GROUP_GATHERING: 'GROUP_GATHERING',
+  LATE_NIGHT: 'LATE_NIGHT',
+  ROMANTIC: 'ROMANTIC',
+} as const;
+
+export type UserGender = typeof UserGender[keyof typeof UserGender];
+
+
+export const UserGender = {
+  MALE: 'MALE',
+  FEMALE: 'FEMALE',
+  UNKNOWN: 'UNKNOWN',
+} as const;
+
+export type UserRole = typeof UserRole[keyof typeof UserRole];
+
+
+export const UserRole = {
+  ROLE_GUEST: 'ROLE_GUEST',
+  ROLE_COUNCIL: 'ROLE_COUNCIL',
+  ROLE_STUDENT: 'ROLE_STUDENT',
+  ROLE_OWNER: 'ROLE_OWNER',
+  ROLE_ADMIN: 'ROLE_ADMIN',
+} as const;
+
+export type UserSocialType = typeof UserSocialType[keyof typeof UserSocialType];
+
+
+export const UserSocialType = {
+  LOCAL: 'LOCAL',
+  GOOGLE: 'GOOGLE',
+  NAVER: 'NAVER',
+  KAKAO: 'KAKAO',
+  FIREBASE: 'FIREBASE',
+} as const;
+
+export interface User {
+  createdAt?: string;
+  modifiedAt?: string;
+  createdBy?: string;
+  lastModifiedBy?: string;
   id?: number;
-  storeId?: number;
-  title?: string;
-  description?: string;
-  targetOrganizationId?: number;
-  issueStartsAt?: string;
-  issueEndsAt?: string;
-  totalQuantity?: number;
-  limitPerUser?: number;
-  status?: CouponResponseStatus;
+  username?: string;
+  password?: string;
+  gender?: UserGender;
+  birthDate?: string;
+  role?: UserRole;
+  socialType?: UserSocialType;
+  socialId?: string;
+  email?: string;
+  deleted?: boolean;
+  deletedAt?: string;
+  userId?: number;
 }
 
-export interface CommonResponseListCouponResponse {
+export interface StoreImage {
+  id?: number;
+  store?: Store;
+  imageUrl?: string;
+  orderIndex?: number;
+}
+
+export type StoreCloverGrade = typeof StoreCloverGrade[keyof typeof StoreCloverGrade];
+
+
+export const StoreCloverGrade = {
+  SEED: 'SEED',
+  SPROUT: 'SPROUT',
+  THREE_LEAF: 'THREE_LEAF',
+} as const;
+
+export interface University {
+  id?: number;
+  name?: string;
+  emailDomain?: string;
+}
+
+export interface StoreUniversity {
+  id?: number;
+  store?: Store;
+  university?: University;
+}
+
+export interface Store {
+  createdAt?: string;
+  modifiedAt?: string;
+  createdBy?: string;
+  lastModifiedBy?: string;
+  id?: number;
+  name?: string;
+  branch?: string;
+  bizRegNo?: string;
+  roadAddress?: string;
+  jibunAddress?: string;
+  latitude?: number;
+  longitude?: number;
+  storePhone?: string;
+  needToCheck?: boolean;
+  checkReason?: string;
+  introduction?: string;
+  operatingHours?: string;
+  storeStatus?: StoreStoreStatus;
+  storeCategories?: StoreStoreCategoriesItem[];
+  storeMoods?: StoreStoreMoodsItem[];
+  user?: User;
+  images?: StoreImage[];
+  holidayStartsAt?: string;
+  holidayEndsAt?: string;
+  isSuspended?: boolean;
+  cloverGrade?: StoreCloverGrade;
+  universities?: StoreUniversity[];
+}
+
+export interface ItemCategory {
+  createdAt?: string;
+  modifiedAt?: string;
+  createdBy?: string;
+  lastModifiedBy?: string;
+  id?: number;
+  store?: Store;
+  name?: string;
+}
+
+export interface CommonResponseListItemCategory {
   isSuccess?: boolean;
-  data?: CouponResponse[];
+  data?: ItemCategory[];
 }
 
 export interface CommonResponseListStoreResponse {
   isSuccess?: boolean;
   data?: StoreResponse[];
+}
+
+export interface HotStoreResponse {
+  storeId?: number;
+  name?: string;
+  categories?: string[];
+  benefitContent?: string;
+  favoriteGain?: number;
+}
+
+export interface CommonResponseListHotStoreResponse {
+  isSuccess?: boolean;
+  data?: HotStoreResponse[];
 }
 
 export interface CommonResponseStoreNewsResponse {
@@ -805,6 +1207,30 @@ export interface CommonResponsePageResponseStoreNewsCommentResponse {
   data?: PageResponseStoreNewsCommentResponse;
 }
 
+export type MyStoreClaimResponseStatus = typeof MyStoreClaimResponseStatus[keyof typeof MyStoreClaimResponseStatus];
+
+
+export const MyStoreClaimResponseStatus = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  CANCELED: 'CANCELED',
+} as const;
+
+export interface MyStoreClaimResponse {
+  id?: number;
+  storeId?: number;
+  storeName?: string;
+  representativeName?: string;
+  status?: MyStoreClaimResponseStatus;
+  createdAt?: string;
+}
+
+export interface CommonResponseListMyStoreClaimResponse {
+  isSuccess?: boolean;
+  data?: MyStoreClaimResponse[];
+}
+
 export interface CommonResponseListIssueCouponResponse {
   isSuccess?: boolean;
   data?: IssueCouponResponse[];
@@ -813,6 +1239,68 @@ export interface CommonResponseListIssueCouponResponse {
 export interface CommonResponseItemResponse {
   isSuccess?: boolean;
   data?: ItemResponse;
+}
+
+export interface SortObject {
+  sorted?: boolean;
+  empty?: boolean;
+  unsorted?: boolean;
+}
+
+export interface PageableObject {
+  paged?: boolean;
+  pageNumber?: number;
+  pageSize?: number;
+  offset?: number;
+  sort?: SortObject;
+  unpaged?: boolean;
+}
+
+export type InquiryResponseType = typeof InquiryResponseType[keyof typeof InquiryResponseType];
+
+
+export const InquiryResponseType = {
+  COUPON_BENEFIT: 'COUPON_BENEFIT',
+  MAP_LOCATION: 'MAP_LOCATION',
+  STORE_INFO_ERROR: 'STORE_INFO_ERROR',
+  EVENT_PARTICIPATION: 'EVENT_PARTICIPATION',
+  ALERT_ACCOUNT: 'ALERT_ACCOUNT',
+  PROPOSAL_OTHER: 'PROPOSAL_OTHER',
+} as const;
+
+export interface InquiryResponse {
+  id?: number;
+  userId?: number;
+  username?: string;
+  type?: InquiryResponseType;
+  title?: string;
+  content?: string;
+  imageUrls?: string[];
+  createdAt?: string;
+}
+
+export interface PageInquiryResponse {
+  totalElements?: number;
+  totalPages?: number;
+  pageable?: PageableObject;
+  first?: boolean;
+  size?: number;
+  content?: InquiryResponse[];
+  number?: number;
+  sort?: SortObject;
+  numberOfElements?: number;
+  last?: boolean;
+  empty?: boolean;
+}
+
+export interface CommonResponsePageInquiryResponse {
+  isSuccess?: boolean;
+  data?: PageInquiryResponse;
+}
+
+export interface CommonResponseInquiryResponse {
+  isSuccess?: boolean;
+  data?: InquiryResponse;
 }
 
 export type FavoriteStoreResponseStoreCategoriesItem = typeof FavoriteStoreResponseStoreCategoriesItem[keyof typeof FavoriteStoreResponseStoreCategoriesItem];
@@ -849,6 +1337,61 @@ export interface PageResponseFavoriteStoreResponse {
 export interface CommonResponsePageResponseFavoriteStoreResponse {
   isSuccess?: boolean;
   data?: PageResponseFavoriteStoreResponse;
+}
+
+export type EventResponseEventTypesItem = typeof EventResponseEventTypesItem[keyof typeof EventResponseEventTypesItem];
+
+
+export const EventResponseEventTypesItem = {
+  FOOD_EVENT: 'FOOD_EVENT',
+  POPUP_STORE: 'POPUP_STORE',
+  SCHOOL_EVENT: 'SCHOOL_EVENT',
+  FLEA_MARKET: 'FLEA_MARKET',
+  PERFORMANCE: 'PERFORMANCE',
+  COMMUNITY: 'COMMUNITY',
+} as const;
+
+export type EventResponseStatus = typeof EventResponseStatus[keyof typeof EventResponseStatus];
+
+
+export const EventResponseStatus = {
+  UPCOMING: 'UPCOMING',
+  LIVE: 'LIVE',
+  ENDED: 'ENDED',
+} as const;
+
+export interface EventResponse {
+  id?: number;
+  title?: string;
+  description?: string;
+  eventTypes?: EventResponseEventTypesItem[];
+  latitude?: number;
+  longitude?: number;
+  startDateTime?: string;
+  endDateTime?: string;
+  status?: EventResponseStatus;
+  imageUrls?: string[];
+  createdAt?: string;
+}
+
+export interface PageResponseEventResponse {
+  content?: EventResponse[];
+  pageNumber?: number;
+  pageSize?: number;
+  totalElements?: number;
+  totalPages?: number;
+  sort?: string;
+  last?: boolean;
+}
+
+export interface CommonResponsePageResponseEventResponse {
+  isSuccess?: boolean;
+  data?: PageResponseEventResponse;
+}
+
+export interface CommonResponseEventResponse {
+  isSuccess?: boolean;
+  data?: EventResponse;
 }
 
 export interface CommonResponseBoolean {
@@ -948,38 +1491,38 @@ export interface StoreClaimResponse {
   adminMemo?: string;
 }
 
-export interface SortObject {
-  empty?: boolean;
-  sorted?: boolean;
-  unsorted?: boolean;
-}
-
-export interface PageableObject {
-  offset?: number;
-  sort?: SortObject;
-  pageSize?: number;
-  pageNumber?: number;
-  paged?: boolean;
-  unpaged?: boolean;
-}
-
 export interface PageStoreClaimResponse {
-  totalPages?: number;
   totalElements?: number;
+  totalPages?: number;
+  pageable?: PageableObject;
+  first?: boolean;
   size?: number;
   content?: StoreClaimResponse[];
   number?: number;
   sort?: SortObject;
-  first?: boolean;
-  last?: boolean;
   numberOfElements?: number;
-  pageable?: PageableObject;
+  last?: boolean;
   empty?: boolean;
 }
 
 export interface CommonResponsePageStoreClaimResponse {
   isSuccess?: boolean;
   data?: PageStoreClaimResponse;
+}
+
+export interface PageResponseInquiryResponse {
+  content?: InquiryResponse[];
+  pageNumber?: number;
+  pageSize?: number;
+  totalElements?: number;
+  totalPages?: number;
+  sort?: string;
+  last?: boolean;
+}
+
+export interface CommonResponsePageResponseInquiryResponse {
+  isSuccess?: boolean;
+  data?: PageResponseInquiryResponse;
 }
 
 export type WithdrawRequestReasonsItem = typeof WithdrawRequestReasonsItem[keyof typeof WithdrawRequestReasonsItem];
@@ -1012,6 +1555,10 @@ categories?: GetStoresCategoriesItem[];
  * 분위기 필터 (복수 선택 가능)
  */
 moods?: GetStoresMoodsItem[];
+/**
+ * 대학(상권) ID 필터
+ */
+universityId?: number;
 /**
  * 페이징 정보 (page, size, sort)
  */
@@ -1078,6 +1625,8 @@ export type CreateItemBody = {
   request: CreateItemRequest;
 };
 
+export type CreateItemCategoryBody = {[key: string]: string};
+
 export type GetCommentsParams = {
 /**
  * 페이징 정보
@@ -1089,6 +1638,18 @@ export type CreateStoreClaimsBody = {
   request: StoreClaimRequest;
   /** 사업자등록증 이미지 */
   image: string;
+};
+
+export type GetInquiriesParams = {
+/**
+ * 페이징 정보
+ */
+pageable: Pageable;
+};
+
+export type CreateInquiryBody = {
+  request: CreateInquiryRequest;
+  images?: string[];
 };
 
 export type CompleteSocialSignupParams = {
@@ -1113,10 +1674,18 @@ export type UploadPartnershipDataBody = {
   file: Blob;
 };
 
+export type CreateEventBody = {
+  request: CreateEventRequest;
+  /** 이벤트 이미지 */
+  images?: string[];
+};
+
 export type UpdateStoreBody = {
   request: UpdateStoreRequest;
-  images: string[];
+  images?: string[];
 };
+
+export type UpdateItemCategoryBody = {[key: string]: string};
 
 export type UpdateStoreNewsBody = {
   /** 변경할 소식 이미지 목록 */
@@ -1136,7 +1705,39 @@ export type UpdateItemBody = {
   request: UpdateItemRequest;
 };
 
+export type UpdateEventBody = {
+  request: UpdateEventRequest;
+  /** 이벤트 이미지 */
+  images?: string[];
+};
+
 export type HealthCheck200 = {[key: string]: { [key: string]: unknown }};
+
+export type GetNearbyStoresParams = {
+/**
+ * 위도
+ */
+latitude: number;
+/**
+ * 경도
+ */
+longitude: number;
+/**
+ * 반경(km)
+ */
+radius: number;
+};
+
+export type SearchUnclaimedStoresParams = {
+keyword: string;
+};
+
+export type GetMyReviewsParams = {
+/**
+ * 페이징 정보
+ */
+pageable: Pageable;
+};
 
 export type GetMyFavoritesParams = {
 /**
@@ -1144,6 +1745,50 @@ export type GetMyFavoritesParams = {
  */
 pageable: Pageable;
 };
+
+export type GetEventsParams = {
+/**
+ * 검색 키워드 (제목)
+ */
+keyword?: string;
+/**
+ * 이벤트 타입 필터 (복수 선택 가능)
+ */
+eventTypes?: GetEventsEventTypesItem[];
+/**
+ * 상태 필터
+ */
+status?: GetEventsStatus;
+/**
+ * 대학 ID
+ */
+universityId?: number;
+/**
+ * 페이징 정보
+ */
+pageable: Pageable;
+};
+
+export type GetEventsEventTypesItem = typeof GetEventsEventTypesItem[keyof typeof GetEventsEventTypesItem];
+
+
+export const GetEventsEventTypesItem = {
+  FOOD_EVENT: 'FOOD_EVENT',
+  POPUP_STORE: 'POPUP_STORE',
+  SCHOOL_EVENT: 'SCHOOL_EVENT',
+  FLEA_MARKET: 'FLEA_MARKET',
+  PERFORMANCE: 'PERFORMANCE',
+  COMMUNITY: 'COMMUNITY',
+} as const;
+
+export type GetEventsStatus = typeof GetEventsStatus[keyof typeof GetEventsStatus];
+
+
+export const GetEventsStatus = {
+  UPCOMING: 'UPCOMING',
+  LIVE: 'LIVE',
+  ENDED: 'ENDED',
+} as const;
 
 export type CheckUsernameAvailabilityParams = {
 username: string;
@@ -1179,5 +1824,12 @@ export type ExportPartnershipTemplateParams = {
  * 대상 대학 ID
  */
 universityId: number;
+};
+
+export type GetAllInquiriesParams = {
+/**
+ * 페이징 정보
+ */
+pageable: Pageable;
 };
 

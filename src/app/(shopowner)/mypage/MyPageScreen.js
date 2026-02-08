@@ -2,6 +2,8 @@ import { rs } from '@/src/shared/theme/scale';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
+import { useAuth } from '@/src/shared/lib/auth/auth-context';
+import React from 'react';
 import {
   Alert,
   Platform,
@@ -56,6 +58,7 @@ export default function MypageScreen({ navigation }) {
     fetchOwnerInfo();
   }, []);
 
+  const { handleLogout: authLogout } = useAuth();
   const handleMockPress = (menuName) => {
     console.log(`${menuName} 클릭됨`);
 
@@ -77,15 +80,7 @@ export default function MypageScreen({ navigation }) {
   const handleLogout = () => {
     Alert.alert('로그아웃', '로그아웃 하시겠습니까?', [
         { text: '취소', style: 'cancel' },
-        { 
-            text: '확인', 
-            onPress: () => {
-                navigation.reset({
-                    index: 0,
-                    routes: [{ name: 'Login' }], 
-                });
-            }
-        }
+        { text: '확인', onPress: authLogout }
     ]);
   };
 

@@ -1,4 +1,5 @@
-import { useGetCouponsByStore } from '@/src/api/coupon';
+import { useGetCouponsByStore, useGetMyCoupons, useIssueCoupon } from '@/src/api/coupon';
+import { useAuth } from '@/src/shared/lib/auth';
 import { useCountFavorites } from '@/src/api/favorite';
 import type {
   CouponResponse,
@@ -14,14 +15,16 @@ import { useGetStoreNewsList } from '@/src/api/store-news';
 import { useGetStore } from '@/src/api/store';
 import { StoreBenefits } from '@/src/app/(student)/components/store/benefits';
 import { BottomFixedBar } from '@/src/app/(student)/components/store/bottom-bar';
+import { CouponModal } from '@/src/app/(student)/components/store/coupon-modal';
 import { StoreContent } from '@/src/app/(student)/components/store/content';
 import { StoreHeader } from '@/src/app/(student)/components/store/header';
 import { ThemedText } from '@/src/shared/common/themed-text';
 import { UNIVERSITY_OPTIONS } from '@/src/shared/constants/store';
 import { rs } from '@/src/shared/theme/scale';
+import { useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // 카테고리 enum → 한글 라벨
@@ -60,9 +63,21 @@ export default function StoreDetailScreen() {
   }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const queryClient = useQueryClient();
+  const { collegeId: userCollegeId } = useAuth();
   const [activeTab, setActiveTab] = useState('news');
   const [isLiked, setIsLiked] = useState(false);
-  const [selectedUniversityId, setSelectedUniversityId] = useState<number | null>(null);
+  const [selectedUniversityId, setSelectedUniversityId] = useState<number | null>(userCollegeId);
+  const [hasInitializedUniversity, setHasInitializedUniversity] = useState(false);
+
+  // auth 로딩 완료 후 사용자 대학 기본값 설정
+  React.useEffect(() => {
+    if (!hasInitializedUniversity && userCollegeId !== null) {
+      setSelectedUniversityId(userCollegeId);
+      setHasInitializedUniversity(true);
+    }
+  }, [userCollegeId, hasInitializedUniversity]);
+  const [isCouponModalVisible, setIsCouponModalVisible] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const scrollOffsetY = useRef(0);
 
@@ -89,6 +104,26 @@ export default function StoreDetailScreen() {
   const rawCoupons = (couponsRes as any)?.data?.data;
   const apiCoupons = (Array.isArray(rawCoupons) ? rawCoupons : []) as CouponResponse[];
 
+  // 내 쿠폰 목록 (이미 발급받은 쿠폰 확인용)
+  const { data: myCouponsRes } = useGetMyCoupons();
+  const rawMyCoupons = (myCouponsRes as any)?.data?.data;
+  const myCoupons = (Array.isArray(rawMyCoupons) ? rawMyCoupons : []) as any[];
+
+  // 쿠폰 발급 mutation
+  const issueCouponMutation = useIssueCoupon({
+    mutation: {
+      onSuccess: () => {
+        Alert.alert('쿠폰 발급 완료', '내 쿠폰함에서 확인하세요');
+        // 내 쿠폰 목록 갱신
+        queryClient.invalidateQueries({ queryKey: ['/api/my-coupons'] });
+      },
+      onError: (error: any) => {
+        const errorMessage = error?.message || '이미 발급받은 쿠폰이거나 발급 기간이 아닙니다';
+        Alert.alert('발급 실패', errorMessage);
+      },
+    },
+  });
+
   // 소식 (paginated)
   const { data: newsRes, isLoading: isNewsLoading } = useGetStoreNewsList(
     storeId,
@@ -98,7 +133,8 @@ export default function StoreDetailScreen() {
 
   // 메뉴(상품) 목록
   const { data: itemsRes, isLoading: isItemsLoading } = useGetItems(storeId);
-  const apiItems = ((itemsRes as any)?.data?.data ?? []) as ItemResponse[];
+  const rawItems = (itemsRes as any)?.data?.data;
+  const apiItems = (Array.isArray(rawItems) ? rawItems : []) as ItemResponse[];
 
   // 리뷰 목록 (paginated)
   const { data: reviewsRes, isLoading: isReviewsLoading } = useGetReviews(
@@ -121,9 +157,9 @@ export default function StoreDetailScreen() {
     ?.map((m) => MOOD_LABEL[m] ?? m)
     .join(' · ') ?? '';
 
-  // 리뷰 통계 → rating, reviewCount
-  const storeRating = reviewStats?.averageRating ?? (Number(rating) || 0);
-  const storeReviewCount = reviewStats?.totalReviews ?? (Number(reviewCount) || 0);
+  // 리뷰 통계 → rating, reviewCount (StoreResponse에서 우선 사용, 없으면 route params)
+  const storeRating = apiStore?.averageRating ?? (Number(rating) || 0);
+  const storeReviewCount = apiStore?.reviewCount ?? (Number(reviewCount) || 0);
 
   // 즐겨찾기 수
   const storeLikeCount = favoriteCount ?? 0;
@@ -233,12 +269,23 @@ export default function StoreDetailScreen() {
       coupon.targetOrganizationId === selectedUniversityId,
   );
 
+  // 이미 발급받은 쿠폰 ID 목록
+  const issuedCouponIds = useMemo(() =>
+    myCoupons
+      .filter((mc) => mc.couponId != null)
+      .map((mc) => mc.couponId as number),
+    [myCoupons],
+  );
+
   // ── 이벤트 핸들러 ──────────────────────────────────────────
 
   const handleBack = () => router.back();
   const handleLike = () => setIsLiked(!isLiked);
   const handleCouponPress = () => {
-    // TODO: 쿠폰 발급 UX (IssueCouponResponse에 couponId 추가 후 구현)
+    setIsCouponModalVisible(true);
+  };
+  const handleIssueCoupon = (couponId: string) => {
+    issueCouponMutation.mutate({ couponId: Number(couponId) });
   };
   const handleWriteReview = () => router.push(`/store/${id}/review/write`);
   const handleEditReview = (reviewId: string) =>
@@ -310,6 +357,9 @@ export default function StoreDetailScreen() {
             <StoreBenefits
               benefits={storeBenefits}
               coupons={filteredCoupons}
+              issuedCouponIds={issuedCouponIds}
+              onIssueCoupon={handleIssueCoupon}
+              isIssuing={issueCouponMutation.isPending}
             />
 
             <StoreContent
@@ -337,6 +387,15 @@ export default function StoreDetailScreen() {
         isLiked={isLiked}
         onLikePress={handleLike}
         onCouponPress={handleCouponPress}
+      />
+
+      <CouponModal
+        visible={isCouponModalVisible}
+        onClose={() => setIsCouponModalVisible(false)}
+        coupons={filteredCoupons}
+        issuedCouponIds={issuedCouponIds}
+        onIssueCoupon={handleIssueCoupon}
+        isIssuing={issueCouponMutation.isPending}
       />
     </View>
   );

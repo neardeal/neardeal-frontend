@@ -1,6 +1,7 @@
 import { ThemedText } from '@/src/shared/common/themed-text';
 import { rs } from '@/src/shared/theme/scale';
 import { Gray, System, Text as TextColors } from '@/src/shared/theme/theme';
+import { formatOperatingHours } from '@/src/shared/utils/store-transform';
 import React, { useCallback, useRef, useState } from 'react';
 import {
   type LayoutChangeEvent,
@@ -144,7 +145,7 @@ export function InfoSection({
 
         <View style={styles.detailItem}>
           <ThemedText style={styles.detailLabel}>영업시간</ThemedText>
-          <ThemedText style={styles.body}>{operatingHours || '-'}</ThemedText>
+          <ThemedText style={styles.body}>{formatOperatingHours(operatingHours) || '-'}</ThemedText>
         </View>
       </View>
     </View>

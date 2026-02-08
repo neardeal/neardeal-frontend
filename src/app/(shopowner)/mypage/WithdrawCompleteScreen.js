@@ -1,3 +1,4 @@
+import { useAuth } from '@/src/shared/lib/auth/auth-context';
 import { rs } from '@/src/shared/theme/scale';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
@@ -11,6 +12,7 @@ import {
   View
 } from 'react-native';
 
+<<<<<<< HEAD
 // [토큰 관리] 토큰 삭제 함수 임포트
 import { removeToken } from '@/src/shared/lib/auth/token';
 
@@ -29,6 +31,13 @@ export default function WithdrawCompleteScreen({ navigation }) {
             routes: [{ name: 'Login' }], 
         });
     }
+=======
+export default function WithdrawCompleteScreen() {
+  const { handleLogout } = useAuth();
+
+  const handleGoMain = () => {
+    handleLogout();
+>>>>>>> 8fa48b68313a1615e211f5269495ba30ae8cebd4
   };
 
   return (
