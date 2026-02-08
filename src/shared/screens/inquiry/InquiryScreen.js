@@ -20,20 +20,6 @@ import {
     View
 } from 'react-native';
 
-<<<<<<< HEAD:src/app/(shopowner)/mypage/InquiryScreen.js
-// [API] 문의 관련 함수 임포트
-import { createInquiry, getInquiries } from '@/src/api/inquiry';
-
-const INQUIRY_TYPES = [
-    "쿠폰·혜택 사용",
-    "지도·위치 문의",
-    "매장 정보 오류",
-    "이벤트 참여",
-    "알림·계정",
-    "행운 제안·기타"
-];
-
-=======
 // enum -> 한글 매핑
 const INQUIRY_TYPE_MAP = {
     COUPON_BENEFIT: "쿠폰·혜택 사용",
@@ -58,7 +44,6 @@ const formatDate = (dateString) => {
     return `${y}.${m}.${d}`;
 };
 
->>>>>>> 8fa48b68313a1615e211f5269495ba30ae8cebd4:src/shared/screens/inquiry/InquiryScreen.js
 export default function InquiryScreen({ navigation, route }) {
   const initialTab = route.params?.initialTab || 'form';
   const [activeTab, setActiveTab] = useState(initialTab);
@@ -70,94 +55,20 @@ export default function InquiryScreen({ navigation, route }) {
       }
   }, [route.params]);
 
-<<<<<<< HEAD:src/app/(shopowner)/mypage/InquiryScreen.js
-  // ================= [Form 관련 상태] =================
-  const [inquiryType, setInquiryType] = useState('');
-=======
   // ================= [Form 관련 상태 & 로직] =================
   const [inquiryTypeKey, setInquiryTypeKey] = useState('');
->>>>>>> 8fa48b68313a1615e211f5269495ba30ae8cebd4:src/shared/screens/inquiry/InquiryScreen.js
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [attachedFile, setAttachedFile] = useState(null);
   const [typeModalVisible, setTypeModalVisible] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false); // 등록 로딩 상태
 
   const isTypeSelected = inquiryTypeKey !== '';
   const isTitleValid = title.trim().length >= 1 && title.trim().length <= 14;
   const isContentValid = content.trim().length >= 1 && content.trim().length <= 500;
   const canSubmit = isTypeSelected && isTitleValid && isContentValid;
 
-<<<<<<< HEAD:src/app/(shopowner)/mypage/InquiryScreen.js
-  // ================= [History 관련 상태] =================
-  const [historyData, setHistoryData] = useState([]); // 문의 내역 데이터
-  const [isLoadingHistory, setIsLoadingHistory] = useState(false); // 목록 로딩 상태
-  const [expandedId, setExpandedId] = useState(null); // 아코디언 펼침 상태
-
-  // ================= [API 로직: 문의 내역 조회] =================
-  const fetchHistory = async () => {
-      try {
-          setIsLoadingHistory(true);
-          const response = await getInquiries();
-          // 서버 응답 구조에 따라 수정 (예: response.data.content)
-          // 여기서는 response.data가 배열이라고 가정
-          const list = Array.isArray(response.data) ? response.data : [];
-          setHistoryData(list);
-      } catch (error) {
-          console.error("문의 내역 로딩 실패:", error);
-          // 에러 시 빈 배열 (혹은 더미 데이터 유지 가능)
-          setHistoryData([]); 
-      } finally {
-          setIsLoadingHistory(false);
-      }
-  };
-
-  // 탭이 'history'로 바뀔 때마다 데이터 갱신
-  useEffect(() => {
-      if (activeTab === 'history') {
-          fetchHistory();
-      }
-  }, [activeTab]);
-
-  // ================= [API 로직: 문의 등록] =================
-  const handleSubmit = async () => {
-    if (!canSubmit) return;
-
-    setIsSubmitting(true);
-
-    try {
-        // 전송할 데이터 구성
-        const payload = {
-            type: inquiryType,
-            title: title,
-            content: content,
-            // image: attachedFile ? attachedFile.uri : null // 이미지 업로드 로직 필요 시 추가
-        };
-
-        await createInquiry(payload);
-        
-        // 성공 시 완료 페이지로 이동
-        navigation.navigate('InquiryComplete');
-        
-        // 폼 초기화
-        setInquiryType('');
-        setTitle('');
-        setContent('');
-        setAttachedFile(null);
-
-    } catch (error) {
-        console.error("문의 등록 실패:", error);
-        Alert.alert("오류", "문의 등록에 실패했습니다. 잠시 후 다시 시도해주세요.");
-    } finally {
-        setIsSubmitting(false);
-    }
-  };
-
-  // 이미지 피커
-=======
   const { mutate: submitInquiry, isPending: isSubmitting } = useCreateInquiry();
 
->>>>>>> 8fa48b68313a1615e211f5269495ba30ae8cebd4:src/shared/screens/inquiry/InquiryScreen.js
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
@@ -180,9 +91,6 @@ export default function InquiryScreen({ navigation, route }) {
   };
 
   const removeFile = () => setAttachedFile(null);
-<<<<<<< HEAD:src/app/(shopowner)/mypage/InquiryScreen.js
-  
-=======
 
   const handleSubmit = () => {
     if (!canSubmit || isSubmitting) return;
@@ -220,21 +128,16 @@ export default function InquiryScreen({ navigation, route }) {
 
   // ================= [History 관련 상태 & 로직] =================
   const [expandedId, setExpandedId] = useState(null);
->>>>>>> 8fa48b68313a1615e211f5269495ba30ae8cebd4:src/shared/screens/inquiry/InquiryScreen.js
   const toggleExpand = (id) => {
       setExpandedId(expandedId === id ? null : id);
   };
 
-<<<<<<< HEAD:src/app/(shopowner)/mypage/InquiryScreen.js
-  // ================= [렌더링 함수] =================
-=======
   const { data: inquiriesData, isLoading: isHistoryLoading } = useGetInquiries(
     { page: 0, size: 20 },
     { query: { enabled: activeTab === 'history' } }
   );
 
   const historyList = inquiriesData?.data?.data?.content ?? [];
->>>>>>> 8fa48b68313a1615e211f5269495ba30ae8cebd4:src/shared/screens/inquiry/InquiryScreen.js
 
   // 1. 문의하기 폼
   const renderFormView = () => (
@@ -264,11 +167,7 @@ export default function InquiryScreen({ navigation, route }) {
                     onChangeText={setTitle}
                     placeholder="제목을 입력해주세요"
                     placeholderTextColor="#BDBDBD"
-<<<<<<< HEAD:src/app/(shopowner)/mypage/InquiryScreen.js
-                    maxLength={30}
-=======
                     maxLength={14}
->>>>>>> 8fa48b68313a1615e211f5269495ba30ae8cebd4:src/shared/screens/inquiry/InquiryScreen.js
                 />
             </View>
         </View>
@@ -317,68 +216,6 @@ export default function InquiryScreen({ navigation, route }) {
     </View>
   );
 
-<<<<<<< HEAD:src/app/(shopowner)/mypage/InquiryScreen.js
-  // 2. 문의 내역 리스트
-  const renderHistoryView = () => (
-    <View style={styles.listContainer}>
-        {isLoadingHistory ? (
-            <ActivityIndicator size="large" color="#34B262" style={{ marginTop: rs(50) }} />
-        ) : historyData.length === 0 ? (
-            <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>문의 내역이 없습니다.</Text>
-            </View>
-        ) : (
-            historyData.map((item) => {
-                const isExpanded = expandedId === item.id;
-                // 서버 데이터 필드명에 맞게 수정 필요 (status, answer 등)
-                const isAnswered = item.status === 'ANSWERED' || item.answer; 
-
-                return (
-                    <View key={item.id}>
-                        <TouchableOpacity 
-                            style={styles.historyItem} 
-                            activeOpacity={0.8}
-                            onPress={() => toggleExpand(item.id)}
-                        >
-                            <Text style={styles.itemTitle} numberOfLines={1} ellipsizeMode="tail">
-                                {item.title}
-                            </Text>
-                            <View style={styles.rightGroup}>
-                                <Text style={styles.dateText}>{item.createdAt?.substring(0,10) || item.date}</Text>
-                                <View style={[styles.badge, isAnswered ? styles.badgeGreen : styles.badgeGray]}>
-                                    <Text style={styles.badgeText}>
-                                        {isAnswered ? '답변완료' : '미답변'}
-                                    </Text>
-                                </View>
-                                <Ionicons 
-                                    name={isExpanded ? "chevron-up" : "chevron-down"} 
-                                    size={rs(16)} 
-                                    color="#828282" 
-                                />
-                            </View>
-                        </TouchableOpacity>
-                        
-                        {isExpanded && (
-                            <View style={styles.accordionBody}>
-                                <View style={styles.qBox}>
-                                    <Text style={styles.qText}>{item.content || item.question}</Text>
-                                </View>
-                                {isAnswered && item.answer && (
-                                    <View style={styles.aBox}>
-                                        <Text style={styles.aTitle}>[답변]</Text>
-                                        <Text style={styles.aText}>{item.answer}</Text>
-                                    </View>
-                                )}
-                            </View>
-                        )}
-                        <View style={styles.divider} />
-                    </View>
-                );
-            })
-        )}
-    </View>
-  );
-=======
   // 2. 문의 내역 리스트 렌더링
   const renderHistoryView = () => {
     if (isHistoryLoading) {
@@ -441,7 +278,6 @@ export default function InquiryScreen({ navigation, route }) {
       </View>
     );
   };
->>>>>>> 8fa48b68313a1615e211f5269495ba30ae8cebd4:src/shared/screens/inquiry/InquiryScreen.js
 
   return (
     <SafeAreaView style={styles.container}>
@@ -482,15 +318,9 @@ export default function InquiryScreen({ navigation, route }) {
           </View>
       </View>
 
-<<<<<<< HEAD:src/app/(shopowner)/mypage/InquiryScreen.js
-      {/* 컨텐츠 영역 */}
-      <KeyboardAvoidingView 
-        style={{ flex: 1 }} 
-=======
       {/* 컨텐츠 영역 (키보드 회피 적용) */}
       <KeyboardAvoidingView
         style={{ flex: 1 }}
->>>>>>> 8fa48b68313a1615e211f5269495ba30ae8cebd4:src/shared/screens/inquiry/InquiryScreen.js
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView 
@@ -514,11 +344,7 @@ export default function InquiryScreen({ navigation, route }) {
                 disabled={!canSubmit || isSubmitting}
             >
                 {isSubmitting ? (
-<<<<<<< HEAD:src/app/(shopowner)/mypage/InquiryScreen.js
-                    <ActivityIndicator color="white" />
-=======
                     <ActivityIndicator color="white" size="small" />
->>>>>>> 8fa48b68313a1615e211f5269495ba30ae8cebd4:src/shared/screens/inquiry/InquiryScreen.js
                 ) : (
                     <Text style={styles.submitBtnText}>문의하기</Text>
                 )}

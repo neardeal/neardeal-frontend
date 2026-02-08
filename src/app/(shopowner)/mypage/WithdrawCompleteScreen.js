@@ -1,4 +1,3 @@
-import { useAuth } from '@/src/shared/lib/auth/auth-context';
 import { rs } from '@/src/shared/theme/scale';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
@@ -12,7 +11,6 @@ import {
   View
 } from 'react-native';
 
-<<<<<<< HEAD
 // [토큰 관리] 토큰 삭제 함수 임포트
 import { removeToken } from '@/src/shared/lib/auth/token';
 
@@ -26,19 +24,13 @@ export default function WithdrawCompleteScreen({ navigation }) {
         console.log("토큰 삭제 중 오류(무시 가능):", e);
     } finally {
         // 2. 로그인 화면으로 초기화 및 이동
+        // (뒤로가기 눌러도 다시 이 화면으로 못 오게 리셋)
         navigation.reset({
             index: 0,
             routes: [{ name: 'Login' }], 
         });
     }
-=======
-export default function WithdrawCompleteScreen() {
-  const { handleLogout } = useAuth();
-
-  const handleGoMain = () => {
-    handleLogout();
->>>>>>> 8fa48b68313a1615e211f5269495ba30ae8cebd4
-  };
+  }; // <--- [수정] 여기에 닫는 괄호가 빠져 있었습니다. 추가함.
 
   return (
     <SafeAreaView style={styles.container}>
