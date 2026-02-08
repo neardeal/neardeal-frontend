@@ -1,3 +1,4 @@
+import { rs } from '@/src/shared/theme/scale';
 import type { EventStatus, EventType } from '@/src/shared/types/event';
 import {
   NaverMapMarkerOverlay,
@@ -15,17 +16,18 @@ const STORE_MARKER_ICONS = {
   nonPartnerNoCoupon: require('@/assets/images/icons/map/clover-gray.png'),
 };
 
-// 이벤트 마커 아이콘 SVG
+// 이벤트 마커 아이콘 PNG
 const EVENT_MARKER_ICONS: Record<EventType, any> = {
-  FOOD_EVENT: require('@/assets/images/icons/map/event-food.svg'),
-  POPUP_STORE: require('@/assets/images/icons/map/event-brand.svg'),
-  SCHOOL_EVENT: require('@/assets/images/icons/map/event-college.svg'),
-  FLEA_MARKET: require('@/assets/images/icons/map/event-market.svg'),
-  PERFORMANCE: require('@/assets/images/icons/map/event-busking.svg'),
-  COMMUNITY: require('@/assets/images/icons/map/event-student.svg'),
+  FOOD_EVENT: require('@/assets/images/icons/map/event-food.png'),
+  POPUP_STORE: require('@/assets/images/icons/map/event-brand.png'),
+  SCHOOL_EVENT: require('@/assets/images/icons/map/event-college.png'),
+  FLEA_MARKET: require('@/assets/images/icons/map/event-market.png'),
+  PERFORMANCE: require('@/assets/images/icons/map/event-busking.png'),
+  COMMUNITY: require('@/assets/images/icons/map/event-student.png'),
 };
 
-const MARKER_SIZE = 40;
+const MARKER_SIZE = rs(40);
+const EVENT_MARKER_SIZE = rs(60);
 
 // 가게 마커 아이콘 선택 헬퍼
 function getStoreMarkerIcon(isPartner: boolean, hasCoupon: boolean) {
@@ -157,8 +159,8 @@ export const NaverMap = forwardRef<NaverMapViewRef, NaverMapProps>(
               key={marker.id}
               latitude={marker.lat}
               longitude={marker.lng}
-              width={MARKER_SIZE}
-              height={MARKER_SIZE}
+              width={EVENT_MARKER_SIZE}
+              height={EVENT_MARKER_SIZE}
               onTap={() => onEventMarkerClick?.(marker.id)}
               anchor={{ x: 0.5, y: 0.5 }}
               image={getEventMarkerIcon(marker.eventType)}

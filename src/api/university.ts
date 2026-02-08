@@ -317,19 +317,19 @@ export const useDeleteUniversity = <TError = unknown,
  * 대학 정보를 수정합니다.
  * @summary [관리자] 대학 수정
  */
-export type updateUniversityResponse200 = {
+export type updateUniversity1Response200 = {
   data: Blob
   status: 200
 }
     
-export type updateUniversityResponseSuccess = (updateUniversityResponse200) & {
+export type updateUniversity1ResponseSuccess = (updateUniversity1Response200) & {
   headers: Headers;
 };
 ;
 
-export type updateUniversityResponse = (updateUniversityResponseSuccess)
+export type updateUniversity1Response = (updateUniversity1ResponseSuccess)
 
-export const getUpdateUniversityUrl = (universityId: number,) => {
+export const getUpdateUniversity1Url = (universityId: number,) => {
 
 
   
@@ -337,10 +337,10 @@ export const getUpdateUniversityUrl = (universityId: number,) => {
   return `/api/universities/${universityId}`
 }
 
-export const updateUniversity = async (universityId: number,
-    updateUniversityRequest: UpdateUniversityRequest, options?: RequestInit): Promise<updateUniversityResponse> => {
+export const updateUniversity1 = async (universityId: number,
+    updateUniversityRequest: UpdateUniversityRequest, options?: RequestInit): Promise<updateUniversity1Response> => {
   
-  return customFetch<updateUniversityResponse>(getUpdateUniversityUrl(universityId),
+  return customFetch<updateUniversity1Response>(getUpdateUniversity1Url(universityId),
   {      
     ...options,
     method: 'PATCH',
@@ -353,11 +353,11 @@ export const updateUniversity = async (universityId: number,
 
 
 
-export const getUpdateUniversityMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateUniversity>>, TError,{universityId: number;data: UpdateUniversityRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof updateUniversity>>, TError,{universityId: number;data: UpdateUniversityRequest}, TContext> => {
+export const getUpdateUniversity1MutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateUniversity1>>, TError,{universityId: number;data: UpdateUniversityRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateUniversity1>>, TError,{universityId: number;data: UpdateUniversityRequest}, TContext> => {
 
-const mutationKey = ['updateUniversity'];
+const mutationKey = ['updateUniversity1'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -367,10 +367,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateUniversity>>, {universityId: number;data: UpdateUniversityRequest}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateUniversity1>>, {universityId: number;data: UpdateUniversityRequest}> = (props) => {
           const {universityId,data} = props ?? {};
 
-          return  updateUniversity(universityId,data,requestOptions)
+          return  updateUniversity1(universityId,data,requestOptions)
         }
 
 
@@ -380,21 +380,21 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type UpdateUniversityMutationResult = NonNullable<Awaited<ReturnType<typeof updateUniversity>>>
-    export type UpdateUniversityMutationBody = UpdateUniversityRequest
-    export type UpdateUniversityMutationError = unknown
+    export type UpdateUniversity1MutationResult = NonNullable<Awaited<ReturnType<typeof updateUniversity1>>>
+    export type UpdateUniversity1MutationBody = UpdateUniversityRequest
+    export type UpdateUniversity1MutationError = unknown
 
     /**
  * @summary [관리자] 대학 수정
  */
-export const useUpdateUniversity = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateUniversity>>, TError,{universityId: number;data: UpdateUniversityRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+export const useUpdateUniversity1 = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateUniversity1>>, TError,{universityId: number;data: UpdateUniversityRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof updateUniversity>>,
+        Awaited<ReturnType<typeof updateUniversity1>>,
         TError,
         {universityId: number;data: UpdateUniversityRequest},
         TContext
       > => {
-      return useMutation(getUpdateUniversityMutationOptions(options), queryClient);
+      return useMutation(getUpdateUniversity1MutationOptions(options), queryClient);
     }
     

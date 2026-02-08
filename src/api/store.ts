@@ -668,6 +668,129 @@ export const useUpdateStore = <TError = Blob,
       return useMutation(getUpdateStoreMutationOptions(options), queryClient);
     }
     /**
+ * 상점의 통계 데이터(단골 수, 쿠폰 발행/사용 수, 리뷰 수)를 조회합니다.
+ * @summary [점주] 상점 통계 조회
+ */
+export type getStoreStatsResponse200 = {
+  data: Blob
+  status: 200
+}
+
+export type getStoreStatsResponse403 = {
+  data: Blob
+  status: 403
+}
+
+export type getStoreStatsResponse404 = {
+  data: Blob
+  status: 404
+}
+    
+export type getStoreStatsResponseSuccess = (getStoreStatsResponse200) & {
+  headers: Headers;
+};
+export type getStoreStatsResponseError = (getStoreStatsResponse403 | getStoreStatsResponse404) & {
+  headers: Headers;
+};
+
+export type getStoreStatsResponse = (getStoreStatsResponseSuccess | getStoreStatsResponseError)
+
+export const getGetStoreStatsUrl = (storeId: number,) => {
+
+
+  
+
+  return `/api/stores/${storeId}/stats`
+}
+
+export const getStoreStats = async (storeId: number, options?: RequestInit): Promise<getStoreStatsResponse> => {
+  
+  return customFetch<getStoreStatsResponse>(getGetStoreStatsUrl(storeId),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getGetStoreStatsQueryKey = (storeId?: number,) => {
+    return [
+    `/api/stores/${storeId}/stats`
+    ] as const;
+    }
+
+    
+export const getGetStoreStatsQueryOptions = <TData = Awaited<ReturnType<typeof getStoreStats>>, TError = Blob>(storeId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStoreStats>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetStoreStatsQueryKey(storeId);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStoreStats>>> = ({ signal }) => getStoreStats(storeId, { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(storeId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getStoreStats>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetStoreStatsQueryResult = NonNullable<Awaited<ReturnType<typeof getStoreStats>>>
+export type GetStoreStatsQueryError = Blob
+
+
+export function useGetStoreStats<TData = Awaited<ReturnType<typeof getStoreStats>>, TError = Blob>(
+ storeId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStoreStats>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStoreStats>>,
+          TError,
+          Awaited<ReturnType<typeof getStoreStats>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStoreStats<TData = Awaited<ReturnType<typeof getStoreStats>>, TError = Blob>(
+ storeId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStoreStats>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStoreStats>>,
+          TError,
+          Awaited<ReturnType<typeof getStoreStats>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStoreStats<TData = Awaited<ReturnType<typeof getStoreStats>>, TError = Blob>(
+ storeId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStoreStats>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary [점주] 상점 통계 조회
+ */
+
+export function useGetStoreStats<TData = Awaited<ReturnType<typeof getStoreStats>>, TError = Blob>(
+ storeId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStoreStats>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetStoreStatsQueryOptions(storeId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+/**
  * 상점의 정보 및 메뉴 등록 여부를 조회합니다.
  * @summary [점주] 상점 등록 상태 조회
  */
