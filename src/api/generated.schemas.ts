@@ -5,6 +5,43 @@
  * API 명세서
  * OpenAPI spec version: v1.0.0
  */
+export interface UpdateStudentProfileRequest {
+  nickname?: string;
+  collegeId?: number;
+  departmentId?: number;
+  isClubMember?: boolean;
+}
+
+export interface ErrorDetail {
+  field?: string;
+  value?: string;
+  reason?: string;
+}
+
+export interface ErrorResponse {
+  timestamp?: string;
+  path?: string;
+  code?: string;
+  message?: string;
+  details?: ErrorDetail[];
+}
+
+/**
+ * 공통 에러 응답
+ */
+export interface SwaggerErrorResponse {
+  /** 성공 여부 */
+  isSuccess?: boolean;
+  data?: ErrorResponse;
+}
+
+export type CommonResponseVoidData = { [key: string]: unknown };
+
+export interface CommonResponseVoid {
+  isSuccess?: boolean;
+  data?: CommonResponseVoidData;
+}
+
 export interface CreateUniversityRequest {
   name: string;
   emailDomain: string;
@@ -67,29 +104,6 @@ export interface CreateStoreRequest {
   storeMoods?: CreateStoreRequestStoreMoodsItem[];
 }
 
-export interface ErrorDetail {
-  field?: string;
-  value?: string;
-  reason?: string;
-}
-
-export interface ErrorResponse {
-  timestamp?: string;
-  path?: string;
-  code?: string;
-  message?: string;
-  details?: ErrorDetail[];
-}
-
-/**
- * 공통 에러 응답
- */
-export interface SwaggerErrorResponse {
-  /** 성공 여부 */
-  isSuccess?: boolean;
-  data?: ErrorResponse;
-}
-
 export interface CreateReviewRequest {
   content: string;
   /**
@@ -116,13 +130,6 @@ export const StoreReportRequestReasonsItem = {
 export interface StoreReportRequest {
   reasons: StoreReportRequestReasonsItem[];
   detail?: string;
-}
-
-export type CommonResponseVoidData = { [key: string]: unknown };
-
-export interface CommonResponseVoid {
-  isSuccess?: boolean;
-  data?: CommonResponseVoidData;
 }
 
 /**
@@ -238,6 +245,19 @@ export interface ReportRequest {
   detail?: string;
 }
 
+export interface UpdateUniversityRequest {
+  universityId: number;
+}
+
+export interface ChangeUsernameRequest {
+  newUsername: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
 export interface CommonResponseString {
   isSuccess?: boolean;
   data?: string;
@@ -279,12 +299,26 @@ export const IssueCouponResponseStatus = {
   EXPIRED: 'EXPIRED',
 } as const;
 
+export type IssueCouponResponseBenefitType = typeof IssueCouponResponseBenefitType[keyof typeof IssueCouponResponseBenefitType];
+
+
+export const IssueCouponResponseBenefitType = {
+  FIXED_DISCOUNT: 'FIXED_DISCOUNT',
+  PERCENTAGE_DISCOUNT: 'PERCENTAGE_DISCOUNT',
+  SERVICE_GIFT: 'SERVICE_GIFT',
+} as const;
+
 export interface IssueCouponResponse {
   studentCouponId?: number;
   couponCode?: string;
   status?: IssueCouponResponseStatus;
   issuedAt?: string;
   expiresAt?: string;
+  title?: string;
+  description?: string;
+  benefitType?: IssueCouponResponseBenefitType;
+  benefitValue?: string;
+  storeName?: string;
 }
 
 export interface CommonResponseIssueCouponResponse {
@@ -341,6 +375,7 @@ export const StudentSignupRequestGender = {
 export interface StudentSignupRequest {
   username?: string;
   password?: string;
+  email?: string;
   nickname?: string;
   gender?: StudentSignupRequestGender;
   birthDate?: string;
@@ -358,24 +393,13 @@ export const OwnerSignupRequestGender = {
   UNKNOWN: 'UNKNOWN',
 } as const;
 
-export interface StoreCreateRequest {
-  name?: string;
-  roadAddress?: string;
-  jibunAddress?: string;
-  partnerUniversityId?: number;
-  partnerOrganizationIds?: number[];
-  bizRegNo?: string;
-}
-
 export interface OwnerSignupRequest {
   username?: string;
   password?: string;
-  name?: string;
   email?: string;
-  phone?: string;
   gender?: OwnerSignupRequestGender;
   birthDate?: string;
-  storeList?: StoreCreateRequest[];
+  name?: string;
 }
 
 export interface CouncilSignupRequest {
@@ -406,9 +430,19 @@ export interface VerifyEmailCodeRequest {
   code: string;
 }
 
-export interface SendEmailCodeRequest {
-  /** @pattern ^[A-Za-z0-9._%+-]+@jbnu\.ac\.kr$ */
+export interface FindPasswordSendCodeRequest {
+  username: string;
   email: string;
+}
+
+export interface ResetPasswordRequest {
+  resetToken: string;
+  newPassword: string;
+}
+
+export interface SendEmailCodeRequest {
+  email: string;
+  universityId?: number;
 }
 
 export type CompleteSocialSignupRequestRole = typeof CompleteSocialSignupRequestRole[keyof typeof CompleteSocialSignupRequestRole];
@@ -441,7 +475,6 @@ export interface CompleteSocialSignupRequest {
   departmentId?: number;
   name?: string;
   email?: string;
-  phone?: string;
 }
 
 export interface CreatePartnershipRequest {
@@ -489,11 +522,6 @@ export interface CreateEventRequest {
   startDateTime: string;
   /** 이벤트 종료일시 */
   endDateTime: string;
-}
-
-export interface UpdateUniversityRequest {
-  name: string;
-  emailDomain: string;
 }
 
 export type UpdateStoreRequestStoreCategoriesItem = typeof UpdateStoreRequestStoreCategoriesItem[keyof typeof UpdateStoreRequestStoreCategoriesItem];
@@ -801,6 +829,15 @@ export const StoreResponseStoreMoodsItem = {
   ROMANTIC: 'ROMANTIC',
 } as const;
 
+export type StoreResponseCloverGrade = typeof StoreResponseCloverGrade[keyof typeof StoreResponseCloverGrade];
+
+
+export const StoreResponseCloverGrade = {
+  SEED: 'SEED',
+  SPROUT: 'SPROUT',
+  THREE_LEAF: 'THREE_LEAF',
+} as const;
+
 export interface StoreResponse {
   id?: number;
   userId?: number;
@@ -823,6 +860,7 @@ export interface StoreResponse {
   isSuspended?: boolean;
   isPartnership?: boolean;
   hasCoupon?: boolean;
+  cloverGrade?: StoreResponseCloverGrade;
 }
 
 export interface PageResponseStoreResponse {
@@ -843,6 +881,18 @@ export interface CommonResponsePageResponseStoreResponse {
 export interface CommonResponseStoreResponse {
   isSuccess?: boolean;
   data?: StoreResponse;
+}
+
+export interface StoreStatsResponse {
+  totalRegulars?: number;
+  totalIssuedCoupons?: number;
+  totalUsedCoupons?: number;
+  totalReviews?: number;
+}
+
+export interface CommonResponseStoreStatsResponse {
+  isSuccess?: boolean;
+  data?: StoreStatsResponse;
 }
 
 export interface ReviewResponse {
@@ -1026,6 +1076,7 @@ export interface User {
   role?: UserRole;
   socialType?: UserSocialType;
   socialId?: string;
+  email?: string;
   deleted?: boolean;
   deletedAt?: string;
   userId?: number;
@@ -1037,6 +1088,15 @@ export interface StoreImage {
   imageUrl?: string;
   orderIndex?: number;
 }
+
+export type StoreCloverGrade = typeof StoreCloverGrade[keyof typeof StoreCloverGrade];
+
+
+export const StoreCloverGrade = {
+  SEED: 'SEED',
+  SPROUT: 'SPROUT',
+  THREE_LEAF: 'THREE_LEAF',
+} as const;
 
 export interface University {
   id?: number;
@@ -1076,6 +1136,7 @@ export interface Store {
   holidayStartsAt?: string;
   holidayEndsAt?: string;
   isSuspended?: boolean;
+  cloverGrade?: StoreCloverGrade;
   universities?: StoreUniversity[];
 }
 

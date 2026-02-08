@@ -28,8 +28,10 @@ import type {
   CheckUsernameAvailabilityParams,
   CompleteSocialSignupParams,
   CouncilSignupRequest,
+  FindPasswordSendCodeRequest,
   LoginRequest,
   OwnerSignupRequest,
+  ResetPasswordRequest,
   SendEmailCodeRequest,
   StudentSignupRequest,
   VerifyEmailCodeRequest,
@@ -565,8 +567,423 @@ export const useLogin = <TError = Blob,
       return useMutation(getLoginMutationOptions(options), queryClient);
     }
     /**
- * 이메일 인증 코드를 검증합니다. (true: 검증 (일치) 완료, false: 검증 실패 (코드 불일치 및 이미 등록된 이메일)
- * @summary [학생] 학교 이메일 인증 확인
+ * 인증번호 검증 후 비밀번호 재설정을 위한 임시 토큰을 반환합니다.
+ * @summary [공통] 비밀번호 재설정 - 인증 확인 및 임시 토큰 반환
+ */
+export type verifyCodeForFindPasswordResponse200 = {
+  data: Blob
+  status: 200
+}
+    
+export type verifyCodeForFindPasswordResponseSuccess = (verifyCodeForFindPasswordResponse200) & {
+  headers: Headers;
+};
+;
+
+export type verifyCodeForFindPasswordResponse = (verifyCodeForFindPasswordResponseSuccess)
+
+export const getVerifyCodeForFindPasswordUrl = () => {
+
+
+  
+
+  return `/api/auth/find-password/verify`
+}
+
+export const verifyCodeForFindPassword = async (verifyEmailCodeRequest: VerifyEmailCodeRequest, options?: RequestInit): Promise<verifyCodeForFindPasswordResponse> => {
+  
+  return customFetch<verifyCodeForFindPasswordResponse>(getVerifyCodeForFindPasswordUrl(),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      verifyEmailCodeRequest,)
+  }
+);}
+
+
+
+
+export const getVerifyCodeForFindPasswordMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verifyCodeForFindPassword>>, TError,{data: VerifyEmailCodeRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof verifyCodeForFindPassword>>, TError,{data: VerifyEmailCodeRequest}, TContext> => {
+
+const mutationKey = ['verifyCodeForFindPassword'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof verifyCodeForFindPassword>>, {data: VerifyEmailCodeRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  verifyCodeForFindPassword(data,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type VerifyCodeForFindPasswordMutationResult = NonNullable<Awaited<ReturnType<typeof verifyCodeForFindPassword>>>
+    export type VerifyCodeForFindPasswordMutationBody = VerifyEmailCodeRequest
+    export type VerifyCodeForFindPasswordMutationError = unknown
+
+    /**
+ * @summary [공통] 비밀번호 재설정 - 인증 확인 및 임시 토큰 반환
+ */
+export const useVerifyCodeForFindPassword = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verifyCodeForFindPassword>>, TError,{data: VerifyEmailCodeRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof verifyCodeForFindPassword>>,
+        TError,
+        {data: VerifyEmailCodeRequest},
+        TContext
+      > => {
+      return useMutation(getVerifyCodeForFindPasswordMutationOptions(options), queryClient);
+    }
+    /**
+ * 아이디와 이메일이 일치하는지 확인 후 인증번호를 발송합니다.
+ * @summary [공통] 비밀번호 찾기 - 인증번호 발송
+ */
+export type sendCodeForFindPasswordResponse200 = {
+  data: Blob
+  status: 200
+}
+    
+export type sendCodeForFindPasswordResponseSuccess = (sendCodeForFindPasswordResponse200) & {
+  headers: Headers;
+};
+;
+
+export type sendCodeForFindPasswordResponse = (sendCodeForFindPasswordResponseSuccess)
+
+export const getSendCodeForFindPasswordUrl = () => {
+
+
+  
+
+  return `/api/auth/find-password/send-code`
+}
+
+export const sendCodeForFindPassword = async (findPasswordSendCodeRequest: FindPasswordSendCodeRequest, options?: RequestInit): Promise<sendCodeForFindPasswordResponse> => {
+  
+  return customFetch<sendCodeForFindPasswordResponse>(getSendCodeForFindPasswordUrl(),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      findPasswordSendCodeRequest,)
+  }
+);}
+
+
+
+
+export const getSendCodeForFindPasswordMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendCodeForFindPassword>>, TError,{data: FindPasswordSendCodeRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sendCodeForFindPassword>>, TError,{data: FindPasswordSendCodeRequest}, TContext> => {
+
+const mutationKey = ['sendCodeForFindPassword'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sendCodeForFindPassword>>, {data: FindPasswordSendCodeRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  sendCodeForFindPassword(data,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SendCodeForFindPasswordMutationResult = NonNullable<Awaited<ReturnType<typeof sendCodeForFindPassword>>>
+    export type SendCodeForFindPasswordMutationBody = FindPasswordSendCodeRequest
+    export type SendCodeForFindPasswordMutationError = unknown
+
+    /**
+ * @summary [공통] 비밀번호 찾기 - 인증번호 발송
+ */
+export const useSendCodeForFindPassword = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendCodeForFindPassword>>, TError,{data: FindPasswordSendCodeRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof sendCodeForFindPassword>>,
+        TError,
+        {data: FindPasswordSendCodeRequest},
+        TContext
+      > => {
+      return useMutation(getSendCodeForFindPasswordMutationOptions(options), queryClient);
+    }
+    /**
+ * 비밀번호 재설정 토큰을 사용하여 새 비밀번호로 변경합니다.
+ * @summary [공통] 비밀번호 재설정
+ */
+export type resetPasswordResponse200 = {
+  data: Blob
+  status: 200
+}
+    
+export type resetPasswordResponseSuccess = (resetPasswordResponse200) & {
+  headers: Headers;
+};
+;
+
+export type resetPasswordResponse = (resetPasswordResponseSuccess)
+
+export const getResetPasswordUrl = () => {
+
+
+  
+
+  return `/api/auth/find-password/reset`
+}
+
+export const resetPassword = async (resetPasswordRequest: ResetPasswordRequest, options?: RequestInit): Promise<resetPasswordResponse> => {
+  
+  return customFetch<resetPasswordResponse>(getResetPasswordUrl(),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      resetPasswordRequest,)
+  }
+);}
+
+
+
+
+export const getResetPasswordMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resetPassword>>, TError,{data: ResetPasswordRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof resetPassword>>, TError,{data: ResetPasswordRequest}, TContext> => {
+
+const mutationKey = ['resetPassword'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof resetPassword>>, {data: ResetPasswordRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  resetPassword(data,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ResetPasswordMutationResult = NonNullable<Awaited<ReturnType<typeof resetPassword>>>
+    export type ResetPasswordMutationBody = ResetPasswordRequest
+    export type ResetPasswordMutationError = unknown
+
+    /**
+ * @summary [공통] 비밀번호 재설정
+ */
+export const useResetPassword = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resetPassword>>, TError,{data: ResetPasswordRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof resetPassword>>,
+        TError,
+        {data: ResetPasswordRequest},
+        TContext
+      > => {
+      return useMutation(getResetPasswordMutationOptions(options), queryClient);
+    }
+    /**
+ * 인증번호 검증 후 가입된 아이디를 반환합니다.
+ * @summary [공통] 아이디 찾기 - 인증 확인 및 아이디 반환
+ */
+export type verifyCodeForFindIdResponse200 = {
+  data: Blob
+  status: 200
+}
+    
+export type verifyCodeForFindIdResponseSuccess = (verifyCodeForFindIdResponse200) & {
+  headers: Headers;
+};
+;
+
+export type verifyCodeForFindIdResponse = (verifyCodeForFindIdResponseSuccess)
+
+export const getVerifyCodeForFindIdUrl = () => {
+
+
+  
+
+  return `/api/auth/find-id/verify`
+}
+
+export const verifyCodeForFindId = async (verifyEmailCodeRequest: VerifyEmailCodeRequest, options?: RequestInit): Promise<verifyCodeForFindIdResponse> => {
+  
+  return customFetch<verifyCodeForFindIdResponse>(getVerifyCodeForFindIdUrl(),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      verifyEmailCodeRequest,)
+  }
+);}
+
+
+
+
+export const getVerifyCodeForFindIdMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verifyCodeForFindId>>, TError,{data: VerifyEmailCodeRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof verifyCodeForFindId>>, TError,{data: VerifyEmailCodeRequest}, TContext> => {
+
+const mutationKey = ['verifyCodeForFindId'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof verifyCodeForFindId>>, {data: VerifyEmailCodeRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  verifyCodeForFindId(data,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type VerifyCodeForFindIdMutationResult = NonNullable<Awaited<ReturnType<typeof verifyCodeForFindId>>>
+    export type VerifyCodeForFindIdMutationBody = VerifyEmailCodeRequest
+    export type VerifyCodeForFindIdMutationError = unknown
+
+    /**
+ * @summary [공통] 아이디 찾기 - 인증 확인 및 아이디 반환
+ */
+export const useVerifyCodeForFindId = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verifyCodeForFindId>>, TError,{data: VerifyEmailCodeRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof verifyCodeForFindId>>,
+        TError,
+        {data: VerifyEmailCodeRequest},
+        TContext
+      > => {
+      return useMutation(getVerifyCodeForFindIdMutationOptions(options), queryClient);
+    }
+    /**
+ * 가입된 이메일로 인증번호를 발송합니다.
+ * @summary [공통] 아이디 찾기 - 인증번호 발송
+ */
+export type sendCodeForFindIdResponse200 = {
+  data: Blob
+  status: 200
+}
+    
+export type sendCodeForFindIdResponseSuccess = (sendCodeForFindIdResponse200) & {
+  headers: Headers;
+};
+;
+
+export type sendCodeForFindIdResponse = (sendCodeForFindIdResponseSuccess)
+
+export const getSendCodeForFindIdUrl = () => {
+
+
+  
+
+  return `/api/auth/find-id/send-code`
+}
+
+export const sendCodeForFindId = async (sendEmailCodeRequest: SendEmailCodeRequest, options?: RequestInit): Promise<sendCodeForFindIdResponse> => {
+  
+  return customFetch<sendCodeForFindIdResponse>(getSendCodeForFindIdUrl(),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      sendEmailCodeRequest,)
+  }
+);}
+
+
+
+
+export const getSendCodeForFindIdMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendCodeForFindId>>, TError,{data: SendEmailCodeRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sendCodeForFindId>>, TError,{data: SendEmailCodeRequest}, TContext> => {
+
+const mutationKey = ['sendCodeForFindId'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sendCodeForFindId>>, {data: SendEmailCodeRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  sendCodeForFindId(data,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SendCodeForFindIdMutationResult = NonNullable<Awaited<ReturnType<typeof sendCodeForFindId>>>
+    export type SendCodeForFindIdMutationBody = SendEmailCodeRequest
+    export type SendCodeForFindIdMutationError = unknown
+
+    /**
+ * @summary [공통] 아이디 찾기 - 인증번호 발송
+ */
+export const useSendCodeForFindId = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendCodeForFindId>>, TError,{data: SendEmailCodeRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof sendCodeForFindId>>,
+        TError,
+        {data: SendEmailCodeRequest},
+        TContext
+      > => {
+      return useMutation(getSendCodeForFindIdMutationOptions(options), queryClient);
+    }
+    /**
+ * 회원 가입용 이메일 인증 코드를 검증합니다. (true: 검증 (일치) 완료, false: 검증 실패 (코드 불일치 및 이미 등록된 이메일)
+ * @summary [공통] 회원 가입용 이메일 인증 확인
  */
 export type verifyResponse200 = {
   data: Blob
@@ -635,7 +1052,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type VerifyMutationError = unknown
 
     /**
- * @summary [학생] 학교 이메일 인증 확인
+ * @summary [공통] 회원 가입용 이메일 인증 확인
  */
 export const useVerify = <TError = unknown,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verify>>, TError,{data: VerifyEmailCodeRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
@@ -648,8 +1065,8 @@ export const useVerify = <TError = unknown,
       return useMutation(getVerifyMutationOptions(options), queryClient);
     }
     /**
- * 이메일 인증 코드를 전송합니다.
- * @summary [학생] 학교 이메일 인증 발송
+ * 회원 가입용 이메일 인증 코드를 전송합니다.
+ * @summary [공통] 회원 가입용 이메일 인증 발송
  */
 export type sendResponse200 = {
   data: Blob
@@ -668,7 +1085,7 @@ export const getSendUrl = () => {
 
   
 
-  return `/api/auth/email/send`
+  return `/api/auth/email/send-code`
 }
 
 export const send = async (sendEmailCodeRequest: SendEmailCodeRequest, options?: RequestInit): Promise<sendResponse> => {
@@ -718,7 +1135,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type SendMutationError = unknown
 
     /**
- * @summary [학생] 학교 이메일 인증 발송
+ * @summary [공통] 회원 가입용 이메일 인증 발송
  */
 export const useSend = <TError = unknown,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof send>>, TError,{data: SendEmailCodeRequest}, TContext>, request?: SecondParameter<typeof customFetch>}

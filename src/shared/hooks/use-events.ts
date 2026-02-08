@@ -193,15 +193,17 @@ export function useEvents({
   // 이벤트 마커 생성
   const eventMarkers = useMemo(
     () =>
-      filteredEvents.map((event) => ({
-        id: `event-${event.id}`,
-        lat: event.lat,
-        lng: event.lng,
-        title: event.title,
-        type: 'event' as const,
-        eventType: event.eventTypes[0],
-        status: event.status,
-      })),
+      filteredEvents
+        .filter((event) => event.status !== 'ended')
+        .map((event) => ({
+          id: `event-${event.id}`,
+          lat: event.lat,
+          lng: event.lng,
+          title: event.title,
+          type: 'event' as const,
+          eventType: event.eventTypes[0],
+          status: event.status,
+        })),
     [filteredEvents],
   );
 
