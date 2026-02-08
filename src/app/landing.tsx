@@ -1,13 +1,13 @@
 import { useAuth } from "@/src/shared/lib/auth";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import NearDealLogo from "@/assets/images/logo/neardeal-logo.svg";
 import { ThemedText } from "@/src/shared/common/themed-text";
-import { Gray, System, Brand } from "@/src/shared/theme/theme";
 import { rs } from "@/src/shared/theme/scale";
+import { Brand, Gray, System } from "@/src/shared/theme/theme";
 
 const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
@@ -19,24 +19,29 @@ export default function LandingPage() {
   const { isAuthenticated } = useAuth();
   const [healthStatus, setHealthStatus] = useState<HealthStatus>("checking");
 
-  useEffect(() => {
-    const checkHealth = async () => {
-      try {
-        const res = await fetch(`${API_BASE_URL}/health`, {
-          method: "GET",
-          signal: AbortSignal.timeout(5000),
-        });
-        setHealthStatus(res.ok ? "connected" : "failed");
-      } catch {
-        setHealthStatus("failed");
-      }
-    };
+const checkHealth = async () => {
+    setHealthStatus("checking");
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    try {
+      const res = await fetch(`${API_BASE_URL}/health`, {
+        method: "GET",
+        signal: controller.signal,
+      });
+      setHealthStatus(res.ok ? "connected" : "failed");
+    } catch {
+      setHealthStatus("failed");
+    } finally {
+      clearTimeout(timeout);
+    }
+  };
 
+  useEffect(() => {
     checkHealth();
   }, []);
 
   useEffect(() => {
-    if (healthStatus === "checking") return;
+    if (healthStatus !== "connected") return;
 
     const timer = setTimeout(() => {
       router.replace(isAuthenticated ? "/(student)/(tabs)" : "/auth");
@@ -64,10 +69,15 @@ export default function LandingPage() {
           ]}
         />
         <ThemedText style={styles.statusText}>
-          {healthStatus === "checking" && "서버 연결 확인 중..."}
-          {healthStatus === "connected" && "서버 연결됨"}
-          {healthStatus === "failed" && "서버 연결 실패"}
+          {healthStatus === "checking" && "연결 확인 중..."}
+          {healthStatus === "connected" && "연결됨"}
+          {healthStatus === "failed" && "연결 실패"}
         </ThemedText>
+        {healthStatus === "failed" && (
+          <TouchableOpacity onPress={checkHealth}>
+            <ThemedText style={styles.retryText}>재시도</ThemedText>
+          </TouchableOpacity>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -113,5 +123,9 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: rs(12),
     color: Gray.gray6,
+  },
+  retryText: {
+    fontSize: rs(12),
+    color: Brand.primary,
   },
 });

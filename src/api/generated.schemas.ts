@@ -102,6 +102,7 @@ export interface CreateStoreRequest {
   operatingHours?: string;
   storeCategories: CreateStoreRequestStoreCategoriesItem[];
   storeMoods?: CreateStoreRequestStoreMoodsItem[];
+  universityIds?: number[];
 }
 
 export interface CreateReviewRequest {
@@ -327,8 +328,8 @@ export interface CommonResponseIssueCouponResponse {
 }
 
 export interface BizInfo {
-  bno?: string;
   pnm?: string;
+  bno?: string;
   b_no?: string;
   start_dt?: string;
   p_nm?: string;
@@ -900,12 +901,15 @@ export interface CommonResponseStoreStatsResponse {
 export interface ReviewResponse {
   reviewId?: number;
   storeId?: number;
+  storeName?: string;
+  parentReviewId?: number;
   username?: string;
   content?: string;
   rating?: number;
   createdAt?: string;
   likeCount?: number;
   imageUrls?: string[];
+  ownerReply?: boolean;
 }
 
 export interface PageResponseReviewResponse {
@@ -1678,7 +1682,7 @@ export type CreateEventBody = {
 
 export type UpdateStoreBody = {
   request: UpdateStoreRequest;
-  images: string[];
+  images?: string[];
 };
 
 export type UpdateItemCategoryBody = {[key: string]: string};

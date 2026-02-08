@@ -133,7 +133,8 @@ export default function StoreDetailScreen() {
 
   // 메뉴(상품) 목록
   const { data: itemsRes, isLoading: isItemsLoading } = useGetItems(storeId);
-  const apiItems = ((itemsRes as any)?.data?.data ?? []) as ItemResponse[];
+  const rawItems = (itemsRes as any)?.data?.data;
+  const apiItems = (Array.isArray(rawItems) ? rawItems : []) as ItemResponse[];
 
   // 리뷰 목록 (paginated)
   const { data: reviewsRes, isLoading: isReviewsLoading } = useGetReviews(
