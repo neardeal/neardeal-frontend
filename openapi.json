@@ -6,7 +6,7 @@
     "version": "v1.0.0"
   },
   "servers": [
-    { "url": "http://looky.kr", "description": "Generated server url" }
+    { "url": "http://api.looky.kr", "description": "Generated server url" }
   ],
   "security": [{ "JWT Authentication": [] }],
   "tags": [
@@ -24,6 +24,7 @@
     { "name": "Admin", "description": "관리자 API" },
     { "name": "Favorite", "description": "단골 상점(즐겨찾기) 관련 API" },
     { "name": "Admin Event", "description": "관리자 이벤트 관리 API" },
+    { "name": "Admin Inquiry", "description": "관리자 문의 관리 API" },
     { "name": "StoreClaim", "description": "상점 소유권 등록 API" },
     { "name": "StoreNews", "description": "가게 소식 관련 API" },
     { "name": "StoreClaim", "description": "상점 소유권 요청 심사 API" },
@@ -143,7 +144,7 @@
     "/api/stores": {
       "get": {
         "tags": ["Store"],
-        "summary": "[공통] 상점 목록 조회",
+        "summary": "[학생] 상점 목록 조회",
         "description": "전체 상점 목록을 페이징하여 조회합니다.",
         "operationId": "getStores",
         "parameters": [
@@ -256,6 +257,14 @@
               }
             }
           },
+          "201": {
+            "description": "상점 등록 성공",
+            "content": {
+              "*/*": {
+                "schema": { "$ref": "#/components/schemas/CommonResponseLong" }
+              }
+            }
+          },
           "403": {
             "description": "권한 없음",
             "content": {
@@ -263,14 +272,6 @@
                 "schema": {
                   "$ref": "#/components/schemas/SwaggerErrorResponse"
                 }
-              }
-            }
-          },
-          "201": {
-            "description": "상점 등록 성공",
-            "content": {
-              "*/*": {
-                "schema": { "$ref": "#/components/schemas/CommonResponseLong" }
               }
             }
           },
@@ -310,16 +311,6 @@
           }
         ],
         "responses": {
-          "404": {
-            "description": "상점 없음",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/SwaggerErrorResponse"
-                }
-              }
-            }
-          },
           "200": {
             "description": "성공",
             "content": {
@@ -329,13 +320,23 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "상점 없음",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SwaggerErrorResponse"
+                }
+              }
+            }
           }
         }
       },
       "post": {
         "tags": ["Review"],
-        "summary": "[학생] 리뷰 작성",
-        "description": "상점에 대한 리뷰를 작성합니다.",
+        "summary": "[공통] 리뷰 및 답글 작성",
+        "description": "상점에 대한 리뷰(학생) 또는 답글(점주, 학생)을 작성합니다.",
         "operationId": "createReview",
         "parameters": [
           {
@@ -377,8 +378,16 @@
               }
             }
           },
-          "404": {
-            "description": "상점 없음",
+          "201": {
+            "description": "리뷰/답글 작성 성공",
+            "content": {
+              "*/*": {
+                "schema": { "$ref": "#/components/schemas/CommonResponseLong" }
+              }
+            }
+          },
+          "403": {
+            "description": "권한 없음 (점주의 일반 리뷰 작성 등)",
             "content": {
               "*/*": {
                 "schema": {
@@ -387,11 +396,13 @@
               }
             }
           },
-          "201": {
-            "description": "리뷰 작성 성공",
+          "404": {
+            "description": "상점 또는 원본 리뷰 없음",
             "content": {
               "*/*": {
-                "schema": { "$ref": "#/components/schemas/CommonResponseLong" }
+                "schema": {
+                  "$ref": "#/components/schemas/SwaggerErrorResponse"
+                }
               }
             }
           },
@@ -576,22 +587,22 @@
           }
         ],
         "responses": {
-          "404": {
-            "description": "상점 없음",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/SwaggerErrorResponse"
-                }
-              }
-            }
-          },
           "200": {
             "description": "성공",
             "content": {
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/CommonResponseListItemResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "상점 없음",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SwaggerErrorResponse"
                 }
               }
             }
@@ -643,16 +654,6 @@
               }
             }
           },
-          "403": {
-            "description": "권한 없음 (본인 소유 상점 아님)",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/SwaggerErrorResponse"
-                }
-              }
-            }
-          },
           "404": {
             "description": "상점 없음",
             "content": {
@@ -668,6 +669,16 @@
             "content": {
               "*/*": {
                 "schema": { "$ref": "#/components/schemas/CommonResponseLong" }
+              }
+            }
+          },
+          "403": {
+            "description": "권한 없음 (본인 소유 상점 아님)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SwaggerErrorResponse"
+                }
               }
             }
           }
@@ -726,6 +737,14 @@
           "required": true
         },
         "responses": {
+          "201": {
+            "description": "카테고리 등록 성공",
+            "content": {
+              "*/*": {
+                "schema": { "$ref": "#/components/schemas/CommonResponseLong" }
+              }
+            }
+          },
           "403": {
             "description": "권한 없음",
             "content": {
@@ -733,14 +752,6 @@
                 "schema": {
                   "$ref": "#/components/schemas/SwaggerErrorResponse"
                 }
-              }
-            }
-          },
-          "201": {
-            "description": "카테고리 등록 성공",
-            "content": {
-              "*/*": {
-                "schema": { "$ref": "#/components/schemas/CommonResponseLong" }
               }
             }
           },
@@ -865,22 +876,22 @@
           }
         ],
         "responses": {
-          "404": {
-            "description": "상점 없음",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/SwaggerErrorResponse"
-                }
-              }
-            }
-          },
           "200": {
             "description": "성공",
             "content": {
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/CommonResponseListCouponResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "상점 없음",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SwaggerErrorResponse"
                 }
               }
             }
@@ -910,8 +921,8 @@
           "required": true
         },
         "responses": {
-          "403": {
-            "description": "권한 없음 (본인 소유 상점 아님)",
+          "404": {
+            "description": "상점 없음",
             "content": {
               "*/*": {
                 "schema": {
@@ -920,8 +931,8 @@
               }
             }
           },
-          "404": {
-            "description": "상점 없음",
+          "403": {
+            "description": "권한 없음 (본인 소유 상점 아님)",
             "content": {
               "*/*": {
                 "schema": {
@@ -1345,16 +1356,6 @@
               }
             }
           },
-          "422": {
-            "description": "유효기간 만료",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/SwaggerErrorResponse"
-                }
-              }
-            }
-          },
           "200": {
             "description": "쿠폰 활성화 성공 (코드 반환)",
             "content": {
@@ -1367,6 +1368,90 @@
           },
           "409": {
             "description": "이미 사용된 쿠폰",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SwaggerErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "유효기간 만료",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SwaggerErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/inquiries": {
+      "get": {
+        "tags": ["고객센터 API"],
+        "summary": "내 문의 목록 조회",
+        "description": "내가 작성한 문의 목록을 조회합니다.",
+        "operationId": "getInquiries",
+        "parameters": [
+          {
+            "name": "pageable",
+            "in": "query",
+            "description": "페이징 정보",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/Pageable" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonResponsePageInquiryResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["고객센터 API"],
+        "summary": "문의하기",
+        "description": "고객센터에 문의를 등록합니다.",
+        "operationId": "createInquiry",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": ["request"],
+                "type": "object",
+                "properties": {
+                  "request": {
+                    "$ref": "#/components/schemas/CreateInquiryRequest"
+                  },
+                  "images": {
+                    "type": "array",
+                    "items": { "type": "string", "format": "binary" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "성공",
+            "content": {
+              "*/*": {
+                "schema": { "$ref": "#/components/schemas/CommonResponseLong" }
+              }
+            }
+          },
+          "400": {
+            "description": "입력값 검증 실패 (제목 길이, 이미지 개수 초과 등)",
             "content": {
               "*/*": {
                 "schema": {
@@ -1560,22 +1645,22 @@
               }
             }
           },
-          "404": {
-            "description": "사용자 없음",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/SwaggerErrorResponse"
-                }
-              }
-            }
-          },
           "200": {
             "description": "토큰 갱신 성공",
             "content": {
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/CommonResponseLoginResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "사용자 없음",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SwaggerErrorResponse"
                 }
               }
             }
@@ -1624,6 +1709,16 @@
           "required": true
         },
         "responses": {
+          "400": {
+            "description": "로그인 실패 (아이디/비밀번호 불일치)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SwaggerErrorResponse"
+                }
+              }
+            }
+          },
           "200": {
             "description": "로그인 성공",
             "content": {
@@ -1643,14 +1738,58 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/auth/email/verify": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "[학생] 학교 이메일 인증 확인",
+        "description": "이메일 인증 코드를 검증합니다. (true: 검증 (일치) 완료, false: 검증 실패 (코드 불일치 및 이미 등록된 이메일)",
+        "operationId": "verify",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyEmailCodeRequest"
+              }
+            }
           },
-          "400": {
-            "description": "로그인 실패 (아이디/비밀번호 불일치)",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
             "content": {
               "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/SwaggerErrorResponse"
-                }
+                "schema": { "$ref": "#/components/schemas/CommonResponseVoid" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/email/send": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "[학생] 학교 이메일 인증 발송",
+        "description": "이메일 인증 코드를 전송합니다.",
+        "operationId": "send",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SendEmailCodeRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": { "$ref": "#/components/schemas/CommonResponseVoid" }
               }
             }
           }
@@ -1680,28 +1819,8 @@
           }
         ],
         "responses": {
-          "400": {
-            "description": "잘못된 요청",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/SwaggerErrorResponse"
-                }
-              }
-            }
-          },
           "404": {
             "description": "사용자 없음",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/SwaggerErrorResponse"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "이미 존재하는 소셜 정보",
             "content": {
               "*/*": {
                 "schema": {
@@ -1716,6 +1835,26 @@
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/CommonResponseLoginResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "이미 존재하는 소셜 정보",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SwaggerErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 요청",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SwaggerErrorResponse"
                 }
               }
             }
@@ -1800,8 +1939,8 @@
               }
             }
           },
-          "409": {
-            "description": "이미 등록된 제휴",
+          "404": {
+            "description": "상점 또는 조직 없음",
             "content": {
               "*/*": {
                 "schema": {
@@ -1828,8 +1967,8 @@
               }
             }
           },
-          "404": {
-            "description": "상점 또는 조직 없음",
+          "409": {
+            "description": "이미 등록된 제휴",
             "content": {
               "*/*": {
                 "schema": {
@@ -1865,8 +2004,8 @@
           }
         },
         "responses": {
-          "500": {
-            "description": "서버 에러",
+          "400": {
+            "description": "잘못된 파일",
             "content": {
               "*/*": {
                 "schema": {
@@ -1875,8 +2014,8 @@
               }
             }
           },
-          "400": {
-            "description": "잘못된 파일",
+          "500": {
+            "description": "서버 에러",
             "content": {
               "*/*": {
                 "schema": {
@@ -1993,8 +2132,8 @@
           }
         },
         "responses": {
-          "403": {
-            "description": "권한 없음",
+          "400": {
+            "description": "데이터 검증 실패 (에러 메시지 포함)",
             "content": {
               "*/*": {
                 "schema": {
@@ -2003,8 +2142,8 @@
               }
             }
           },
-          "400": {
-            "description": "데이터 검증 실패 (에러 메시지 포함)",
+          "403": {
+            "description": "권한 없음",
             "content": {
               "*/*": {
                 "schema": {
@@ -2145,7 +2284,7 @@
     "/api/stores/{storeId}": {
       "get": {
         "tags": ["Store"],
-        "summary": "[공통] 상점 단건 조회",
+        "summary": "[학생] 상점 단건 조회",
         "description": "상점 ID로 상점의 상세 정보를 조회합니다.",
         "operationId": "getStore",
         "parameters": [
@@ -2203,8 +2342,8 @@
               }
             }
           },
-          "403": {
-            "description": "권한 없음 (본인 소유 상점 아님)",
+          "404": {
+            "description": "상점 없음",
             "content": {
               "*/*": {
                 "schema": {
@@ -2213,8 +2352,8 @@
               }
             }
           },
-          "404": {
-            "description": "상점 없음",
+          "403": {
+            "description": "권한 없음 (본인 소유 상점 아님)",
             "content": {
               "*/*": {
                 "schema": {
@@ -2259,16 +2398,6 @@
           }
         },
         "responses": {
-          "403": {
-            "description": "권한 없음 (본인 소유 상점 아님)",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/SwaggerErrorResponse"
-                }
-              }
-            }
-          },
           "404": {
             "description": "상점 없음",
             "content": {
@@ -2284,6 +2413,16 @@
             "content": {
               "*/*": {
                 "schema": { "$ref": "#/components/schemas/CommonResponseVoid" }
+              }
+            }
+          },
+          "403": {
+            "description": "권한 없음 (본인 소유 상점 아님)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SwaggerErrorResponse"
+                }
               }
             }
           },
@@ -2485,8 +2624,8 @@
     "/api/reviews/{reviewId}": {
       "delete": {
         "tags": ["Review"],
-        "summary": "[학생] 리뷰 삭제",
-        "description": "작성한 리뷰를 삭제합니다. (본인만 가능)",
+        "summary": "[공통] 리뷰 삭제",
+        "description": "작성한 리뷰 또는 답글을 삭제합니다. (본인만 가능)",
         "operationId": "deleteReview",
         "parameters": [
           {
@@ -2506,8 +2645,8 @@
               }
             }
           },
-          "404": {
-            "description": "리뷰 없음",
+          "403": {
+            "description": "권한 없음 (본인 리뷰 아님)",
             "content": {
               "*/*": {
                 "schema": {
@@ -2516,8 +2655,8 @@
               }
             }
           },
-          "403": {
-            "description": "권한 없음 (본인 리뷰 아님)",
+          "404": {
+            "description": "리뷰 없음",
             "content": {
               "*/*": {
                 "schema": {
@@ -2530,8 +2669,8 @@
       },
       "patch": {
         "tags": ["Review"],
-        "summary": "[학생] 리뷰 수정",
-        "description": "작성한 리뷰를 수정합니다. (본인만 가능)",
+        "summary": "[공통] 리뷰 수정",
+        "description": "작성한 리뷰 또는 답글을 수정합니다. (본인만 가능)",
         "operationId": "updateReview",
         "parameters": [
           {
@@ -2563,8 +2702,8 @@
           }
         },
         "responses": {
-          "404": {
-            "description": "리뷰 없음",
+          "403": {
+            "description": "권한 없음 (본인 리뷰 아님)",
             "content": {
               "*/*": {
                 "schema": {
@@ -2573,8 +2712,8 @@
               }
             }
           },
-          "403": {
-            "description": "권한 없음 (본인 리뷰 아님)",
+          "404": {
+            "description": "리뷰 없음",
             "content": {
               "*/*": {
                 "schema": {
@@ -2707,6 +2846,14 @@
           }
         ],
         "responses": {
+          "204": {
+            "description": "상품 삭제 성공",
+            "content": {
+              "*/*": {
+                "schema": { "$ref": "#/components/schemas/CommonResponseVoid" }
+              }
+            }
+          },
           "403": {
             "description": "권한 없음 (본인 소유 상점 아님)",
             "content": {
@@ -2714,14 +2861,6 @@
                 "schema": {
                   "$ref": "#/components/schemas/SwaggerErrorResponse"
                 }
-              }
-            }
-          },
-          "204": {
-            "description": "상품 삭제 성공",
-            "content": {
-              "*/*": {
-                "schema": { "$ref": "#/components/schemas/CommonResponseVoid" }
               }
             }
           },
@@ -2772,6 +2911,14 @@
           }
         },
         "responses": {
+          "200": {
+            "description": "상품 수정 성공",
+            "content": {
+              "*/*": {
+                "schema": { "$ref": "#/components/schemas/CommonResponseVoid" }
+              }
+            }
+          },
           "403": {
             "description": "권한 없음 (본인 소유 상점 아님)",
             "content": {
@@ -2779,14 +2926,6 @@
                 "schema": {
                   "$ref": "#/components/schemas/SwaggerErrorResponse"
                 }
-              }
-            }
-          },
-          "200": {
-            "description": "상품 수정 성공",
-            "content": {
-              "*/*": {
-                "schema": { "$ref": "#/components/schemas/CommonResponseVoid" }
               }
             }
           },
@@ -2819,8 +2958,8 @@
           }
         ],
         "responses": {
-          "403": {
-            "description": "권한 없음 (본인 소유 상점 아님)",
+          "404": {
+            "description": "쿠폰 없음",
             "content": {
               "*/*": {
                 "schema": {
@@ -2829,8 +2968,8 @@
               }
             }
           },
-          "404": {
-            "description": "쿠폰 없음",
+          "403": {
+            "description": "권한 없음 (본인 소유 상점 아님)",
             "content": {
               "*/*": {
                 "schema": {
@@ -2872,8 +3011,8 @@
           "required": true
         },
         "responses": {
-          "403": {
-            "description": "권한 없음 (본인 소유 상점 아님)",
+          "404": {
+            "description": "쿠폰 없음",
             "content": {
               "*/*": {
                 "schema": {
@@ -2882,8 +3021,8 @@
               }
             }
           },
-          "404": {
-            "description": "쿠폰 없음",
+          "403": {
+            "description": "권한 없음 (본인 소유 상점 아님)",
             "content": {
               "*/*": {
                 "schema": {
@@ -2926,16 +3065,6 @@
           "required": true
         },
         "responses": {
-          "403": {
-            "description": "권한 없음",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/SwaggerErrorResponse"
-                }
-              }
-            }
-          },
           "200": {
             "description": "수정 성공",
             "content": {
@@ -2946,6 +3075,16 @@
           },
           "404": {
             "description": "사용자 없음",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SwaggerErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "권한 없음",
             "content": {
               "*/*": {
                 "schema": {
@@ -3180,6 +3319,14 @@
               }
             }
           },
+          "200": {
+            "description": "이벤트 수정 성공",
+            "content": {
+              "*/*": {
+                "schema": { "$ref": "#/components/schemas/CommonResponseVoid" }
+              }
+            }
+          },
           "404": {
             "description": "이벤트 없음",
             "content": {
@@ -3187,14 +3334,6 @@
                 "schema": {
                   "$ref": "#/components/schemas/SwaggerErrorResponse"
                 }
-              }
-            }
-          },
-          "200": {
-            "description": "이벤트 수정 성공",
-            "content": {
-              "*/*": {
-                "schema": { "$ref": "#/components/schemas/CommonResponseVoid" }
               }
             }
           }
@@ -3215,6 +3354,36 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": { "type": "object" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/today": {
+      "get": {
+        "tags": ["Coupon"],
+        "summary": "[학생] 오늘의 신규 쿠폰 조회",
+        "description": "학생의 학교와 제휴된 매장에서 오늘 발급된 쿠폰 목록을 조회합니다.",
+        "operationId": "getTodayCoupons",
+        "responses": {
+          "403": {
+            "description": "학생 권한 필요",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonResponseListCouponResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "성공",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonResponseListCouponResponse"
                 }
               }
             }
@@ -3340,7 +3509,7 @@
     "/api/stores/nearby": {
       "get": {
         "tags": ["Store"],
-        "summary": "[공통] 주위 상점 조회",
+        "summary": "[학생] 주위 상점 조회",
         "description": "위도, 경도, 반경(km)을 기준으로 주위 상점을 조회합니다.",
         "operationId": "getNearbyStores",
         "parameters": [
@@ -3400,6 +3569,64 @@
         }
       }
     },
+    "/api/stores/hot": {
+      "get": {
+        "tags": ["Store"],
+        "summary": "[학생] 이번 주 핫한 가게 조회",
+        "description": "학생의 소속 대학에서 이번 주 찜이 가장 많이 늘어난 상점 Top 10을 조회합니다.",
+        "operationId": "getHotStores",
+        "responses": {
+          "403": {
+            "description": "권한 없음 (학생 아님/대학 미소속)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SwaggerErrorResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonResponseListHotStoreResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/store-claims/search": {
+      "get": {
+        "tags": ["StoreClaim"],
+        "summary": "[점주] 미등록 상점 검색",
+        "description": "시스템에 등록된 미등록 상점을 이름 또는 주소로 검색합니다.",
+        "operationId": "searchUnclaimedStores",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonResponseListStoreResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/my-coupons": {
       "get": {
         "tags": ["Coupon"],
@@ -3420,17 +3647,16 @@
         }
       }
     },
-    "/api/items/{itemId}/coupons": {
+    "/api/inquiries/{inquiryId}": {
       "get": {
-        "tags": ["Coupon"],
-        "summary": "[공통] 상품별 적용 가능 쿠폰 조회",
-        "description": "특정 상품에 적용 가능한 쿠폰 목록을 조회합니다.",
-        "operationId": "getCouponsByItem",
+        "tags": ["고객센터 API"],
+        "summary": "문의 상세 조회",
+        "description": "문의 상세 내용을 조회합니다.",
+        "operationId": "getInquiry",
         "parameters": [
           {
-            "name": "itemId",
+            "name": "inquiryId",
             "in": "path",
-            "description": "상품 ID",
             "required": true,
             "schema": { "type": "integer", "format": "int64" }
           }
@@ -3441,13 +3667,23 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/CommonResponseListCouponResponse"
+                  "$ref": "#/components/schemas/CommonResponseInquiryResponse"
                 }
               }
             }
           },
           "404": {
-            "description": "상품 없음",
+            "description": "문의 없음",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SwaggerErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "본인 문의 아님",
             "content": {
               "*/*": {
                 "schema": {
@@ -3570,22 +3806,22 @@
           }
         ],
         "responses": {
-          "404": {
-            "description": "이벤트 없음",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/SwaggerErrorResponse"
-                }
-              }
-            }
-          },
           "200": {
             "description": "조회 성공",
             "content": {
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/CommonResponseEventResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "이벤트 없음",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SwaggerErrorResponse"
                 }
               }
             }
@@ -3762,6 +3998,45 @@
         }
       }
     },
+    "/api/admin/inquiries": {
+      "get": {
+        "tags": ["Admin Inquiry"],
+        "summary": "[관리자] 문의 전체 목록 조회",
+        "description": "모든 사용자의 문의 내역을 조회합니다.",
+        "operationId": "getAllInquiries",
+        "parameters": [
+          {
+            "name": "pageable",
+            "in": "query",
+            "description": "페이징 정보",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/Pageable" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "성공",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonResponsePageResponseInquiryResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "권한 없음 (관리자 아님)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SwaggerErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/stores/{storeId}/images/{imageId}": {
       "delete": {
         "tags": ["Store"],
@@ -3843,8 +4118,8 @@
           "required": true
         },
         "responses": {
-          "401": {
-            "description": "인증 실패",
+          "400": {
+            "description": "잘못된 요청 (기타 사유 미입력 등)",
             "content": {
               "*/*": {
                 "schema": {
@@ -3861,8 +4136,8 @@
               }
             }
           },
-          "400": {
-            "description": "잘못된 요청 (기타 사유 미입력 등)",
+          "401": {
+            "description": "인증 실패",
             "content": {
               "*/*": {
                 "schema": {
@@ -3980,7 +4255,7 @@
         "description": "공통 에러 응답"
       },
       "CreateReviewRequest": {
-        "required": ["content", "rating"],
+        "required": ["content"],
         "type": "object",
         "properties": {
           "content": { "type": "string" },
@@ -3989,7 +4264,8 @@
             "minimum": 1,
             "type": "integer",
             "format": "int32"
-          }
+          },
+          "parentReviewId": { "type": "integer", "format": "int64" }
         }
       },
       "StoreReportRequest": {
@@ -4054,23 +4330,24 @@
         }
       },
       "CreateCouponRequest": {
-        "required": ["limitPerUser", "title", "totalQuantity"],
+        "required": ["benefitType", "limitPerUser", "title", "totalQuantity"],
         "type": "object",
         "properties": {
           "title": { "type": "string" },
           "description": { "type": "string" },
-          "targetOrganizationId": { "type": "integer", "format": "int64" },
           "issueStartsAt": { "type": "string", "format": "date-time" },
           "issueEndsAt": { "type": "string", "format": "date-time" },
           "totalQuantity": { "type": "integer", "format": "int32" },
           "limitPerUser": { "type": "integer", "format": "int32" },
+          "benefitType": {
+            "type": "string",
+            "enum": ["FIXED_DISCOUNT", "PERCENTAGE_DISCOUNT", "SERVICE_GIFT"]
+          },
+          "benefitValue": { "type": "string" },
+          "minOrderAmount": { "type": "integer", "format": "int32" },
           "status": {
             "type": "string",
             "enum": ["DRAFT", "SCHEDULED", "ACTIVE", "STOPPED", "EXPIRED"]
-          },
-          "targetItemIds": {
-            "type": "array",
-            "items": { "type": "integer", "format": "int64" }
           }
         }
       },
@@ -4129,6 +4406,25 @@
         "properties": {
           "isSuccess": { "type": "boolean" },
           "data": { "type": "string" }
+        }
+      },
+      "CreateInquiryRequest": {
+        "required": ["content", "title", "type"],
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "COUPON_BENEFIT",
+              "MAP_LOCATION",
+              "STORE_INFO_ERROR",
+              "EVENT_PARTICIPATION",
+              "ALERT_ACCOUNT",
+              "PROPOSAL_OTHER"
+            ]
+          },
+          "title": { "maxLength": 14, "minLength": 1, "type": "string" },
+          "content": { "maxLength": 500, "minLength": 0, "type": "string" }
         }
       },
       "CommonResponseIssueCouponResponse": {
@@ -4279,6 +4575,27 @@
           "password": { "type": "string" }
         }
       },
+      "VerifyEmailCodeRequest": {
+        "required": ["code", "email"],
+        "type": "object",
+        "properties": {
+          "email": {
+            "pattern": "^[A-Za-z0-9._%+-]+@jbnu\\.ac\\.kr$",
+            "type": "string"
+          },
+          "code": { "type": "string" }
+        }
+      },
+      "SendEmailCodeRequest": {
+        "required": ["email"],
+        "type": "object",
+        "properties": {
+          "email": {
+            "pattern": "^[A-Za-z0-9._%+-]+@jbnu\\.ac\\.kr$",
+            "type": "string"
+          }
+        }
+      },
       "CompleteSocialSignupRequest": {
         "type": "object",
         "properties": {
@@ -4426,7 +4743,10 @@
                 "ROMANTIC"
               ]
             }
-          }
+          },
+          "holidayStartsAt": { "type": "string", "format": "date" },
+          "holidayEndsAt": { "type": "string", "format": "date" },
+          "isSuspended": { "type": "boolean" }
         }
       },
       "UpdateStoreNewsRequest": {
@@ -4495,6 +4815,12 @@
           "issueEndsAt": { "type": "string", "format": "date-time" },
           "totalQuantity": { "type": "integer", "format": "int32" },
           "limitPerUser": { "type": "integer", "format": "int32" },
+          "benefitType": {
+            "type": "string",
+            "enum": ["FIXED_DISCOUNT", "PERCENTAGE_DISCOUNT", "SERVICE_GIFT"]
+          },
+          "benefitValue": { "type": "string" },
+          "minOrderAmount": { "type": "integer", "format": "int32" },
           "status": {
             "type": "string",
             "enum": ["DRAFT", "SCHEDULED", "ACTIVE", "STOPPED", "EXPIRED"]
@@ -4623,6 +4949,40 @@
           "expiresAt": { "type": "string", "format": "date-time" }
         }
       },
+      "CommonResponseListCouponResponse": {
+        "type": "object",
+        "properties": {
+          "isSuccess": { "type": "boolean" },
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CouponResponse" }
+          }
+        }
+      },
+      "CouponResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "format": "int64" },
+          "storeId": { "type": "integer", "format": "int64" },
+          "title": { "type": "string" },
+          "description": { "type": "string" },
+          "issueStartsAt": { "type": "string", "format": "date-time" },
+          "issueEndsAt": { "type": "string", "format": "date-time" },
+          "totalQuantity": { "type": "integer", "format": "int32" },
+          "limitPerUser": { "type": "integer", "format": "int32" },
+          "status": {
+            "type": "string",
+            "enum": ["DRAFT", "SCHEDULED", "ACTIVE", "STOPPED", "EXPIRED"]
+          },
+          "benefitType": {
+            "type": "string",
+            "enum": ["FIXED_DISCOUNT", "PERCENTAGE_DISCOUNT", "SERVICE_GIFT"]
+          },
+          "benefitValue": { "type": "string" },
+          "minOrderAmount": { "type": "integer", "format": "int32" },
+          "isIssued": { "type": "boolean" }
+        }
+      },
       "Pageable": {
         "type": "object",
         "properties": {
@@ -4695,7 +5055,12 @@
           },
           "imageUrls": { "type": "array", "items": { "type": "string" } },
           "averageRating": { "type": "number", "format": "double" },
-          "reviewCount": { "type": "integer", "format": "int32" }
+          "reviewCount": { "type": "integer", "format": "int32" },
+          "holidayStartsAt": { "type": "string", "format": "date" },
+          "holidayEndsAt": { "type": "string", "format": "date" },
+          "isSuspended": { "type": "boolean" },
+          "isPartnership": { "type": "boolean" },
+          "hasCoupon": { "type": "boolean" }
         }
       },
       "CommonResponseStoreResponse": {
@@ -4918,6 +5283,9 @@
             "type": "array",
             "items": { "$ref": "#/components/schemas/StoreImage" }
           },
+          "holidayStartsAt": { "type": "string", "format": "date" },
+          "holidayEndsAt": { "type": "string", "format": "date" },
+          "isSuspended": { "type": "boolean" },
           "universities": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/StoreUniversity" }
@@ -4981,35 +5349,6 @@
           "userId": { "type": "integer", "format": "int64", "writeOnly": true }
         }
       },
-      "CommonResponseListCouponResponse": {
-        "type": "object",
-        "properties": {
-          "isSuccess": { "type": "boolean" },
-          "data": {
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/CouponResponse" }
-          }
-        }
-      },
-      "CouponResponse": {
-        "type": "object",
-        "properties": {
-          "id": { "type": "integer", "format": "int64" },
-          "storeId": { "type": "integer", "format": "int64" },
-          "title": { "type": "string" },
-          "description": { "type": "string" },
-          "targetOrganizationId": { "type": "integer", "format": "int64" },
-          "issueStartsAt": { "type": "string", "format": "date-time" },
-          "issueEndsAt": { "type": "string", "format": "date-time" },
-          "totalQuantity": { "type": "integer", "format": "int32" },
-          "limitPerUser": { "type": "integer", "format": "int32" },
-          "status": {
-            "type": "string",
-            "enum": ["DRAFT", "SCHEDULED", "ACTIVE", "STOPPED", "EXPIRED"]
-          },
-          "isIssued": { "type": "boolean" }
-        }
-      },
       "CommonResponseListStoreResponse": {
         "type": "object",
         "properties": {
@@ -5018,6 +5357,26 @@
             "type": "array",
             "items": { "$ref": "#/components/schemas/StoreResponse" }
           }
+        }
+      },
+      "CommonResponseListHotStoreResponse": {
+        "type": "object",
+        "properties": {
+          "isSuccess": { "type": "boolean" },
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/HotStoreResponse" }
+          }
+        }
+      },
+      "HotStoreResponse": {
+        "type": "object",
+        "properties": {
+          "storeId": { "type": "integer", "format": "int64" },
+          "name": { "type": "string" },
+          "categories": { "type": "array", "items": { "type": "string" } },
+          "benefitContent": { "type": "string" },
+          "favoriteGain": { "type": "integer", "format": "int64" }
         }
       },
       "CommonResponseStoreNewsResponse": {
@@ -5076,6 +5435,81 @@
         "properties": {
           "isSuccess": { "type": "boolean" },
           "data": { "$ref": "#/components/schemas/ItemResponse" }
+        }
+      },
+      "CommonResponsePageInquiryResponse": {
+        "type": "object",
+        "properties": {
+          "isSuccess": { "type": "boolean" },
+          "data": { "$ref": "#/components/schemas/PageInquiryResponse" }
+        }
+      },
+      "InquiryResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "format": "int64" },
+          "userId": { "type": "integer", "format": "int64" },
+          "username": { "type": "string" },
+          "type": {
+            "type": "string",
+            "enum": [
+              "COUPON_BENEFIT",
+              "MAP_LOCATION",
+              "STORE_INFO_ERROR",
+              "EVENT_PARTICIPATION",
+              "ALERT_ACCOUNT",
+              "PROPOSAL_OTHER"
+            ]
+          },
+          "title": { "type": "string" },
+          "content": { "type": "string" },
+          "imageUrls": { "type": "array", "items": { "type": "string" } },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "PageInquiryResponse": {
+        "type": "object",
+        "properties": {
+          "totalElements": { "type": "integer", "format": "int64" },
+          "totalPages": { "type": "integer", "format": "int32" },
+          "pageable": { "$ref": "#/components/schemas/PageableObject" },
+          "first": { "type": "boolean" },
+          "size": { "type": "integer", "format": "int32" },
+          "content": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/InquiryResponse" }
+          },
+          "number": { "type": "integer", "format": "int32" },
+          "sort": { "$ref": "#/components/schemas/SortObject" },
+          "numberOfElements": { "type": "integer", "format": "int32" },
+          "last": { "type": "boolean" },
+          "empty": { "type": "boolean" }
+        }
+      },
+      "PageableObject": {
+        "type": "object",
+        "properties": {
+          "paged": { "type": "boolean" },
+          "pageNumber": { "type": "integer", "format": "int32" },
+          "pageSize": { "type": "integer", "format": "int32" },
+          "offset": { "type": "integer", "format": "int64" },
+          "sort": { "$ref": "#/components/schemas/SortObject" },
+          "unpaged": { "type": "boolean" }
+        }
+      },
+      "SortObject": {
+        "type": "object",
+        "properties": {
+          "sorted": { "type": "boolean" },
+          "empty": { "type": "boolean" },
+          "unsorted": { "type": "boolean" }
+        }
+      },
+      "CommonResponseInquiryResponse": {
+        "type": "object",
+        "properties": {
+          "isSuccess": { "type": "boolean" },
+          "data": { "$ref": "#/components/schemas/InquiryResponse" }
         }
       },
       "CommonResponsePageResponseFavoriteStoreResponse": {
@@ -5285,25 +5719,6 @@
           "empty": { "type": "boolean" }
         }
       },
-      "PageableObject": {
-        "type": "object",
-        "properties": {
-          "paged": { "type": "boolean" },
-          "pageNumber": { "type": "integer", "format": "int32" },
-          "pageSize": { "type": "integer", "format": "int32" },
-          "offset": { "type": "integer", "format": "int64" },
-          "sort": { "$ref": "#/components/schemas/SortObject" },
-          "unpaged": { "type": "boolean" }
-        }
-      },
-      "SortObject": {
-        "type": "object",
-        "properties": {
-          "sorted": { "type": "boolean" },
-          "empty": { "type": "boolean" },
-          "unsorted": { "type": "boolean" }
-        }
-      },
       "StoreClaimResponse": {
         "type": "object",
         "properties": {
@@ -5322,6 +5737,28 @@
           },
           "createdAt": { "type": "string", "format": "date-time" },
           "adminMemo": { "type": "string" }
+        }
+      },
+      "CommonResponsePageResponseInquiryResponse": {
+        "type": "object",
+        "properties": {
+          "isSuccess": { "type": "boolean" },
+          "data": { "$ref": "#/components/schemas/PageResponseInquiryResponse" }
+        }
+      },
+      "PageResponseInquiryResponse": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/InquiryResponse" }
+          },
+          "pageNumber": { "type": "integer", "format": "int32" },
+          "pageSize": { "type": "integer", "format": "int32" },
+          "totalElements": { "type": "integer", "format": "int64" },
+          "totalPages": { "type": "integer", "format": "int32" },
+          "sort": { "type": "string" },
+          "last": { "type": "boolean" }
         }
       },
       "WithdrawRequest": {

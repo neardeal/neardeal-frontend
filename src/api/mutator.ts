@@ -9,6 +9,7 @@ const PUBLIC_ENDPOINTS = [
   "/api/auth/login",
   "/api/auth/signup",
   "/api/auth/refresh",
+  "/api/auth/check-username",
 ];
 
 export async function customFetch<T>(
@@ -32,7 +33,16 @@ export async function customFetch<T>(
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
 
-  const data = body ? JSON.parse(body) : {};
+  let data = {};
+  if (body) {
+    try {
+      data = JSON.parse(body);
+    } catch {
+      throw new Error(
+        `서버 응답 파싱 실패 (status: ${res.status}, url: ${url}): ${body.substring(0, 200)}`,
+      );
+    }
+  }
 
   return { data, status: res.status, headers: res.headers } as T;
 }

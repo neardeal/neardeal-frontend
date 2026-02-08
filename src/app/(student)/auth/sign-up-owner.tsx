@@ -4,9 +4,15 @@ import { ThemedText } from "@/src/shared/common/themed-text";
 import { useSignupStore } from "@/src/shared/stores/signup-store";
 import { rs } from "@/src/shared/theme/scale";
 import { Gray, Owner, Text as TextColors } from "@/src/shared/theme/theme";
+import { useSignupOwner } from "@/src/api/auth";
+import { getMyStores } from "@/src/api/store";
+import { useCreateStoreClaims } from "@/src/api/store-claim";
 import * as ImagePicker from "expo-image-picker";
+import * as FileSystem from "expo-file-system";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Alert } from "react-native";
 import {
   Image,
   ScrollView,
@@ -53,10 +59,29 @@ function formatDate(date: Date) {
 export default function SignupOwnerPage() {
   console.log("=== SignupOwnerPage mounted ===");
   const router = useRouter();
-  const { setSignupFields } = useSignupStore();
+  const {
+    storeName: savedStoreName,
+    storeAddress: savedStoreAddress,
+    username,
+    password,
+    ownerEmail,
+    ownerPhone,
+    gender,
+    birthYear,
+    birthMonth,
+    birthDay,
+    setSignupFields,
+  } = useSignupStore();
 
-  // 폼 상태
-  const [storeName, setStoreName] = useState("");
+  // API 훅
+  const signupOwnerMutation = useSignupOwner();
+  const createStoreClaimMutation = useCreateStoreClaims();
+
+  // 로딩 상태
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // 폼 상태 (zustand에서 복원)
+  const [storeName, setStoreName] = useState(savedStoreName);
   const [storePhone, setStorePhone] = useState("");
   const [representativeName, setRepresentativeName] = useState("");
   const [businessNumber, setBusinessNumber] = useState("");
@@ -65,6 +90,11 @@ export default function SignupOwnerPage() {
 
   // 날짜 모달 상태
   const [isDatePickerVisible, setDatePickerVisible] = useState(false);
+
+  // 검색 화면에서 돌아왔을 때 zustand → 로컬 state 동기화
+  useEffect(() => {
+    if (savedStoreName) setStoreName(savedStoreName);
+  }, [savedStoreName]);
 
   // 폼 유효성
   const isFormValid =
@@ -94,20 +124,96 @@ export default function SignupOwnerPage() {
   };
 
   // 회원가입 처리
-  const handleSignup = () => {
-    if (!isFormValid) return;
+  const handleSignup = async () => {
+    if (!isFormValid || isSubmitting) return;
 
-    setSignupFields({
-      storeName,
-      storePhone,
-      representativeName,
-      businessNumber,
-      openDate: openDate ? formatDate(openDate) : "",
-      businessImageUri: businessImageUri ?? "",
-    });
+    try {
+      setIsSubmitting(true);
 
-    // TODO: 점주 회원가입 API 호출
-    // router.push("/auth/sign-up-done");
+      // 1️⃣ 회원가입 API 호출
+      const birthDate = `${birthYear}-${birthMonth.padStart(2, "0")}-${birthDay.padStart(2, "0")}`;
+
+      const signupResponse = await signupOwnerMutation.mutateAsync({
+        data: {
+          username,
+          password,
+          name: representativeName,
+          email: ownerEmail,
+          phone: ownerPhone,
+          gender: gender === "male" ? "MALE" : "FEMALE",
+          birthDate,
+          storeList: [
+            {
+              name: storeName,
+              roadAddress: savedStoreAddress || "",
+              bizRegNo: businessNumber,
+            },
+          ],
+        },
+      });
+
+      console.log("✅ 회원가입 성공:", signupResponse);
+      const userId = signupResponse.data.data; // userId
+
+      // 2️⃣ 내 가게 목록 조회
+      const myStoresResponse = await getMyStores();
+      console.log("✅ 가게 목록 조회 성공:", myStoresResponse);
+
+      const stores = myStoresResponse.data.data;
+      if (!stores || stores.length === 0) {
+        throw new Error("가게 정보를 찾을 수 없습니다.");
+      }
+
+      const storeId = stores[0].id;
+
+      // 3️⃣ 상점 소유 요청 (사업자등록증 업로드)
+      if (businessImageUri) {
+        // 이미지를 base64로 변환
+        const base64Image = await FileSystem.readAsStringAsync(
+          businessImageUri,
+          {
+            encoding: FileSystem.EncodingType.Base64,
+          }
+        );
+
+        await createStoreClaimMutation.mutateAsync({
+          data: {
+            request: {
+              storeId,
+              userId,
+              bizRegNo: businessNumber,
+              representativeName,
+              storeName,
+              storePhone,
+            },
+            image: `data:image/jpeg;base64,${base64Image}`,
+          },
+        });
+        console.log("✅ 사업자등록증 업로드 성공");
+      }
+
+      // 4️⃣ Store 초기화 및 승인 대기 화면으로 이동
+      setSignupFields({
+        storeName,
+        storePhone,
+        representativeName,
+        businessNumber,
+        openDate: openDate ? formatDate(openDate) : "",
+        businessImageUri: businessImageUri ?? "",
+      });
+
+      // 승인 대기 화면으로 이동
+      Alert.alert("회원가입 완료", "관리자 승인 후 서비스를 이용하실 수 있습니다.");
+      router.replace("/(shopowner)/auth/pending-approval");
+    } catch (error: any) {
+      console.error("❌ 회원가입 실패:", error);
+      Alert.alert(
+        "회원가입 실패",
+        error?.message || "회원가입 중 오류가 발생했습니다."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -132,16 +238,24 @@ export default function SignupOwnerPage() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* 가게 이름 */}
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="가게 이름"
-            placeholderTextColor={TextColors.placeholder}
-            value={storeName}
-            onChangeText={setStoreName}
-          />
-        </View>
+        {/* 가게 이름 (터치 시 검색 화면 이동) */}
+        <TouchableOpacity
+          style={styles.inputContainer}
+          onPress={() => router.push("/auth/store-search")}
+          activeOpacity={0.7}
+        >
+          <ThemedText
+            style={storeName ? styles.inputText : styles.inputPlaceholder}
+          >
+            {storeName || "가게 이름"}
+          </ThemedText>
+          <Ionicons name="search" size={rs(18)} color={Gray.gray9} />
+        </TouchableOpacity>
+        {savedStoreAddress ? (
+          <ThemedText style={styles.storeAddress}>
+            {savedStoreAddress}
+          </ThemedText>
+        ) : null}
 
         {/* 가게 전화번호 */}
         <View style={styles.inputContainer}>
@@ -230,10 +344,10 @@ export default function SignupOwnerPage() {
       {/* 하단 버튼 */}
       <View style={styles.bottomContent}>
         <AppButton
-          label="회원가입"
-          backgroundColor={isFormValid ? Owner.primary : Gray.gray5}
+          label={isSubmitting ? "처리 중..." : "회원가입"}
+          backgroundColor={isFormValid && !isSubmitting ? Owner.primary : Gray.gray5}
           onPress={handleSignup}
-          disabled={!isFormValid}
+          disabled={!isFormValid || isSubmitting}
         />
       </View>
 
@@ -292,6 +406,22 @@ const styles = StyleSheet.create({
     fontSize: rs(14),
     color: TextColors.primary,
     fontFamily: "Pretendard",
+  },
+  inputText: {
+    flex: 1,
+    fontSize: rs(14),
+    color: TextColors.primary,
+  },
+  inputPlaceholder: {
+    flex: 1,
+    fontSize: rs(14),
+    color: TextColors.placeholder,
+  },
+  storeAddress: {
+    fontSize: rs(12),
+    color: TextColors.tertiary,
+    marginTop: rs(-4),
+    paddingHorizontal: rs(4),
   },
   dateRow: {
     flexDirection: "row",

@@ -30,7 +30,9 @@ import type {
   CouncilSignupRequest,
   LoginRequest,
   OwnerSignupRequest,
+  SendEmailCodeRequest,
   StudentSignupRequest,
+  VerifyEmailCodeRequest,
   WithdrawRequest
 } from './generated.schemas';
 
@@ -561,6 +563,172 @@ export const useLogin = <TError = Blob,
         TContext
       > => {
       return useMutation(getLoginMutationOptions(options), queryClient);
+    }
+    /**
+ * 이메일 인증 코드를 검증합니다. (true: 검증 (일치) 완료, false: 검증 실패 (코드 불일치 및 이미 등록된 이메일)
+ * @summary [학생] 학교 이메일 인증 확인
+ */
+export type verifyResponse200 = {
+  data: Blob
+  status: 200
+}
+    
+export type verifyResponseSuccess = (verifyResponse200) & {
+  headers: Headers;
+};
+;
+
+export type verifyResponse = (verifyResponseSuccess)
+
+export const getVerifyUrl = () => {
+
+
+  
+
+  return `/api/auth/email/verify`
+}
+
+export const verify = async (verifyEmailCodeRequest: VerifyEmailCodeRequest, options?: RequestInit): Promise<verifyResponse> => {
+  
+  return customFetch<verifyResponse>(getVerifyUrl(),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      verifyEmailCodeRequest,)
+  }
+);}
+
+
+
+
+export const getVerifyMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verify>>, TError,{data: VerifyEmailCodeRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof verify>>, TError,{data: VerifyEmailCodeRequest}, TContext> => {
+
+const mutationKey = ['verify'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof verify>>, {data: VerifyEmailCodeRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  verify(data,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type VerifyMutationResult = NonNullable<Awaited<ReturnType<typeof verify>>>
+    export type VerifyMutationBody = VerifyEmailCodeRequest
+    export type VerifyMutationError = unknown
+
+    /**
+ * @summary [학생] 학교 이메일 인증 확인
+ */
+export const useVerify = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verify>>, TError,{data: VerifyEmailCodeRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof verify>>,
+        TError,
+        {data: VerifyEmailCodeRequest},
+        TContext
+      > => {
+      return useMutation(getVerifyMutationOptions(options), queryClient);
+    }
+    /**
+ * 이메일 인증 코드를 전송합니다.
+ * @summary [학생] 학교 이메일 인증 발송
+ */
+export type sendResponse200 = {
+  data: Blob
+  status: 200
+}
+    
+export type sendResponseSuccess = (sendResponse200) & {
+  headers: Headers;
+};
+;
+
+export type sendResponse = (sendResponseSuccess)
+
+export const getSendUrl = () => {
+
+
+  
+
+  return `/api/auth/email/send`
+}
+
+export const send = async (sendEmailCodeRequest: SendEmailCodeRequest, options?: RequestInit): Promise<sendResponse> => {
+  
+  return customFetch<sendResponse>(getSendUrl(),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      sendEmailCodeRequest,)
+  }
+);}
+
+
+
+
+export const getSendMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof send>>, TError,{data: SendEmailCodeRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof send>>, TError,{data: SendEmailCodeRequest}, TContext> => {
+
+const mutationKey = ['send'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof send>>, {data: SendEmailCodeRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  send(data,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SendMutationResult = NonNullable<Awaited<ReturnType<typeof send>>>
+    export type SendMutationBody = SendEmailCodeRequest
+    export type SendMutationError = unknown
+
+    /**
+ * @summary [학생] 학교 이메일 인증 발송
+ */
+export const useSend = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof send>>, TError,{data: SendEmailCodeRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof send>>,
+        TError,
+        {data: SendEmailCodeRequest},
+        TContext
+      > => {
+      return useMutation(getSendMutationOptions(options), queryClient);
     }
     /**
  * 소셜 로그인 후 추가 정보를 입력하여 회원가입을 완료합니다.
