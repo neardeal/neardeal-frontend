@@ -1,3 +1,4 @@
+import { useAuth } from '@/src/shared/lib/auth/auth-context';
 import { rs } from '@/src/shared/theme/scale';
 import { Ionicons } from '@expo/vector-icons';
 import {
@@ -10,13 +11,11 @@ import {
   View
 } from 'react-native';
 
-export default function WithdrawCompleteScreen({ navigation }) {
+export default function WithdrawCompleteScreen() {
+  const { handleLogout } = useAuth();
 
   const handleGoMain = () => {
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Login' }], 
-    });
+    handleLogout();
   };
 
   return (
