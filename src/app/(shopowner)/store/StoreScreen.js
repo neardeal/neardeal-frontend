@@ -283,18 +283,9 @@ export default function StoreScreen() {
         console.log("📸 [StoreScreen] 매장 이미지 목록:", myStore.imageUrls);
         console.log("📸 [StoreScreen] 설정된 배너:", (myStore.imageUrls && myStore.imageUrls.length > 0) ? myStore.imageUrls[myStore.imageUrls.length - 1] : "없음");
 
-        // 2. 휴무일 초기화 (holidayStartsAt ~ holidayEndsAt)
-        if (myStore.holidayStartsAt && myStore.holidayEndsAt) {
-          const start = new Date(myStore.holidayStartsAt);
-          const end = new Date(myStore.holidayEndsAt);
-          const dateArray = [];
-          let current = new Date(start);
-
-          while (current <= end) {
-            dateArray.push(getFormatDate(current));
-            current.setDate(current.getDate() + 1);
-          }
-          setSelectedHolidays(dateArray);
+        // 2. 휴무일 초기화 (holidayDates 전용)
+        if (myStore.holidayDates && Array.isArray(myStore.holidayDates)) {
+          setSelectedHolidays(myStore.holidayDates);
         } else {
           setSelectedHolidays([]);
         }
@@ -619,7 +610,16 @@ export default function StoreScreen() {
 
   // # Calendar Logic
   const changeMonth = (direction) => { setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + direction, 1)); };
-  const changeModalMonth = (direction) => { setModalDate(new Date(modalDate.getFullYear(), modalDate.getMonth() + direction, 1)); };
+  const changeModalMonth = (direction) => {
+    const today = new Date();
+    const minMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const maxMonth = new Date(today.getFullYear(), today.getMonth() + 2, 1);
+    const targetMonth = new Date(modalDate.getFullYear(), modalDate.getMonth() + direction, 1);
+
+    if (targetMonth >= minMonth && targetMonth <= maxMonth) {
+      setModalDate(targetMonth);
+    }
+  };
 
   const handleDatePress = (dateStr) => {
     const today = getFormatDate(new Date());
@@ -635,52 +635,23 @@ export default function StoreScreen() {
   };
 
   const handleTempDatePress = (dateStr) => {
-    // Range Selection Logic
+    // Individual Date Toggle Logic
     const today = getFormatDate(new Date());
     if (dateStr < today) return;
 
-    const sorted = [...tempSelectedHolidays].sort();
-
-    // 1. 아무것도 없을 때 -> 시작일 설정
-    if (sorted.length === 0) {
-      setTempSelectedHolidays([dateStr]);
-      return;
-    }
-
-    // 2. 이미 범위가 설정된 경우 (2개 이상) -> 초기화 후 새로운 시작일 설정
-    if (sorted.length > 1) {
-      setTempSelectedHolidays([dateStr]);
-      return;
-    }
-
-    // 3. 시작일만 있는 경우
-    const startDate = sorted[0];
-
-    if (dateStr === startDate) {
-      // 시작일 다시 클릭 -> 해제
-      setTempSelectedHolidays([]);
-    } else if (dateStr < startDate) {
-      // 시작일보다 이전 날짜 클릭 -> 새로운 시작일로 변경
-      setTempSelectedHolidays([dateStr]);
+    if (tempSelectedHolidays.includes(dateStr)) {
+      setTempSelectedHolidays(tempSelectedHolidays.filter(d => d !== dateStr));
     } else {
-      // 시작일보다 이후 날짜 클릭 -> 범위 설정 (중간 날짜 채우기)
-      const dateArray = [];
-      let current = new Date(startDate);
-      const end = new Date(dateStr);
-      while (current <= end) {
-        dateArray.push(getFormatDate(current));
-        current.setDate(current.getDate() + 1);
-      }
-      setTempSelectedHolidays(dateArray);
+      setTempSelectedHolidays([...tempSelectedHolidays, dateStr]);
     }
   };
 
   const handleHolidaySave = async (targetHolidays = selectedHolidays) => {
     try {
       if (targetHolidays.length === 0) {
-        // 휴무일 없음 -> null로 전송
+        // 휴무일 없음 -> 빈 배열로 전송
         const formData = new FormData();
-        const requestData = { holidayStartsAt: null, holidayEndsAt: null };
+        const requestData = { holidayDates: [] };
         formData.append('request', {
           string: JSON.stringify(requestData),
           type: 'application/json',
@@ -688,19 +659,17 @@ export default function StoreScreen() {
         });
         await manualStoreUpdate(formData);
         Alert.alert("성공", "휴무일 설정이 해제되었습니다.");
-        setHolidayModalVisible(false); // 저장 후 모달 닫기
+        setHolidayModalVisible(false);
+        refetchStore();
         return;
       }
 
       // 날짜 정렬
       const sortedDates = [...targetHolidays].sort();
-      const startDate = sortedDates[0];
-      const endDate = sortedDates[sortedDates.length - 1];
 
       const formData = new FormData();
       const requestData = {
-        holidayStartsAt: startDate,
-        holidayEndsAt: endDate
+        holidayDates: sortedDates
       };
       formData.append('request', {
         string: JSON.stringify(requestData),
@@ -709,8 +678,8 @@ export default function StoreScreen() {
       });
 
       await manualStoreUpdate(formData);
-      Alert.alert("성공", `${startDate} ~ ${endDate} 휴무일이 저장되었습니다.`);
-      setHolidayModalVisible(false); // 저장 후 모달 닫기
+      Alert.alert("성공", "휴무일 설정이 저장되었습니다.");
+      setHolidayModalVisible(false);
       refetchStore();
     } catch (error) {
       console.error("휴무일 저장 실패", error);
@@ -1441,7 +1410,7 @@ export default function StoreScreen() {
                   </View>
                   <View>
                     <Text style={styles.modalTitle}>휴무일 설정</Text>
-                    <Text style={styles.subTitle}>시작일과 종료일을 선택해주세요 (연속된 기간만 가능)</Text>
+                    <Text style={styles.subTitle}>휴무 날짜를 선택해주세요</Text>
                   </View>
                 </View>
                 <View style={{ flexDirection: 'row', gap: rs(8) }}>
@@ -1463,7 +1432,13 @@ export default function StoreScreen() {
                   if (!date) return <View key={index} style={styles.dayCell} />;
                   const dateStr = getFormatDate(date);
                   const isSelected = tempSelectedHolidays.includes(dateStr);
-                  const isPast = dateStr < getFormatDate(new Date());
+
+                  const today = new Date();
+                  const twoMonthsLater = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 60);
+                  const isPast = dateStr < getFormatDate(today);
+                  const isOutRange = dateStr > getFormatDate(twoMonthsLater);
+                  const isDisabled = isPast || isOutRange;
+
                   const dayOfWeek = date.getDay();
 
                   const cellStyle = [styles.dayBtn];
@@ -1472,9 +1447,9 @@ export default function StoreScreen() {
                   if (isSelected) {
                     cellStyle.push(styles.dayBtnSelected); textStyle.push({ color: 'white', fontWeight: '700' });
                   }
-                  if (isPast) textStyle.push({ color: '#E0E0E0' });
+                  if (isDisabled) textStyle.push({ color: '#E0E0E0' });
 
-                  return (<View key={index} style={styles.dayCell}><TouchableOpacity style={cellStyle} onPress={() => handleTempDatePress(dateStr)} disabled={isPast} activeOpacity={0.8}><Text style={textStyle}>{date.getDate()}</Text></TouchableOpacity></View>);
+                  return (<View key={index} style={styles.dayCell}><TouchableOpacity style={cellStyle} onPress={() => handleTempDatePress(dateStr)} disabled={isDisabled} activeOpacity={0.8}><Text style={textStyle}>{date.getDate()}</Text></TouchableOpacity></View>);
                 })}
               </View>
               <View style={{ height: rs(20) }} />

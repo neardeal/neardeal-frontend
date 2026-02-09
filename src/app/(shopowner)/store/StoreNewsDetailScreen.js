@@ -1,10 +1,13 @@
-import { useDeleteStoreNews } from '@/src/api/store-news';
+import { useGetStore } from '@/src/api/store';
+import { useDeleteStoreNews, useGetComments, useGetStoreNews } from '@/src/api/store-news';
 import { rs } from '@/src/shared/theme/scale';
 import { Ionicons } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import {
+    ActivityIndicator,
     Alert,
+    Image,
     Modal,
     Platform,
     SafeAreaView,
@@ -17,17 +20,31 @@ import {
     View
 } from 'react-native';
 
-// [더미 데이터] 댓글 예시
-const COMMENTS = [
-    { id: 1, user: '니어딜화이팅', content: '저요 저 할래요 저 아니면 안돼요 제발 저요', color: '#FF437C' },
-    { id: 2, user: '배고프당', content: '사장님 ~ 테스터로 참여해보고 싶습니다!', color: '#5F6AA9' },
-    { id: 3, user: '두쫀쿠에게로간다', content: '두쫀쿠케이크도 만들어주시면 안될까요? ㅠㅠ', color: '#5E8B58' },
-];
+// [삭제] 더미 데이터 주석 처리/제거
+// const COMMENTS = [...];
 
 export default function StoreNewsDetailScreen({ navigation, route }) {
 
-    const { newsItem, storeId } = route.params || {};
-    const [deleteModalVisible, setDeleteModalVisible] = useState(false); // 삭제 팝업 상태
+
+
+    const { newsItem: initialNewsItem, storeId } = route.params || {};
+    const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+    const [selectedImage, setSelectedImage] = useState(null); // 전체화면 이미지 상태
+
+    // 1. 상세 데이터 가져오기 (실시간 좋아요, 댓글 수 반영)
+    const { data: detailResponse, isLoading: isDetailLoading } = useGetStoreNews(initialNewsItem?.id);
+    const newsItem = detailResponse?.data?.data || initialNewsItem;
+
+
+
+    // 2. 댓글 목록 가져오기
+    const { data: commentsResponse, isLoading: isCommentsLoading } = useGetComments(newsItem?.id, { query: { page: 0, size: 50, sort: 'createdAt,desc' } });
+    const comments = commentsResponse?.data?.data?.content || [];
+
+    // 3. 가게 정보 가져오기 (가게 이름 표시용)
+    const { data: storeResponse } = useGetStore(storeId);
+    const storeInfo = storeResponse?.data?.data;
+    const storeName = storeInfo?.name ? `${storeInfo.name}${storeInfo.branch ? ` ${storeInfo.branch}` : ''}` : '';
 
     const queryClient = useQueryClient();
 
@@ -80,7 +97,7 @@ export default function StoreNewsDetailScreen({ navigation, route }) {
 
                 {/* 2. 가게 이름 및 날짜 */}
                 <View style={styles.topSection}>
-                    <Text style={styles.storeName}>평화와 평화 구내매점</Text>
+                    <Text style={styles.storeName}>{storeName}</Text>
                     <View style={styles.metaRow}>
                         <View style={styles.tagBox}>
                             <Ionicons name="megaphone" size={rs(16)} color="#309821" />
@@ -104,24 +121,38 @@ export default function StoreNewsDetailScreen({ navigation, route }) {
                         {newsItem?.content || ""}
                     </Text>
 
-                    {/* 이미지 영역 (3개) */}
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.imageScroll}>
-                        <View style={styles.imageBox} />
-                        <View style={styles.imageBox} />
-                        <View style={styles.imageBox} />
-                    </ScrollView>
+                    {/* 이미지 영역 */}
+                    {(() => {
+                        const rawImages = newsItem?.imageUrls || newsItem?.images || [];
+                        const validImages = rawImages.map(img => {
+                            if (typeof img === 'string') return img;
+                            return img?.url || img?.uri || null;
+                        }).filter(Boolean);
+
+                        if (validImages.length === 0) return null;
+
+                        return (
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.imageScroll}>
+                                {validImages.map((url, idx) => (
+                                    <TouchableOpacity key={idx} activeOpacity={0.8} onPress={() => setSelectedImage(url)}>
+                                        <Image source={{ uri: url }} style={styles.imageBox} resizeMode="cover" />
+                                    </TouchableOpacity>
+                                ))}
+                            </ScrollView>
+                        );
+                    })()}
                 </View>
 
                 {/* 4. 통계 및 구분선 */}
                 <View style={styles.statsSection}>
                     <View style={styles.statsRow}>
                         <View style={styles.statItem}>
-                            <Ionicons name="heart-outline" size={rs(18)} color="black" />
-                            <Text style={styles.statText}>5</Text>
+                            <Ionicons name={newsItem?.liked ? "heart" : "heart-outline"} size={rs(18)} color={newsItem?.liked ? "#FF437C" : "black"} />
+                            <Text style={styles.statText}>{newsItem?.likeCount || 0}</Text>
                         </View>
                         <View style={styles.statItem}>
                             <Ionicons name="chatbubble-outline" size={rs(18)} color="black" />
-                            <Text style={styles.statText}>1</Text>
+                            <Text style={styles.statText}>{newsItem?.commentCount || 0}</Text>
                         </View>
                     </View>
                     <View style={styles.divider} />
@@ -129,15 +160,33 @@ export default function StoreNewsDetailScreen({ navigation, route }) {
 
                 {/* 5. 댓글 리스트 */}
                 <View style={styles.commentList}>
-                    {COMMENTS.map((comment) => (
-                        <View key={comment.id} style={styles.commentItem}>
-                            <View style={[styles.avatar, { backgroundColor: comment.color }]} />
-                            <View style={styles.commentTextBox}>
-                                <Text style={styles.commentUser}>{comment.user}</Text>
-                                <Text style={styles.commentContent}>{comment.content}</Text>
-                            </View>
+                    {isCommentsLoading ? (
+                        <ActivityIndicator size="small" color="#FF6200" />
+                    ) : comments.length === 0 ? (
+                        <View style={{ paddingVertical: rs(20), alignItems: 'center' }}>
+                            <Text style={{ fontSize: rs(12), color: '#828282' }}>아직 댓글이 없습니다.</Text>
                         </View>
-                    ))}
+                    ) : (
+                        comments.map((comment) => (
+                            <View key={comment.id} style={styles.commentItem}>
+                                {/* 프로필 이미지 (API에 필드가 없으므로 우선 기본 아이콘 유지, 추후 profileImageUrl 등 추가 시 대응) */}
+                                <View style={[styles.avatar, { backgroundColor: '#F2F4F7' }]}>
+                                    {comment.profileImageUrl ? (
+                                        <Image source={{ uri: comment.profileImageUrl }} style={styles.avatarImage} resizeMode="cover" />
+                                    ) : (
+                                        <Ionicons name="person" size={rs(18)} color="#98A2B3" />
+                                    )}
+                                </View>
+                                <View style={styles.commentTextBox}>
+                                    <View style={styles.commentUserRow}>
+                                        <Text style={styles.commentUser}>{comment.nickname || '익명'}</Text>
+                                        <Text style={styles.dateTextSmall}>{comment.createdAt ? comment.createdAt.substring(5, 10).replace('-', '.') : ""}</Text>
+                                    </View>
+                                    <Text style={styles.commentContent}>{comment.content}</Text>
+                                </View>
+                            </View>
+                        ))
+                    )}
                 </View>
 
             </ScrollView>
@@ -165,6 +214,20 @@ export default function StoreNewsDetailScreen({ navigation, route }) {
                         </View>
                     </TouchableWithoutFeedback>
                 </TouchableOpacity>
+            </Modal>
+
+            {/* ==================== 이미지 전체보기 모달 ==================== */}
+            <Modal visible={!!selectedImage} transparent={true} animationType="fade" onRequestClose={() => setSelectedImage(null)}>
+                <SafeAreaView style={styles.fullScreenContainer}>
+                    <TouchableOpacity style={styles.closeButton} onPress={() => setSelectedImage(null)} hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}>
+                        <Ionicons name="close" size={rs(30)} color="white" />
+                    </TouchableOpacity>
+                    <View style={styles.fullScreenImageContainer}>
+                        {selectedImage && (
+                            <Image source={{ uri: selectedImage }} style={styles.fullScreenImage} resizeMode="contain" />
+                        )}
+                    </View>
+                </SafeAreaView>
             </Modal>
 
         </SafeAreaView>
@@ -212,11 +275,15 @@ const styles = StyleSheet.create({
     statText: { fontSize: rs(12), fontWeight: '500', color: 'black', fontFamily: 'Pretendard' },
     divider: { width: '100%', height: 1, backgroundColor: '#E6E6E6' },
     commentList: { marginTop: rs(15), gap: rs(15) },
-    commentItem: { flexDirection: 'row', alignItems: 'center', gap: rs(10) },
-    avatar: { width: rs(33), height: rs(33), borderRadius: rs(16.5) },
-    commentTextBox: { gap: rs(3) },
-    commentUser: { fontSize: rs(10), fontWeight: '700', color: 'black', fontFamily: 'Pretendard' },
-    commentContent: { fontSize: rs(10), fontWeight: '400', color: 'black', fontFamily: 'Pretendard' },
+    commentItem: { flexDirection: 'row', alignItems: 'flex-start', gap: rs(10) }, // [B] Row layout
+    avatar: { width: rs(33), height: rs(33), borderRadius: rs(16.5), justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },
+    avatarImage: { width: '100%', height: '100%' },
+    commentTextBox: { flex: 1, gap: rs(2) }, // [B] Gap between name and content
+    commentUserRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: rs(2) },
+    commentUser: { fontSize: rs(14), fontWeight: '700', color: 'black', fontFamily: 'Pretendard' }, // [B] Size up
+    commentContent: { fontSize: rs(14), fontWeight: '400', color: '#333333', fontFamily: 'Pretendard', lineHeight: rs(20) }, // [B] Color darken
+    dateTextSmall: { fontSize: rs(12), color: '#828282', fontFamily: 'Pretendard' },
+
 
     // [팝업 스타일]
     modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
@@ -229,4 +296,10 @@ const styles = StyleSheet.create({
     popupCancelText: { color: 'white', fontSize: rs(14), fontWeight: '700', fontFamily: 'Pretendard' },
     popupDeleteBtn: { flex: 1, height: rs(40), backgroundColor: '#FF6200', borderRadius: rs(8), justifyContent: 'center', alignItems: 'center' },
     popupDeleteText: { color: 'white', fontSize: rs(14), fontWeight: '700', fontFamily: 'Pretendard' },
+
+    // [전체화면 이미지 모달]
+    fullScreenContainer: { flex: 1, backgroundColor: 'black' },
+    closeButton: { position: 'absolute', top: Platform.OS === 'android' ? rs(40) : rs(50), right: rs(20), zIndex: 10, padding: rs(5), backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: rs(20) },
+    fullScreenImageContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    fullScreenImage: { width: '100%', height: '100%' },
 });
