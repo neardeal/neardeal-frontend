@@ -185,13 +185,36 @@ export default function ReviewScreen({ navigation }) {
 
     // 수정 모드일 경우
     if (editingReplyId) {
-      updateReviewMutation({
-        reviewId: editingReplyId,
-        data: {
-          request: { content: replyText.trim() }
-        }
-      }, {
-        onSuccess: () => {
+      try {
+        const tokenData = await getToken();
+        const token = tokenData?.accessToken;
+
+        const formData = new FormData();
+        const requestBody = JSON.stringify({
+          content: replyText.trim(),
+        });
+
+        formData.append("request", {
+          string: requestBody,
+          type: "application/json",
+          name: "request"
+        });
+
+        console.log("🚀 [답글 수정] 전송 시작...");
+
+        const response = await fetch(`https://api.looky.kr/api/reviews/${editingReplyId}`, {
+          method: "PATCH",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Accept": "application/json",
+          },
+          body: formData,
+        });
+
+        const textResponse = await response.text();
+        console.log("📩 [답글 수정 응답]", response.status, textResponse);
+
+        if (response.ok) {
           // UI 업데이트
           setReplyText('');
           setEditingReplyId(null);
@@ -201,12 +224,13 @@ export default function ReviewScreen({ navigation }) {
           setTimeout(() => {
             refetchReviews();
           }, 500);
-        },
-        onError: (err) => {
-          console.error("Update Error", err);
-          Alert.alert('오류', '수정 중 문제가 발생했습니다.');
+        } else {
+          Alert.alert('오류', `수정 실패 (${response.status})`);
         }
-      });
+      } catch (err) {
+        console.error("Update Error", err);
+        Alert.alert('오류', '수정 중 문제가 발생했습니다.');
+      }
       return;
     }
 
@@ -326,7 +350,7 @@ export default function ReviewScreen({ navigation }) {
             <View style={styles.inputContainer}>
               <TextInput
                 style={styles.replyInput}
-                placeholder="감사합니다! 항상 맛있는 음식으로 보답하겠습니다 😊"
+                placeholder="답글을 입력해주세요"
                 multiline
                 value={replyText}
                 onChangeText={setReplyText}
@@ -474,7 +498,10 @@ export default function ReviewScreen({ navigation }) {
                   ) : (
                     <View style={styles.replyBox}>
                       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: rs(4) }}>
-                        <Text style={styles.replyLabel}>사장님 답글</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: rs(6) }}>
+                          <Text style={styles.replyLabel}>사장님 답글</Text>
+                          <Text style={styles.replyDate}>{formatDate(reply.createdAt)}</Text>
+                        </View>
                         {!reply.isLocal && (
                           <View style={{ flexDirection: 'row', gap: rs(8) }}>
                             <TouchableOpacity onPress={() => openReplyModal(review, reply)}>
@@ -571,7 +598,7 @@ const styles = StyleSheet.create({
     fontSize: rs(14),
     color: 'black',
     textAlignVertical: 'top',
-    height: rs(140),
+    minHeight: rs(140),
   },
   charCount: {
     textAlign: 'right',
@@ -646,7 +673,8 @@ const styles = StyleSheet.create({
     padding: rs(12),
     marginTop: rs(5),
   },
-  replyLabel: { fontSize: rs(9), color: '#34B262', marginBottom: rs(4) },
-  replyContent: { fontSize: rs(10), color: 'black', lineHeight: rs(14) },
+  replyLabel: { fontSize: rs(11), color: '#34B262' },
+  replyDate: { fontSize: rs(9), color: '#828282' },
+  replyContent: { fontSize: rs(11), color: 'black', lineHeight: rs(18) },
 
 });
