@@ -5,51 +5,33 @@ export interface AuthEventPayload {
   "token-refresh-failed": { reason?: string };
 }
 
-type Listener<T> = (payload: T) => void;
+type Listener<T extends AuthEventType> = (payload: AuthEventPayload[T]) => void;
 
 class AuthEventEmitter {
-  private listeners: {
-    [K in AuthEventType]?: Set<Listener<AuthEventPayload[K]>>;
-  } = {};
+  private listeners: Map<AuthEventType, Listener<any>[]> = new Map();
 
   emit<T extends AuthEventType>(event: T, payload: AuthEventPayload[T]): void {
-    const eventListeners = this.listeners[event];
-    if (eventListeners) {
-      eventListeners.forEach((listener) => {
-        listener(payload);
-      });
+    const listeners = this.listeners.get(event);
+    if (listeners) {
+      listeners.forEach((listener) => listener(payload));
     }
   }
 
-  on<T extends AuthEventType>(
-    event: T,
-    listener: Listener<AuthEventPayload[T]>,
-  ): this {
-    if (!this.listeners[event]) {
-      this.listeners[event] = new Set() as any;
+  on<T extends AuthEventType>(event: T, listener: Listener<T>): void {
+    if (!this.listeners.has(event)) {
+      this.listeners.set(event, []);
     }
-    (this.listeners[event] as any).add(listener);
-    return this;
+    this.listeners.get(event)!.push(listener as Listener<any>);
   }
 
-  off<T extends AuthEventType>(
-    event: T,
-    listener: Listener<AuthEventPayload[T]>,
-  ): this {
-    const eventListeners = this.listeners[event];
-    if (eventListeners) {
-      (eventListeners as Set<Listener<AuthEventPayload[T]>>).delete(listener);
+  off<T extends AuthEventType>(event: T, listener: Listener<T>): void {
+    const listeners = this.listeners.get(event);
+    if (listeners) {
+      this.listeners.set(
+        event,
+        listeners.filter((l) => l !== listener),
+      );
     }
-    return this;
-  }
-
-  removeAllListeners<T extends AuthEventType>(event?: T): this {
-    if (event) {
-      delete this.listeners[event];
-    } else {
-      this.listeners = {};
-    }
-    return this;
   }
 }
 
