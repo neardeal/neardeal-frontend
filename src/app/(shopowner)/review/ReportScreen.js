@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
-import { Alert, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { Alert, KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+
 
 import { useReportReview } from '@/src/api/review';
 
@@ -18,8 +19,9 @@ const REASON_MAP = {
 
 export default function ReportScreen({ navigation, route }) {
   const reviewId = route?.params?.reviewId;
+  const scrollViewRef = useRef(null);
 
-  const [reporterType, setReporterType] = useState('user');
+  const [reporterType, setReporterType] = useState('owner');
   const [selectedReason, setSelectedReason] = useState(null);
   const [detailText, setDetailText] = useState('');
 
@@ -56,7 +58,13 @@ export default function ReportScreen({ navigation, route }) {
       { reviewId, data: body },
       {
         onSuccess: () => navigation.navigate('ReportComplete'),
-        onError: () => Alert.alert('오류', '신고 처리 중 문제가 발생했습니다.'),
+        onError: (error) => {
+          if (error?.status === 409) {
+            Alert.alert('알림', '이미 신고된 리뷰입니다.');
+          } else {
+            Alert.alert('오류', '신고 처리 중 문제가 발생했습니다.');
+          }
+        },
       }
     );
   };
@@ -68,9 +76,9 @@ export default function ReportScreen({ navigation, route }) {
     const inactiveBg = "#E9E9E9";
 
     return (
-      <TouchableOpacity 
-        style={styles.radioItem} 
-        onPress={onPress} 
+      <TouchableOpacity
+        style={styles.radioItem}
+        onPress={onPress}
         activeOpacity={0.6}
       >
         <View style={[styles.radioOuter, { backgroundColor: isSelected ? activeBg : inactiveBg }]}>
@@ -85,71 +93,85 @@ export default function ReportScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#1B1D1F" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>리뷰 신고</Text>
-        <View style={{ width: 24 }} />
-      </View>
-
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>신고자 정보</Text>
-          <View style={styles.radioGroup}>
-            <RadioItem 
-              label="일반 사용자" 
-              isSelected={reporterType === 'user'} 
-              onPress={() => setReporterType('user')} 
-            />
-            <RadioItem 
-              label="매장 관계자" 
-              isSelected={reporterType === 'owner'} 
-              onPress={() => setReporterType('owner')}
-            />
-          </View>
-          <View style={styles.divider} />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#1B1D1F" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>리뷰 신고</Text>
+          <View style={{ width: 24 }} />
         </View>
 
-        <View style={styles.section}>
-          <View style={{ flexDirection: 'row' }}>
-            <Text style={styles.sectionTitle}>신고 사유 </Text>
-            <Text style={{ color: '#FF6200', fontSize: 16, fontWeight: '700' }}>*</Text>
-          </View>
-          <View style={styles.radioGroup}>
-            {reasons.map((reason, index) => (
-              <RadioItem 
-                key={index}
-                label={reason}
-                isSelected={selectedReason === reason}
-                onPress={() => setSelectedReason(reason)}
-              />
-            ))}
-          </View>
-          <View style={styles.divider} />
-        </View>
-
-        {selectedReason === '기타' && (
+        <ScrollView
+          ref={scrollViewRef}
+          contentContainerStyle={[styles.content, { paddingBottom: 40 }]}
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>상세 내용</Text>
-            <TextInput
-              style={styles.textInput}
-              placeholder="리뷰 신고 사유를 자세하게 적어주세요"
-              placeholderTextColor="#828282"
-              multiline
-              textAlignVertical="top"
-              value={detailText}
-              onChangeText={setDetailText}
-            />
+            <Text style={styles.sectionTitle}>신고자 정보</Text>
+            <View style={styles.radioGroup}>
+              <RadioItem
+                label="매장 관계자"
+                isSelected={reporterType === 'owner'}
+                onPress={() => setReporterType('owner')}
+              />
+            </View>
             <View style={styles.divider} />
           </View>
-        )}
 
-        <View style={styles.policySection}>
-          <Text style={styles.policyTitle}>니어딜 신고 정책</Text>
-          <Text style={styles.policyInfo}>* 근거 없는 허위 신고 시 서비스 이용이 제한될 수 있습니다.</Text>
-        </View>
-      </ScrollView>
+          <View style={styles.section}>
+            <View style={{ flexDirection: 'row' }}>
+              <Text style={styles.sectionTitle}>신고 사유 </Text>
+              <Text style={{ color: '#FF6200', fontSize: 16, fontWeight: '700' }}>*</Text>
+            </View>
+            <View style={styles.radioGroup}>
+              {reasons.map((reason, index) => (
+                <RadioItem
+                  key={index}
+                  label={reason}
+                  isSelected={selectedReason === reason}
+                  onPress={() => setSelectedReason(reason)}
+                />
+              ))}
+            </View>
+            <View style={styles.divider} />
+          </View>
+
+          {selectedReason === '기타' && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>상세 내용</Text>
+              <TextInput
+                style={styles.textInput}
+                placeholder="리뷰 신고 사유를 자세하게 적어주세요"
+                placeholderTextColor="#828282"
+                multiline
+                textAlignVertical="top"
+                value={detailText}
+                onChangeText={(text) => {
+                  if (text.length <= 300) setDetailText(text);
+                }}
+                onFocus={() => {
+                  setTimeout(() => {
+                    scrollViewRef.current?.scrollToEnd({ animated: true });
+                  }, 100);
+                }}
+                maxLength={300}
+              />
+              <Text style={styles.charCount}>{detailText.length}/300</Text>
+              <View style={styles.divider} />
+            </View>
+          )}
+
+          <View style={styles.policySection}>
+            <Text style={styles.policyTitle}>니어딜 신고 정책</Text>
+            <Text style={styles.policyInfo}>* 근거 없는 허위 신고 시 서비스 이용이 제한될 수 있습니다.</Text>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
       <View style={styles.footer}>
         <TouchableOpacity
@@ -172,17 +194,17 @@ const styles = StyleSheet.create({
   },
   backButton: { width: 24, height: 24, justifyContent: 'center', alignItems: 'center' },
   headerTitle: { fontSize: 20, fontWeight: '700', color: '#000' },
-  
+
   content: { paddingHorizontal: 20, paddingTop: 10 },
   section: { marginBottom: 20 },
   sectionTitle: { fontSize: 16, fontWeight: '700', color: '#000', marginBottom: 20 },
-  
+
   divider: { height: 1, backgroundColor: '#E6E6E6', marginTop: 20 },
 
   radioGroup: { gap: 20 },
-  radioItem: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
+  radioItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
     paddingVertical: 2,
   },
@@ -196,19 +218,25 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: '#E0E0E0', paddingHorizontal: 16, paddingTop: 10,
     fontSize: 12, color: '#000',
   },
+  charCount: {
+    textAlign: 'right',
+    fontSize: 10,
+    color: '#828282',
+    marginTop: 4,
+  },
 
   policySection: { marginTop: 10, marginBottom: 40 },
   policyTitle: { fontSize: 14, fontWeight: '700', color: '#000', marginBottom: 5 },
   policyInfo: { fontSize: 12, color: '#828282', lineHeight: 16.8 },
 
   footer: { paddingHorizontal: 20, paddingBottom: 30, alignItems: 'center' },
-  submitButton: { 
-    width: '100%', 
-    height: 45, 
-    backgroundColor: '#FF6200', 
-    borderRadius: 8, 
-    justifyContent: 'center', 
-    alignItems: 'center' 
+  submitButton: {
+    width: '100%',
+    height: 45,
+    backgroundColor: '#FF6200',
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   submitButtonDisabled: { backgroundColor: '#ACACAC' },
   submitButtonText: { color: 'white', fontSize: 15, fontWeight: '700' },
