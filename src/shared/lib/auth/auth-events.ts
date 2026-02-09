@@ -1,5 +1,3 @@
-import { EventEmitter } from "events";
-
 export type AuthEventType = "token-refresh-success" | "token-refresh-failed";
 
 export interface AuthEventPayload {
@@ -7,23 +5,51 @@ export interface AuthEventPayload {
   "token-refresh-failed": { reason?: string };
 }
 
-class AuthEventEmitter extends EventEmitter {
-  emit<T extends AuthEventType>(event: T, payload: AuthEventPayload[T]): boolean {
-    return super.emit(event, payload);
+type Listener<T> = (payload: T) => void;
+
+class AuthEventEmitter {
+  private listeners: {
+    [K in AuthEventType]?: Set<Listener<AuthEventPayload[K]>>;
+  } = {};
+
+  emit<T extends AuthEventType>(event: T, payload: AuthEventPayload[T]): void {
+    const eventListeners = this.listeners[event];
+    if (eventListeners) {
+      eventListeners.forEach((listener) => {
+        listener(payload);
+      });
+    }
   }
 
   on<T extends AuthEventType>(
     event: T,
-    listener: (payload: AuthEventPayload[T]) => void,
+    listener: Listener<AuthEventPayload[T]>,
   ): this {
-    return super.on(event, listener);
+    if (!this.listeners[event]) {
+      this.listeners[event] = new Set() as any;
+    }
+    (this.listeners[event] as any).add(listener);
+    return this;
   }
 
   off<T extends AuthEventType>(
     event: T,
-    listener: (payload: AuthEventPayload[T]) => void,
+    listener: Listener<AuthEventPayload[T]>,
   ): this {
-    return super.off(event, listener);
+    const eventListeners = this.listeners[event];
+    if (eventListeners) {
+      (eventListeners as Set<Listener<AuthEventPayload[T]>>).delete(listener);
+    }
+    return this;
+  }
+
+  removeAllListeners<T extends AuthEventType>(event?: T): this {
+    if (event) {
+      delete this.listeners[event];
+    } else {
+      this.listeners = {};
+    }
+    return this;
   }
 }
 
