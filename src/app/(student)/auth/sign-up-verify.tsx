@@ -137,7 +137,7 @@ export default function StudentVerificationPage() {
 
     try {
       await sendEmailMutation.mutateAsync({
-        data: { email }
+        data: { email, universityId }
       });
       setIsCodeSent(true);
       setTimer(295);
