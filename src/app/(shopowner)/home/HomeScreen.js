@@ -32,9 +32,7 @@ export default function HomeScreen({ navigation }) {
     try {
       // 1. 내 가게 목록 조회
       const myStoresResponse = await getMyStores();
-
-      const rawStoreData = myStoresResponse?.data;
-      const myStores = Array.isArray(rawStoreData) ? rawStoreData : rawStoreData?.data || [];
+      const myStores = myStoresResponse?.data?.data || [];
 
       if (!myStores || myStores.length === 0) {
         setHomeData(prev => ({ ...prev, storeName: "가게를 등록해주세요" }));
@@ -56,7 +54,7 @@ export default function HomeScreen({ navigation }) {
       const statsResponse = await getStoreStats(storeId);
 
       // 통계 데이터 언랩핑
-      const statsData = statsResponse?.data?.data || statsResponse?.data || {};
+      const statsData = statsResponse?.data?.data || {};
 
       console.log("📊 [통계 데이터 수신]:", statsData);
 
