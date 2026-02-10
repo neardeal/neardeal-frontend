@@ -1,5 +1,7 @@
+import GiftIcon from "@/assets/images/icons/coupon/gift.svg";
+import HotPriceIcon from "@/assets/images/icons/coupon/hot-price.svg";
+import PriceTagDollarIcon from "@/assets/images/icons/coupon/price-tag-dollar.svg";
 import { getGetMyCouponsQueryKey, useActivateCoupon, useGetMyCoupons } from "@/src/api/coupon";
-import { useQueryClient } from "@tanstack/react-query";
 import type { IssueCouponResponse } from "@/src/api/generated.schemas";
 import { AppButton } from "@/src/shared/common/app-button";
 import { ArrowLeft } from "@/src/shared/common/arrow-left";
@@ -9,12 +11,15 @@ import {
   Coupon as CouponColor,
   Fonts,
   Gray,
+  Owner,
   Primary,
   Text as TextColor,
 } from "@/src/shared/theme/theme";
+import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  Image,
   Modal,
   ScrollView,
   StyleSheet,
@@ -45,13 +50,20 @@ const BENEFIT_ICON_BG: Record<string, string> = {
   SERVICE_GIFT: CouponColor.yellow,
 };
 
+const COUPON_ICONS: Record<string, any> = {
+  PERCENTAGE_DISCOUNT: HotPriceIcon,
+  FIXED_DISCOUNT: PriceTagDollarIcon,
+  SERVICE_GIFT: GiftIcon,
+};
+
 const formatDate = (dateStr?: string) => {
   if (!dateStr) return "";
   const d = new Date(dateStr);
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
-  return `${y}.${m}.${day}까지`;
+  const h = String(d.getHours()).padStart(2, "0");
+  return `${y}년 ${m}월 ${day}일 ${h}시까지`;
 };
 
 const isExpiringSoon = (expiresAt?: string) => {
@@ -94,9 +106,9 @@ const formatDiscount = (benefitType?: string, benefitValue?: string) => {
     case "FIXED_DISCOUNT":
       return `${Number(benefitValue).toLocaleString()}원`;
     case "SERVICE_GIFT":
-      return "서비스";
+      return "서비스 증정";
     default:
-      return benefitValue;
+      return benefitValue ?? "";
   }
 };
 
@@ -165,14 +177,28 @@ export default function BenefitsTab() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      {/* Header */}
+      {/* Header + Banner */}
       <View style={styles.header}>
         <ArrowLeft size={rs(24)} />
-        <ThemedText style={styles.headerTitle}>쿠폰함</ThemedText>
-        <View style={styles.headerRight} />
+      </View>
+      <View style={styles.bannerPadding}>
+        <View style={styles.banner}>
+          <View style={styles.bannerTextContent}>
+            <ThemedText style={styles.bannerTitle}>내 쿠폰함</ThemedText>
+            <ThemedText style={styles.bannerSubtitle}>
+              {"캠퍼스 앞 행운을 모았어요\n얼른 행운을 사용해주세요!"}
+            </ThemedText>
+          </View>
+          <Image
+            source={require("@/assets/images/icons/home/clover-home.png")}
+            style={styles.bannerClover}
+            resizeMode="contain"
+          />
+        </View>
       </View>
 
       {/* Category Tabs */}
+
       <View style={styles.tabContainer}>
         <View style={styles.tabRow}>
           {TABS.map((tab) => (
@@ -195,42 +221,12 @@ export default function BenefitsTab() {
 
         <View style={styles.tabDivider} />
 
-        {/* Filter Buttons */}
-        <View style={styles.filterContainer}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.filterScrollContent}
-          >
-            {FILTER_BUTTONS.map((btn) => (
-              <TouchableOpacity
-                key={btn.type}
-                style={[
-                  styles.filterButton,
-                  selectedFilter === btn.type && styles.filterButtonActive,
-                ]}
-                onPress={() => setSelectedFilter(btn.type)}
-              >
-                <ThemedText
-                  style={[
-                    styles.filterButtonText,
-                    selectedFilter === btn.type &&
-                      styles.filterButtonTextActive,
-                  ]}
-                >
-                  {btn.label}
-                </ThemedText>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-
-        {/* Coupon Count */}
+        {/* Coupon Count
         <View style={styles.couponCountContainer}>
           <ThemedText style={styles.couponCountText}>
             쿠폰 {filteredCoupons.length}개
           </ThemedText>
-        </View>
+        </View> */}
 
         <View
           style={[
@@ -245,6 +241,36 @@ export default function BenefitsTab() {
             },
           ]}
         />
+      </View>
+
+      {/* Filter Buttons */}
+      <View style={styles.filterContainer}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterScrollContent}
+        >
+          {FILTER_BUTTONS.map((btn) => (
+            <TouchableOpacity
+              key={btn.type}
+              style={[
+                styles.filterButton,
+                selectedFilter === btn.type && styles.filterButtonActive,
+              ]}
+              onPress={() => setSelectedFilter(btn.type)}
+            >
+              <ThemedText
+                style={[
+                  styles.filterButtonText,
+                  selectedFilter === btn.type &&
+                  styles.filterButtonTextActive,
+                ]}
+              >
+                {btn.label}
+              </ThemedText>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </View>
 
       {/* Coupon List */}
@@ -268,45 +294,53 @@ export default function BenefitsTab() {
             </ThemedText>
           </View>
         ) : (
-          filteredCoupons.map((coupon) => (
-            <TouchableOpacity
-              key={coupon.studentCouponId}
-              style={styles.couponCard}
-              onPress={() => setSelectedCoupon(coupon)}
-              activeOpacity={0.8}
-            >
-              <View
-                style={[
-                  styles.couponIconContainer,
-                  {
-                    backgroundColor:
-                      BENEFIT_ICON_BG[coupon.benefitType ?? ""] ??
-                      CouponColor.yellow,
-                  },
-                ]}
+          filteredCoupons.map((coupon) => {
+            const CouponIcon = COUPON_ICONS[coupon.benefitType ?? ""];
+            const isUsed = coupon.status === "USED" || coupon.status === "ACTIVATED" || coupon.status === "EXPIRED";
+            return (
+              <TouchableOpacity
+                key={coupon.studentCouponId}
+                style={[styles.couponCard, isUsed && styles.couponCardUsed]}
+                onPress={() => setSelectedCoupon(coupon)}
+                activeOpacity={0.8}
               >
-                <View style={styles.couponIconPlaceholder} />
-              </View>
-              <View style={styles.couponTextContainer}>
-                <View style={styles.couponTitleContainer}>
-                  <ThemedText style={styles.couponTitle}>
-                    {coupon.title ?? `쿠폰 #${coupon.studentCouponId}`}
-                  </ThemedText>
-                  <ThemedText style={styles.couponDescription}>
-                    {coupon.description ?? ""}
-                  </ThemedText>
+                <View
+                  style={[
+                    styles.couponIconContainer,
+                    {
+                      backgroundColor:
+                        BENEFIT_ICON_BG[coupon.benefitType ?? ""] ??
+                        CouponColor.yellow,
+                    },
+                  ]}
+                >
+                  {CouponIcon ? (
+                    <CouponIcon width={rs(36)} height={rs(36)} />
+                  ) : (
+                    <View style={styles.couponIconPlaceholder} />
+                  )}
                 </View>
-                <View style={styles.couponFooter}>
-                  <ThemedText style={styles.couponExpireDate}>
-                    {formatDate(coupon.expiresAt)}
-                  </ThemedText>
-                  <ThemedText style={styles.couponDiscount}>
-                    {formatDiscount(coupon.benefitType, coupon.benefitValue)}
-                  </ThemedText>
+                <View style={styles.couponTextContainer}>
+                  <View style={styles.couponTitleContainer}>
+                    <ThemedText style={styles.couponTitle}>
+                      {coupon.title ?? `쿠폰 #${coupon.studentCouponId}`}
+                    </ThemedText>
+                    <ThemedText style={styles.couponDescription}>
+                      {coupon.description ?? ""}
+                    </ThemedText>
+                  </View>
+                  <View style={styles.couponFooter}>
+                    <ThemedText style={styles.couponExpireDate}>
+                      {formatDate(coupon.expiresAt)}
+                    </ThemedText>
+                    <ThemedText style={styles.couponDiscount}>
+                      {formatDiscount(coupon.benefitType, coupon.benefitValue)}
+                    </ThemedText>
+                  </View>
                 </View>
-              </View>
-            </TouchableOpacity>
-          ))
+              </TouchableOpacity>
+            );
+          })
         )}
       </ScrollView>
 
@@ -386,22 +420,46 @@ export default function BenefitsTab() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Primary["300"],
+    backgroundColor: Gray.white,
   },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
     paddingHorizontal: rs(16),
     height: rs(44),
+    justifyContent: "center",
+    backgroundColor: Gray.white,
   },
-  headerTitle: {
+  bannerPadding: {
+    paddingHorizontal: rs(16),
+    paddingBottom: rs(16),
+    backgroundColor: Gray.white,
+  },
+  banner: {
+    backgroundColor: Owner.primary,
+    borderRadius: rs(16),
+    paddingHorizontal: rs(20),
+    paddingVertical: rs(20),
+    flexDirection: "row",
+    alignItems: "center",
+    overflow: "hidden",
+  },
+  bannerTextContent: {
+    flex: 1,
+    gap: rs(8),
+  },
+  bannerTitle: {
     fontFamily: Fonts.bold,
-    fontSize: rs(18),
-    color: TextColor.primary,
+    fontSize: rs(20),
+    color: Gray.white,
   },
-  headerRight: {
-    width: rs(24),
+  bannerSubtitle: {
+    fontFamily: Fonts.regular,
+    fontSize: rs(12),
+    color: Gray.white,
+    opacity: 0.9,
+  },
+  bannerClover: {
+    width: rs(80),
+    height: rs(80),
   },
   tabContainer: {
     backgroundColor: Gray.white,
@@ -455,7 +513,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   filterButton: {
-    height: rs(28),
     borderRadius: rs(20),
     paddingHorizontal: rs(12),
     paddingVertical: rs(4),
@@ -472,6 +529,7 @@ const styles = StyleSheet.create({
   filterButtonText: {
     fontFamily: Fonts.bold,
     fontSize: rs(12),
+    lineHeight: rs(16),
     color: TextColor.primary,
   },
   filterButtonTextActive: {
@@ -497,13 +555,18 @@ const styles = StyleSheet.create({
     gap: rs(12),
   },
   couponCard: {
-    backgroundColor: Gray.gray1,
+    backgroundColor: Gray.white,
     borderRadius: rs(16),
     paddingHorizontal: rs(12),
     paddingVertical: rs(16),
     flexDirection: "row",
     alignItems: "center",
     gap: rs(16),
+    borderWidth: 1,
+    borderColor: Gray.gray3,
+  },
+  couponCardUsed: {
+    opacity: 0.4,
   },
   couponIconContainer: {
     width: rs(64),
@@ -521,23 +584,23 @@ const styles = StyleSheet.create({
   },
   couponTextContainer: {
     flex: 1,
-    height: rs(72),
+    gap: rs(4),
     justifyContent: "space-between",
   },
   couponTitleContainer: {
-    gap: rs(0),
+    gap: rs(2),
   },
   couponTitle: {
     fontFamily: Fonts.medium,
     fontSize: rs(14),
+    lineHeight: rs(20),
     color: TextColor.primary,
-    height: rs(20),
   },
   couponDescription: {
     fontFamily: Fonts.regular,
     fontSize: rs(12),
+    lineHeight: rs(16),
     color: TextColor.placeholder,
-    height: rs(16),
   },
   couponFooter: {
     flexDirection: "row",
@@ -547,11 +610,13 @@ const styles = StyleSheet.create({
   couponExpireDate: {
     fontFamily: Fonts.medium,
     fontSize: rs(10),
+    lineHeight: rs(14),
     color: TextColor.secondary,
   },
   couponDiscount: {
     fontFamily: Fonts.medium,
     fontSize: rs(14),
+    lineHeight: rs(20),
     color: TextColor.primary,
   },
   loadingContainer: {
