@@ -4,6 +4,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: "rn-app",
   slug: "rn-app",
+  owner: "looky123",
   version: "1.0.0",
   orientation: "portrait",
   icon: "./assets/images/icon.png",
