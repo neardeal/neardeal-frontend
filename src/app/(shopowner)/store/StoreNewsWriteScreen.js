@@ -2,9 +2,12 @@ import { getToken } from '@/src/shared/lib/auth/token';
 import { rs } from '@/src/shared/theme/scale';
 import { Ionicons } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
+import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
+import * as ImagePicker from 'expo-image-picker';
 import React, { useEffect, useState } from 'react';
 import {
     Alert,
+    Image,
     KeyboardAvoidingView,
     Platform,
     SafeAreaView,
@@ -24,16 +27,76 @@ export default function StoreNewsWriteScreen({ navigation, route }) {
 
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
+    const [selectedImages, setSelectedImages] = useState([]);
 
     // 수정 모드라면 기존 데이터 채워넣기
     useEffect(() => {
         if (isEdit && newsItem) {
             setTitle(newsItem.title || '');
-            setContent("안녕하세요.\n\n2월에 새로 선보일 케이크 메뉴 테스터 10분을 모집합니다~\n\n정성스러운 평가 남겨주실 분들은 좋아요와 댓글 남겨주세요."); // 예시 내용 (실제론 newsItem.content)
+            setContent(newsItem.content || '');
+            // 기존 이미지가 있다면 URL로 변환하여 표시
+            if (newsItem.imageUrls && newsItem.imageUrls.length > 0) {
+                setSelectedImages(newsItem.imageUrls.map(url => ({ uri: url, isExisting: true })));
+            }
         }
     }, [isEdit, newsItem]);
 
     const queryClient = useQueryClient();
+
+    // 이미지 선택 핸들러
+    const handlePickImages = async () => {
+        try {
+            const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                allowsMultipleSelection: true,
+                quality: 0.3,  // 압축률 대폭 강화 (0.5 -> 0.3)
+                allowsEditing: true, // 크기 조절을 위해 편집 허용 (사용자가 크롭하게 됨, 혹은 resize 옵션 사용 고려)
+                aspect: [4, 3],
+            });
+
+            if (!result.canceled && result.assets) {
+                // 이미지 개수 제한 (최대 4개)
+                const currentCount = selectedImages.length;
+                const newCount = result.assets.length;
+                if (currentCount + newCount > 4) {
+                    Alert.alert('알림', '이미지는 최대 4개까지 첨부할 수 있습니다.');
+                    return;
+                }
+
+                // 이미지 압축 및 리사이징 처리
+                const processedImages = await Promise.all(result.assets.map(async (asset) => {
+                    try {
+                        const manipResult = await manipulateAsync(
+                            asset.uri,
+                            [{ resize: { width: 800 } }], // 가로 800px로 리사이징 (비율 유지)
+                            { compress: 0.7, format: SaveFormat.JPEG } // 압축률 0.7, JPEG 포맷
+                        );
+                        return {
+                            uri: manipResult.uri,
+                            isExisting: false
+                        };
+                    } catch (error) {
+                        console.error('[ImageManipulator] Error:', error);
+                        // 변환 실패 시 원본 사용 (혹은 에러 처리)
+                        return {
+                            uri: asset.uri,
+                            isExisting: false
+                        };
+                    }
+                }));
+
+                setSelectedImages([...selectedImages, ...processedImages]);
+            }
+        } catch (error) {
+            console.error('[ImagePicker] Error:', error);
+            Alert.alert('오류', '이미지를 선택할 수 없습니다.');
+        }
+    };
+
+    // 이미지 삭제 핸들러
+    const handleRemoveImage = (index) => {
+        setSelectedImages(selectedImages.filter((_, i) => i !== index));
+    };
 
 
 
@@ -53,9 +116,17 @@ export default function StoreNewsWriteScreen({ navigation, route }) {
             const formData = new FormData();
 
             // 3. JSON 데이터를 문자열로 변환하여 'request' 파트에 담기
+            // 3. JSON 데이터를 문자열로 변환하여 'request' 파트에 담기
+            const existingImageUrls = selectedImages
+                .filter(img => img.isExisting)
+                .map(img => img.uri);
+
             const requestData = {
                 title: title,
-                content: content
+                content: content,
+                images: selectedImages
+                    .filter(img => img.isExisting)
+                    .map(img => ({ url: img.uri })) // 객체 형태로 전송 시도
             };
 
             formData.append("request", {
@@ -64,12 +135,22 @@ export default function StoreNewsWriteScreen({ navigation, route }) {
                 name: "request"
             });
 
-            // 4. (옵션) 이미지 처리 - 현재는 미구현이므로 빈 배열인 경우 생략하거나 빈 리스트 전송?
-            // BE가 images 파트를 필수로 요구한다면 빈 파일이라도 보내야 할 수 있음.
-            // 일단은 images 파트를 보내지 않음 (Optional 가정)
+            // 4. 이미지 처리
+            selectedImages.forEach((image, index) => {
+                if (!image.isExisting) {
+                    // 새로 선택한 이미지만 업로드
+                    const uriParts = image.uri.split('/');
+                    const fileName = uriParts[uriParts.length - 1];
+                    formData.append('images', {
+                        uri: image.uri,
+                        type: 'image/jpeg',
+                        name: fileName
+                    });
+                }
+            });
 
             const url = isEdit && newsItem?.id
-                ? `${process.env.EXPO_PUBLIC_API_BASE_URL}/api/stores/${storeId}/news/${newsItem.id}` // 수정 API 경로 확인 필요
+                ? `${process.env.EXPO_PUBLIC_API_BASE_URL}/api/store-news/${newsItem.id}` // 수정 API 경로 수정 (/api/store-news/{id})
                 : `${process.env.EXPO_PUBLIC_API_BASE_URL}/api/stores/${storeId}/news`;
 
             const method = isEdit ? "PATCH" : "POST";
@@ -89,7 +170,14 @@ export default function StoreNewsWriteScreen({ navigation, route }) {
             console.log("[StoreNews] Response:", response.status, responseText);
 
             if (response.ok) {
+                // 리스트 쿼리 무효화
                 queryClient.invalidateQueries({ queryKey: [`/api/stores/${storeId}/news`] });
+
+                // 수정 모드일 경우, 상세 쿼리도 무효화
+                if (isEdit && newsItem?.id) {
+                    queryClient.invalidateQueries({ queryKey: [`/api/store-news/${newsItem.id}`] });
+                }
+
                 Alert.alert("완료", isEdit ? "매장 소식이 수정되었습니다." : "매장 소식이 등록되었습니다.", [
                     { text: "확인", onPress: () => navigation.goBack() }
                 ]);
@@ -128,8 +216,11 @@ export default function StoreNewsWriteScreen({ navigation, route }) {
                     <View style={styles.formContainer}>
                         <View style={styles.inputGroup}>
                             <View style={styles.labelRow}>
-                                <Text style={styles.labelText}>제목 </Text>
-                                <Text style={styles.requiredStar}>*</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <Text style={styles.labelText}>제목 </Text>
+                                    <Text style={styles.requiredStar}>*</Text>
+                                </View>
+                                <Text style={styles.charCounter}>{title.length}/20</Text>
                             </View>
                             <View style={styles.textInputBox}>
                                 <TextInput
@@ -138,14 +229,18 @@ export default function StoreNewsWriteScreen({ navigation, route }) {
                                     placeholderTextColor="#828282"
                                     value={title}
                                     onChangeText={setTitle}
+                                    maxLength={20}
                                 />
                             </View>
                         </View>
 
                         <View style={styles.inputGroup}>
                             <View style={styles.labelRow}>
-                                <Text style={styles.labelText}>내용</Text>
-                                <Text style={styles.requiredStar}> *</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <Text style={styles.labelText}>내용</Text>
+                                    <Text style={styles.requiredStar}> *</Text>
+                                </View>
+                                <Text style={styles.charCounter}>{content.length}/300</Text>
                             </View>
                             <View style={styles.textAreaBox}>
                                 <TextInput
@@ -155,22 +250,33 @@ export default function StoreNewsWriteScreen({ navigation, route }) {
                                     multiline
                                     value={content}
                                     onChangeText={setContent}
+                                    maxLength={300}
                                 />
                             </View>
                         </View>
 
                         <View style={styles.inputGroup}>
                             <Text style={styles.labelText}>이미지</Text>
-                            <TouchableOpacity style={styles.fileSelectBox} activeOpacity={0.7}>
-                                <Text style={styles.filePlaceholder}>파일을 첨부해주세요</Text>
+                            <TouchableOpacity style={styles.fileSelectBox} activeOpacity={0.7} onPress={handlePickImages}>
+                                <Text style={styles.filePlaceholder}>파일을 첨부해주세요(최대 4개)</Text>
                                 <Ionicons name="attach" size={rs(20)} color="#444444" style={{ transform: [{ rotate: '-45deg' }] }} />
                             </TouchableOpacity>
-                            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.imagePreviewRow}>
-                                <View style={styles.previewBox} />
-                                <View style={styles.previewBox} />
-                                <View style={styles.previewBox} />
-                                <View style={styles.previewBox} />
-                            </ScrollView>
+                            {selectedImages.length > 0 && (
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.imagePreviewRow}>
+                                    {selectedImages.map((image, index) => (
+                                        <View key={index} style={styles.previewImageContainer}>
+                                            <Image source={{ uri: image.uri }} style={styles.previewImage} resizeMode="cover" />
+                                            <TouchableOpacity
+                                                style={styles.removeImageButton}
+                                                onPress={() => handleRemoveImage(index)}
+                                                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                                            >
+                                                <Ionicons name="close-circle" size={rs(20)} color="#CECECE" />
+                                            </TouchableOpacity>
+                                        </View>
+                                    ))}
+                                </ScrollView>
+                            )}
                         </View>
                     </View>
                 </ScrollView>
@@ -195,7 +301,7 @@ const styles = StyleSheet.create({
     pageSubtitle: { fontSize: rs(14), fontWeight: '600', color: '#A6A6A6', fontFamily: 'Pretendard', lineHeight: rs(19.6) },
     formContainer: { gap: rs(20), marginBottom: rs(20) },
     inputGroup: { gap: rs(10) },
-    labelRow: { flexDirection: 'row', alignItems: 'center' },
+    labelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     labelText: { fontSize: rs(16), fontWeight: '600', color: 'black', fontFamily: 'Pretendard', lineHeight: rs(22.4) },
     requiredStar: { fontSize: rs(16), fontWeight: '600', color: '#34B262', fontFamily: 'Pretendard', lineHeight: rs(22.4) },
     textInputBox: { height: rs(40), backgroundColor: 'white', borderRadius: rs(8), borderWidth: 1, borderColor: '#E0E0E0', justifyContent: 'center', paddingHorizontal: rs(16) },
@@ -205,6 +311,10 @@ const styles = StyleSheet.create({
     filePlaceholder: { fontSize: rs(14), fontWeight: '500', color: '#828282', fontFamily: 'Pretendard' },
     imagePreviewRow: { flexDirection: 'row', gap: rs(5), marginTop: rs(5) },
     previewBox: { width: rs(100), height: rs(100), backgroundColor: '#D9D9D9', borderRadius: rs(4) },
+    charCounter: { fontSize: rs(14), fontWeight: '500', color: '#828282', fontFamily: 'Pretendard' },
+    previewImageContainer: { width: rs(100), height: rs(100), position: 'relative' },
+    previewImage: { width: rs(100), height: rs(100), borderRadius: rs(4) },
+    removeImageButton: { position: 'absolute', top: rs(-5), right: rs(-5), backgroundColor: 'white', borderRadius: rs(10) },
     bottomContainer: { paddingHorizontal: rs(24), paddingBottom: rs(40), backgroundColor: '#F7F7F7' },
     saveBtn: { height: rs(40), backgroundColor: '#34B262', borderRadius: rs(8), justifyContent: 'center', alignItems: 'center' },
     saveBtnText: { color: 'white', fontSize: rs(14), fontWeight: '700', fontFamily: 'Pretendard' },

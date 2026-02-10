@@ -5,6 +5,10 @@
  * API 명세서
  * OpenAPI spec version: v1.0.0
  */
+import {
+  useMutation,
+  useQuery
+} from '@tanstack/react-query';
 import type {
   DataTag,
   DefinedInitialDataOptions,
@@ -19,10 +23,6 @@ import type {
   UseQueryOptions,
   UseQueryResult
 } from '@tanstack/react-query';
-import {
-  useMutation,
-  useQuery
-} from '@tanstack/react-query';
 
 import type {
   ChangePasswordRequest,
@@ -35,8 +35,130 @@ import { customFetch } from './mutator';
 
 
 
-
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
+
+
+/**
+ * 학생의 대학, 단과대, 학과, 동아리 활동 여부를 조회합니다.
+ * @summary [학생] 내 정보 조회
+ */
+export type getStudentInfoResponse200 = {
+  data: Blob
+  status: 200
+}
+
+export type getStudentInfoResponse403 = {
+  data: Blob
+  status: 403
+}
+
+export type getStudentInfoResponse404 = {
+  data: Blob
+  status: 404
+}
+    
+export type getStudentInfoResponseSuccess = (getStudentInfoResponse200) & {
+  headers: Headers;
+};
+export type getStudentInfoResponseError = (getStudentInfoResponse403 | getStudentInfoResponse404) & {
+  headers: Headers;
+};
+
+export type getStudentInfoResponse = (getStudentInfoResponseSuccess | getStudentInfoResponseError)
+
+export const getGetStudentInfoUrl = () => {
+
+
+  
+
+  return `/api/mypage/student/profile`
+}
+
+export const getStudentInfo = async ( options?: RequestInit): Promise<getStudentInfoResponse> => {
+  
+  return customFetch<getStudentInfoResponse>(getGetStudentInfoUrl(),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getGetStudentInfoQueryKey = () => {
+    return [
+    `/api/mypage/student/profile`
+    ] as const;
+    }
+
+    
+export const getGetStudentInfoQueryOptions = <TData = Awaited<ReturnType<typeof getStudentInfo>>, TError = Blob>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStudentInfo>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetStudentInfoQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStudentInfo>>> = ({ signal }) => getStudentInfo({ signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getStudentInfo>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetStudentInfoQueryResult = NonNullable<Awaited<ReturnType<typeof getStudentInfo>>>
+export type GetStudentInfoQueryError = Blob
+
+
+export function useGetStudentInfo<TData = Awaited<ReturnType<typeof getStudentInfo>>, TError = Blob>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStudentInfo>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStudentInfo>>,
+          TError,
+          Awaited<ReturnType<typeof getStudentInfo>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStudentInfo<TData = Awaited<ReturnType<typeof getStudentInfo>>, TError = Blob>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStudentInfo>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStudentInfo>>,
+          TError,
+          Awaited<ReturnType<typeof getStudentInfo>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStudentInfo<TData = Awaited<ReturnType<typeof getStudentInfo>>, TError = Blob>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStudentInfo>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary [학생] 내 정보 조회
+ */
+
+export function useGetStudentInfo<TData = Awaited<ReturnType<typeof getStudentInfo>>, TError = Blob>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStudentInfo>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetStudentInfoQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
 
 
 
@@ -58,7 +180,7 @@ export type updateStudentProfileResponse403 = {
   data: Blob
   status: 403
 }
-
+    
 export type updateStudentProfileResponseSuccess = (updateStudentProfileResponse200) & {
   headers: Headers;
 };
@@ -71,76 +193,74 @@ export type updateStudentProfileResponse = (updateStudentProfileResponseSuccess 
 export const getUpdateStudentProfileUrl = () => {
 
 
-
+  
 
   return `/api/mypage/student/profile`
 }
 
 export const updateStudentProfile = async (updateStudentProfileRequest: UpdateStudentProfileRequest, options?: RequestInit): Promise<updateStudentProfileResponse> => {
-
+  
   return customFetch<updateStudentProfileResponse>(getUpdateStudentProfileUrl(),
-    {
-      ...options,
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', ...options?.headers },
-      body: JSON.stringify(
-        updateStudentProfileRequest,)
-    }
-  );
-}
+  {      
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      updateStudentProfileRequest,)
+  }
+);}
 
 
 
 
 export const getUpdateStudentProfileMutationOptions = <TError = Blob,
-  TContext = unknown>(options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof updateStudentProfile>>, TError, { data: UpdateStudentProfileRequest }, TContext>, request?: SecondParameter<typeof customFetch> }
-  ): UseMutationOptions<Awaited<ReturnType<typeof updateStudentProfile>>, TError, { data: UpdateStudentProfileRequest }, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateStudentProfile>>, TError,{data: UpdateStudentProfileRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateStudentProfile>>, TError,{data: UpdateStudentProfileRequest}, TContext> => {
 
-  const mutationKey = ['updateStudentProfile'];
-  const { mutation: mutationOptions, request: requestOptions } = options ?
-    options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+const mutationKey = ['updateStudentProfile'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey, }, request: undefined };
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateStudentProfile>>, {data: UpdateStudentProfileRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateStudentProfile(data,requestOptions)
+        }
 
 
 
-
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateStudentProfile>>, { data: UpdateStudentProfileRequest }> = (props) => {
-    const { data } = props ?? {};
-
-    return updateStudentProfile(data, requestOptions)
-  }
+        
 
 
+  return  { mutationFn, ...mutationOptions }}
 
+    export type UpdateStudentProfileMutationResult = NonNullable<Awaited<ReturnType<typeof updateStudentProfile>>>
+    export type UpdateStudentProfileMutationBody = UpdateStudentProfileRequest
+    export type UpdateStudentProfileMutationError = Blob
 
-
-
-  return { mutationFn, ...mutationOptions }
-}
-
-export type UpdateStudentProfileMutationResult = NonNullable<Awaited<ReturnType<typeof updateStudentProfile>>>
-export type UpdateStudentProfileMutationBody = UpdateStudentProfileRequest
-export type UpdateStudentProfileMutationError = Blob
-
-/**
-* @summary [학생] 프로필 수정
-*/
+    /**
+ * @summary [학생] 프로필 수정
+ */
 export const useUpdateStudentProfile = <TError = Blob,
-  TContext = unknown>(options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof updateStudentProfile>>, TError, { data: UpdateStudentProfileRequest }, TContext>, request?: SecondParameter<typeof customFetch> }
-    , queryClient?: QueryClient): UseMutationResult<
-      Awaited<ReturnType<typeof updateStudentProfile>>,
-      TError,
-      { data: UpdateStudentProfileRequest },
-      TContext
-    > => {
-  return useMutation(getUpdateStudentProfileMutationOptions(options), queryClient);
-}
-/**
-* 학생의 소속 대학을 변경합니다. (기존 단과대/학과는 초기화됨)
-* @summary [학생] 대학 변경
-*/
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateStudentProfile>>, TError,{data: UpdateStudentProfileRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateStudentProfile>>,
+        TError,
+        {data: UpdateStudentProfileRequest},
+        TContext
+      > => {
+      return useMutation(getUpdateStudentProfileMutationOptions(options), queryClient);
+    }
+    /**
+ * 학생의 소속 대학을 변경합니다. (기존 단과대/학과는 초기화됨)
+ * @summary [학생] 대학 변경
+ */
 export type updateUniversityResponse200 = {
   data: Blob
   status: 200
@@ -155,7 +275,7 @@ export type updateUniversityResponse404 = {
   data: Blob
   status: 404
 }
-
+    
 export type updateUniversityResponseSuccess = (updateUniversityResponse200) & {
   headers: Headers;
 };
@@ -168,76 +288,74 @@ export type updateUniversityResponse = (updateUniversityResponseSuccess | update
 export const getUpdateUniversityUrl = () => {
 
 
-
+  
 
   return `/api/mypage/student/university`
 }
 
 export const updateUniversity = async (updateUniversityRequest: UpdateUniversityRequest, options?: RequestInit): Promise<updateUniversityResponse> => {
-
+  
   return customFetch<updateUniversityResponse>(getUpdateUniversityUrl(),
-    {
-      ...options,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...options?.headers },
-      body: JSON.stringify(
-        updateUniversityRequest,)
-    }
-  );
-}
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      updateUniversityRequest,)
+  }
+);}
 
 
 
 
 export const getUpdateUniversityMutationOptions = <TError = Blob,
-  TContext = unknown>(options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof updateUniversity>>, TError, { data: UpdateUniversityRequest }, TContext>, request?: SecondParameter<typeof customFetch> }
-  ): UseMutationOptions<Awaited<ReturnType<typeof updateUniversity>>, TError, { data: UpdateUniversityRequest }, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateUniversity>>, TError,{data: UpdateUniversityRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateUniversity>>, TError,{data: UpdateUniversityRequest}, TContext> => {
 
-  const mutationKey = ['updateUniversity'];
-  const { mutation: mutationOptions, request: requestOptions } = options ?
-    options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+const mutationKey = ['updateUniversity'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey, }, request: undefined };
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateUniversity>>, {data: UpdateUniversityRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateUniversity(data,requestOptions)
+        }
 
 
 
-
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateUniversity>>, { data: UpdateUniversityRequest }> = (props) => {
-    const { data } = props ?? {};
-
-    return updateUniversity(data, requestOptions)
-  }
+        
 
 
+  return  { mutationFn, ...mutationOptions }}
 
+    export type UpdateUniversityMutationResult = NonNullable<Awaited<ReturnType<typeof updateUniversity>>>
+    export type UpdateUniversityMutationBody = UpdateUniversityRequest
+    export type UpdateUniversityMutationError = Blob
 
-
-
-  return { mutationFn, ...mutationOptions }
-}
-
-export type UpdateUniversityMutationResult = NonNullable<Awaited<ReturnType<typeof updateUniversity>>>
-export type UpdateUniversityMutationBody = UpdateUniversityRequest
-export type UpdateUniversityMutationError = Blob
-
-/**
-* @summary [학생] 대학 변경
-*/
+    /**
+ * @summary [학생] 대학 변경
+ */
 export const useUpdateUniversity = <TError = Blob,
-  TContext = unknown>(options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof updateUniversity>>, TError, { data: UpdateUniversityRequest }, TContext>, request?: SecondParameter<typeof customFetch> }
-    , queryClient?: QueryClient): UseMutationResult<
-      Awaited<ReturnType<typeof updateUniversity>>,
-      TError,
-      { data: UpdateUniversityRequest },
-      TContext
-    > => {
-  return useMutation(getUpdateUniversityMutationOptions(options), queryClient);
-}
-/**
-* 사용자의 아이디를 변경합니다.
-* @summary [공통] 아이디 변경
-*/
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateUniversity>>, TError,{data: UpdateUniversityRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateUniversity>>,
+        TError,
+        {data: UpdateUniversityRequest},
+        TContext
+      > => {
+      return useMutation(getUpdateUniversityMutationOptions(options), queryClient);
+    }
+    /**
+ * 사용자의 아이디를 변경합니다.
+ * @summary [공통] 아이디 변경
+ */
 export type changeUsernameResponse200 = {
   data: Blob
   status: 200
@@ -252,7 +370,7 @@ export type changeUsernameResponse409 = {
   data: Blob
   status: 409
 }
-
+    
 export type changeUsernameResponseSuccess = (changeUsernameResponse200) & {
   headers: Headers;
 };
@@ -265,76 +383,74 @@ export type changeUsernameResponse = (changeUsernameResponseSuccess | changeUser
 export const getChangeUsernameUrl = () => {
 
 
-
+  
 
   return `/api/mypage/change-username`
 }
 
 export const changeUsername = async (changeUsernameRequest: ChangeUsernameRequest, options?: RequestInit): Promise<changeUsernameResponse> => {
-
+  
   return customFetch<changeUsernameResponse>(getChangeUsernameUrl(),
-    {
-      ...options,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...options?.headers },
-      body: JSON.stringify(
-        changeUsernameRequest,)
-    }
-  );
-}
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      changeUsernameRequest,)
+  }
+);}
 
 
 
 
 export const getChangeUsernameMutationOptions = <TError = Blob,
-  TContext = unknown>(options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof changeUsername>>, TError, { data: ChangeUsernameRequest }, TContext>, request?: SecondParameter<typeof customFetch> }
-  ): UseMutationOptions<Awaited<ReturnType<typeof changeUsername>>, TError, { data: ChangeUsernameRequest }, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changeUsername>>, TError,{data: ChangeUsernameRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof changeUsername>>, TError,{data: ChangeUsernameRequest}, TContext> => {
 
-  const mutationKey = ['changeUsername'];
-  const { mutation: mutationOptions, request: requestOptions } = options ?
-    options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+const mutationKey = ['changeUsername'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey, }, request: undefined };
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof changeUsername>>, {data: ChangeUsernameRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  changeUsername(data,requestOptions)
+        }
 
 
 
-
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof changeUsername>>, { data: ChangeUsernameRequest }> = (props) => {
-    const { data } = props ?? {};
-
-    return changeUsername(data, requestOptions)
-  }
+        
 
 
+  return  { mutationFn, ...mutationOptions }}
 
+    export type ChangeUsernameMutationResult = NonNullable<Awaited<ReturnType<typeof changeUsername>>>
+    export type ChangeUsernameMutationBody = ChangeUsernameRequest
+    export type ChangeUsernameMutationError = Blob
 
-
-
-  return { mutationFn, ...mutationOptions }
-}
-
-export type ChangeUsernameMutationResult = NonNullable<Awaited<ReturnType<typeof changeUsername>>>
-export type ChangeUsernameMutationBody = ChangeUsernameRequest
-export type ChangeUsernameMutationError = Blob
-
-/**
-* @summary [공통] 아이디 변경
-*/
+    /**
+ * @summary [공통] 아이디 변경
+ */
 export const useChangeUsername = <TError = Blob,
-  TContext = unknown>(options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof changeUsername>>, TError, { data: ChangeUsernameRequest }, TContext>, request?: SecondParameter<typeof customFetch> }
-    , queryClient?: QueryClient): UseMutationResult<
-      Awaited<ReturnType<typeof changeUsername>>,
-      TError,
-      { data: ChangeUsernameRequest },
-      TContext
-    > => {
-  return useMutation(getChangeUsernameMutationOptions(options), queryClient);
-}
-/**
-* 사용자의 비밀번호를 변경합니다.
-* @summary [공통] 비밀번호 변경
-*/
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changeUsername>>, TError,{data: ChangeUsernameRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof changeUsername>>,
+        TError,
+        {data: ChangeUsernameRequest},
+        TContext
+      > => {
+      return useMutation(getChangeUsernameMutationOptions(options), queryClient);
+    }
+    /**
+ * 사용자의 비밀번호를 변경합니다.
+ * @summary [공통] 비밀번호 변경
+ */
 export type changePasswordResponse200 = {
   data: Blob
   status: 200
@@ -344,7 +460,7 @@ export type changePasswordResponse400 = {
   data: Blob
   status: 400
 }
-
+    
 export type changePasswordResponseSuccess = (changePasswordResponse200) & {
   headers: Headers;
 };
@@ -357,159 +473,68 @@ export type changePasswordResponse = (changePasswordResponseSuccess | changePass
 export const getChangePasswordUrl = () => {
 
 
-
+  
 
   return `/api/mypage/change-password`
 }
 
 export const changePassword = async (changePasswordRequest: ChangePasswordRequest, options?: RequestInit): Promise<changePasswordResponse> => {
-
+  
   return customFetch<changePasswordResponse>(getChangePasswordUrl(),
-    {
-      ...options,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...options?.headers },
-      body: JSON.stringify(
-        changePasswordRequest,)
-    }
-  );
-}
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      changePasswordRequest,)
+  }
+);}
 
 
 
 
 export const getChangePasswordMutationOptions = <TError = Blob,
-  TContext = unknown>(options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof changePassword>>, TError, { data: ChangePasswordRequest }, TContext>, request?: SecondParameter<typeof customFetch> }
-  ): UseMutationOptions<Awaited<ReturnType<typeof changePassword>>, TError, { data: ChangePasswordRequest }, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changePassword>>, TError,{data: ChangePasswordRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof changePassword>>, TError,{data: ChangePasswordRequest}, TContext> => {
 
-  const mutationKey = ['changePassword'];
-  const { mutation: mutationOptions, request: requestOptions } = options ?
-    options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+const mutationKey = ['changePassword'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey, }, request: undefined };
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof changePassword>>, {data: ChangePasswordRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  changePassword(data,requestOptions)
+        }
 
 
 
-
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof changePassword>>, { data: ChangePasswordRequest }> = (props) => {
-    const { data } = props ?? {};
-
-    return changePassword(data, requestOptions)
-  }
+        
 
 
+  return  { mutationFn, ...mutationOptions }}
 
+    export type ChangePasswordMutationResult = NonNullable<Awaited<ReturnType<typeof changePassword>>>
+    export type ChangePasswordMutationBody = ChangePasswordRequest
+    export type ChangePasswordMutationError = Blob
 
-
-
-  return { mutationFn, ...mutationOptions }
-}
-
-export type ChangePasswordMutationResult = NonNullable<Awaited<ReturnType<typeof changePassword>>>
-export type ChangePasswordMutationBody = ChangePasswordRequest
-export type ChangePasswordMutationError = Blob
-
-/**
-* @summary [공통] 비밀번호 변경
-*/
+    /**
+ * @summary [공통] 비밀번호 변경
+ */
 export const useChangePassword = <TError = Blob,
-  TContext = unknown>(options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof changePassword>>, TError, { data: ChangePasswordRequest }, TContext>, request?: SecondParameter<typeof customFetch> }
-    , queryClient?: QueryClient): UseMutationResult<
-      Awaited<ReturnType<typeof changePassword>>,
-      TError,
-      { data: ChangePasswordRequest },
-      TContext
-    > => {
-  return useMutation(getChangePasswordMutationOptions(options), queryClient);
-}
-
-export type StudentInfoResponse = {
-  universityId?: number;
-  collegeId?: number;
-  departmentId?: number;
-  isClubMember?: boolean;
-  // Based on observation that frontend needs these fields:
-  universityName?: string;
-  collegeName?: string;
-  departmentName?: string;
-  nickname?: string;
-};
-
-export type CommonResponseStudentInfoResponse = {
-  isSuccess?: boolean;
-  data?: StudentInfoResponse;
-};
-
-export type getStudentInfoResponse = CommonResponseStudentInfoResponse;
-
-export const getStudentInfoUrl = () => {
-  return `/api/mypage/student/profile`;
-};
-
-export const getStudentInfo = async (options?: RequestInit): Promise<getStudentInfoResponse> => {
-  return customFetch<getStudentInfoResponse>(getStudentInfoUrl(), {
-    ...options,
-    method: 'GET',
-  });
-};
-
-export const getGetStudentInfoQueryKey = () => {
-  return [`/api/mypage/student/profile`] as const;
-};
-
-export const getGetStudentInfoQueryOptions = <TData = Awaited<ReturnType<typeof getStudentInfo>>, TError = unknown>(options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStudentInfo>>, TError, TData>>, request?: SecondParameter<typeof customFetch> }
-) => {
-
-  const { query: queryOptions, request: requestOptions } = options ?? {};
-
-  const queryKey = queryOptions?.queryKey ?? getGetStudentInfoQueryKey();
-
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof getStudentInfo>>> = ({ signal }) => getStudentInfo({ signal, ...requestOptions });
-
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof getStudentInfo>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetStudentInfoQueryResult = NonNullable<Awaited<ReturnType<typeof getStudentInfo>>>
-export type GetStudentInfoQueryError = unknown
-
-export function useGetStudentInfo<TData = Awaited<ReturnType<typeof getStudentInfo>>, TError = unknown>(
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStudentInfo>>, TError, TData>> & Pick<
-      DefinedInitialDataOptions<
-        Awaited<ReturnType<typeof getStudentInfo>>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changePassword>>, TError,{data: ChangePasswordRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof changePassword>>,
         TError,
-        Awaited<ReturnType<typeof getStudentInfo>>
-      >, 'initialData'
-    >, request?: SecondParameter<typeof customFetch>
-  }
-  , queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetStudentInfo<TData = Awaited<ReturnType<typeof getStudentInfo>>, TError = unknown>(
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStudentInfo>>, TError, TData>> & Pick<
-      UndefinedInitialDataOptions<
-        Awaited<ReturnType<typeof getStudentInfo>>,
-        TError,
-        Awaited<ReturnType<typeof getStudentInfo>>
-      >, 'initialData'
-    >, request?: SecondParameter<typeof customFetch>
-  }
-  , queryClient?: QueryClient
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetStudentInfo<TData = Awaited<ReturnType<typeof getStudentInfo>>, TError = unknown>(
-  options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStudentInfo>>, TError, TData>>, request?: SecondParameter<typeof customFetch> }
-  , queryClient?: QueryClient
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useGetStudentInfo<TData = Awaited<ReturnType<typeof getStudentInfo>>, TError = unknown>(
-  options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStudentInfo>>, TError, TData>>, request?: SecondParameter<typeof customFetch> }
-  , queryClient?: QueryClient
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetStudentInfoQueryOptions(options)
-
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
+        {data: ChangePasswordRequest},
+        TContext
+      > => {
+      return useMutation(getChangePasswordMutationOptions(options), queryClient);
+    }
+    
