@@ -18,8 +18,7 @@ const PUBLIC_ENDPOINTS = [
   "/api/auth/check-username",
 ];
 
-let isRefreshing = false;
-let refreshQueue: Array<() => void> = [];
+let refreshPromise: Promise<boolean> | null = null;
 
 async function refreshAccessToken(): Promise<boolean> {
   try {
@@ -84,19 +83,16 @@ export async function customFetch<T>(
   if (!isPublic && !url.includes("/refresh")) {
     const expiring = await isTokenExpiringSoon(2); // 2분 내 만료?
 
-    if (expiring && !isRefreshing) {
+    if (expiring) {
       console.log("[Proactive Refresh] Token expiring soon, refreshing...");
-      isRefreshing = true;
-
-      const refreshSuccess = await refreshAccessToken();
-      isRefreshing = false;
-
-      // 대기 중인 요청들 처리
-      refreshQueue.forEach((callback) => callback());
-      refreshQueue = [];
+      if (!refreshPromise) {
+        refreshPromise = refreshAccessToken().finally(() => {
+          refreshPromise = null;
+        });
+      }
+      const refreshSuccess = await refreshPromise;
 
       if (!refreshSuccess) {
-        // Proactive refresh 실패 시 즉시 에러
         throw { status: 401, data: { message: "Token refresh failed" } };
       }
     }
@@ -114,27 +110,14 @@ export async function customFetch<T>(
 
     // 401 Unauthorized → 토큰 리프레시 시도
     if (res.status === 401 && !isPublic && !url.includes("/refresh")) {
-      if (!isRefreshing) {
-        isRefreshing = true;
-
-        const refreshSuccess = await refreshAccessToken();
-        isRefreshing = false;
-
-        refreshQueue.forEach((callback) => callback());
-        refreshQueue = [];
-
-        if (refreshSuccess) {
-          const newTokenData = await getToken();
-          if (newTokenData?.accessToken) {
-            headers.set("Authorization", `Bearer ${newTokenData.accessToken}`);
-            res = await fetch(fullUrl, { ...options, headers });
-          }
-        }
-      } else {
-        await new Promise<void>((resolve) => {
-          refreshQueue.push(resolve);
+      if (!refreshPromise) {
+        refreshPromise = refreshAccessToken().finally(() => {
+          refreshPromise = null;
         });
+      }
+      const refreshSuccess = await refreshPromise;
 
+      if (refreshSuccess) {
         const newTokenData = await getToken();
         if (newTokenData?.accessToken) {
           headers.set("Authorization", `Bearer ${newTokenData.accessToken}`);
