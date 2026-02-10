@@ -1,6 +1,7 @@
 import { useGetMyCoupons } from "@/src/api/coupon";
 import { useGetMyFavorites } from "@/src/api/favorite";
 import { CommonResponseListIssueCouponResponse } from "@/src/api/generated.schemas";
+import { useGetStudentInfo } from "@/src/api/my-page";
 import { useGetMyReviews } from "@/src/api/review";
 import { ThemedText } from "@/src/shared/common/themed-text";
 import { useAuth } from "@/src/shared/lib/auth";
@@ -65,6 +66,7 @@ export default function MyPageTab() {
 
   const { data: favoritesRes } = useGetMyFavorites({ pageable: { page: 0, size: 100 } });
   const { data: myReviewsRes } = useGetMyReviews({ pageable: { page: 0, size: 100 } });
+  const { data: studentInfo } = useGetStudentInfo();
 
   const favoriteCount = useMemo(() => {
     const content = (favoritesRes as any)?.data?.data?.content;
@@ -137,9 +139,11 @@ export default function MyPageTab() {
               <Ionicons name="person" size={rs(24)} color={Primary[400]} />
             </View>
             <View style={styles.profileTextColumn}>
-              <ThemedText style={styles.profileName}>띠로롱 님</ThemedText>
+              <ThemedText style={styles.profileName}>
+                {studentInfo?.data?.nickname ?? "알 수 없음"}
+              </ThemedText>
               <ThemedText style={styles.profileGreeting}>
-                전북대학교 공과대학
+                {studentInfo?.data?.universityName ?? "대학교 정보 없음"} {studentInfo?.data?.collegeName ?? ""} {studentInfo?.data?.departmentName ?? ""}
               </ThemedText>
             </View>
             <TouchableOpacity style={styles.editButton}>

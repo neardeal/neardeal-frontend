@@ -140,7 +140,7 @@ export default function StudentVerificationPage() {
 
     try {
       await sendEmailMutation.mutateAsync({
-        data: { email }
+        data: { email, universityId }
       });
       setIsCodeSent(true);
       setTimer(300);
@@ -211,8 +211,21 @@ export default function StudentVerificationPage() {
               })();
               const role = (jwtPayload?.role as UserType) ?? "ROLE_STUDENT";
               await saveUserCollegeId(selectedCollegeId!);
+
+              // Store에 회원가입 정보 저장 (sign-up-done 화면에서 표시하기 위함)
+              setSignupFields({
+                universityId,
+                universityName: "전북대학교",
+                collegeId: selectedCollegeId,
+                collegeName: selectedCollegeName,
+                departmentId: selectedDepartmentId,
+                departmentName: selectedDepartmentName,
+                studentEmail: email,
+                username: "소셜 로그인", // sign-up-done에서 소셜 로그인 여부 판단용
+              });
+
               await handleAuthSuccess(accessToken, expiresIn ?? 3600, role);
-              router.replace("/(student)/(tabs)");
+              router.push("/auth/sign-up-done");
             } else {
               Alert.alert("오류", "회원가입 처리 중 문제가 발생했습니다.");
             }
