@@ -111,9 +111,8 @@ export default function StoreScreen() {
   const deleteItemMutation = useDeleteItem();
 
   // (5) 카테고리 목록 조회
-  // [Backend Issue] 500 Internal Server Error (ByteBuddyInterceptor) - API disabled temporarily
-  // const { data: categoriesResponse, refetch: refetchCategories } = useGetItemCategories(myStoreId, { query: { enabled: !!myStoreId } });
-  const apiCategories = []; // categoriesResponse?.data?.data || [];
+  const { data: categoriesResponse, refetch: refetchCategories } = useGetItemCategories(myStoreId, { query: { enabled: !!myStoreId } });
+  const categories = categoriesResponse?.data?.data || [];
 
 
   // # State: UI Control
@@ -132,7 +131,7 @@ export default function StoreScreen() {
   });
 
   const initialHours = ['월', '화', '수', '목', '금', '토', '일'].map(day => ({
-    day, open: '10:00', close: '22:00', breakStart: '14:00', breakEnd: '17:30', isClosed: false
+    day, open: '10:00', close: '22:00', breakStart: '15:00', breakEnd: '17:00', isClosed: false
   }));
   const [operatingHours, setOperatingHours] = useState(initialHours);
 
@@ -143,34 +142,120 @@ export default function StoreScreen() {
   const [isPaused, setIsPaused] = useState(false);
 
   // # State: Menu Management
-  // [Backend Issue] Fallback to hardcoded categories
-  const [menuCategories, setMenuCategories] = useState([]); // Initialized as empty
+  // Dynamic categories from API (`categories` variable above) used instead of local state
+  // const [menuCategories, setMenuCategories] = useState([]); // Removed local state
+
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const [isAddingCategory, setIsAddingCategory] = useState(false); // 카테고리 추가 입력 모드
   const [newCategoryName, setNewCategoryName] = useState(''); // 새 카테고리 이름 입력
 
-  // 선택된 카테고리가 목록에 없으면 첫번째로 리셋
-  useEffect(() => {
-    if (menuCategories.length > 0 && !menuCategories.includes(selectedCategory)) {
-      setSelectedCategory(menuCategories[0]);
-    }
-  }, [menuCategories]);
+  // Selected Category ID for Tab Filtering
+  const [selectedCategoryId, setSelectedCategoryId] = useState(null);
 
-  // Helper to find category ID (since API is limited)
-  const findCategoryId = (name) => {
-    // 1. Try to find in existing menu items
-    const foundItem = menuListArray.find(item => item.category === name || item.category?.name === name);
-    if (foundItem) {
-      return foundItem.itemCategoryId || foundItem.categoryId || 1;
+  // Initial Selection Effect
+  useEffect(() => {
+    if (categories.length > 0) {
+      // If no selection or invalid selection, select the first one
+      const isValid = categories.some(c => c.id === selectedCategoryId);
+      if (!selectedCategoryId || !isValid) {
+        setSelectedCategoryId(categories[0].id);
+      }
     }
-    // 2. Fallback to known defaults (Hardcoded assumptions if empty)
-    const defaults = { '메인메뉴': 1, '사이드': 2, '음료/주류': 3, '세트메뉴': 4 };
-    return defaults[name] || 1;
+  }, [categories, selectedCategoryId]);
+
+  // Mutations for Category
+  const createCategoryMutation = useCreateItemCategory();
+  const deleteCategoryMutation = useDeleteItemCategory();
+
+  // Handle Create Category
+  const handleCreateCategory = () => {
+    if (!newCategoryName.trim()) return;
+    createCategoryMutation.mutate(
+      { storeId: myStoreId, data: { name: newCategoryName.trim() } },
+      {
+        onSuccess: () => {
+          refetchCategories();
+          setNewCategoryName('');
+          setIsAddingCategory(false);
+          // Alert.alert("성공", "카테고리가 추가되었습니다.");
+        },
+        onError: (err) => {
+          console.error(err);
+          Alert.alert("실패", "카테고리 추가에 실패했습니다.");
+        }
+      }
+    );
   };
 
-  const CATEGORY_ID_MAP = { 1: '메인메뉴', 2: '사이드', 3: '음료/주류', 4: '세트메뉴' };
+  // Handle Delete Category
+  const handleDeleteCategory = (categoryToDelete) => {
+    // Check if items exist in this category
+    const hasItems = menuListArray && menuListArray.some(item => item.categoryId === categoryToDelete.id);
 
-  const [selectedCategory, setSelectedCategory] = useState('메인메뉴');
+    if (hasItems) {
+      Alert.alert(
+        "카테고리 삭제",
+        `'${categoryToDelete.name}' (해당 카테고리)에 있는 메뉴가 모두 삭제됩니다. 삭제하시겠습니까?`,
+        [
+          { text: "취소", style: "cancel" },
+          {
+            text: "삭제",
+            style: "destructive",
+            onPress: () => confirmDeleteCategory(categoryToDelete.id)
+          }
+        ]
+      );
+    } else {
+      Alert.alert(
+        "카테고리 삭제",
+        `'${categoryToDelete.name}' 카테고리를 삭제하시겠습니까?`,
+        [
+          { text: "취소", style: "cancel" },
+          {
+            text: "삭제",
+            style: "destructive",
+            onPress: () => confirmDeleteCategory(categoryToDelete.id)
+          }
+        ]
+      );
+    }
+  };
+
+  const confirmDeleteCategory = (categoryId) => {
+    deleteCategoryMutation.mutate(
+      { storeId: myStoreId, categoryId: categoryId },
+      {
+        onSuccess: () => {
+          refetchCategories();
+          refetchItems(); // Items might be deleted cascades
+          // If selected was deleted, effect will reset selection
+        },
+        onError: (err) => {
+          console.error(err);
+          Alert.alert("실패", "카테고리 삭제에 실패했습니다.");
+        }
+      }
+    );
+  };
+
+  /*
+  const confirmDeleteCategory = (categoryId) => {
+    deleteCategoryMutation.mutate(
+      { storeId: myStoreId, categoryId: categoryId },
+      {
+        onSuccess: () => {
+          refetchCategories();
+          refetchItems(); // Items might be deleted cascades
+          // If selected was deleted, effect will reset selection
+        },
+        onError: (err) => {
+            console.error(err);
+            Alert.alert("실패", "카테고리 삭제에 실패했습니다.");
+        }
+      }
+    );
+  };
+  */
 
   const [categoryModalVisible, setCategoryModalVisible] = useState(false);
 
@@ -367,13 +452,10 @@ export default function StoreScreen() {
       badge: item.badge || null,
       badge: item.badge || null,
       image: item.imageUrl || null,
-      categoryId: item.itemCategoryId || item.categoryId || 1, // Preserve Category ID (Fallback to 1)
-      // Force category name based on ID if standard, otherwise use returned category
-      get category() {
-        return CATEGORY_ID_MAP[this.categoryId] || (item.category || '메인메뉴');
-      }
+      image: item.imageUrl || null,
+      categoryId: item.itemCategoryId || item.categoryId || 1, // Ensure Valid ID
     }))
-    .filter(item => item.category === selectedCategory);
+    .filter(item => item.categoryId === selectedCategoryId);
 
 
   // =================================================================
@@ -856,62 +938,18 @@ export default function StoreScreen() {
     return days;
   };
 
-  const handleDeleteCategory = (categoryToDelete) => {
-    // Check if there are items in this category
-    const hasItems = menuListArray && menuListArray.some(item => item.category === categoryToDelete);
 
-    if (hasItems) {
-      Alert.alert(
-        "카테고리 삭제",
-        `'${categoryToDelete}' (해당 카테고리)에 있는 메뉴가 모두 삭제됩니다. 삭제하시겠습니까?`,
-        [
-          { text: "취소", style: "cancel" },
-          {
-            text: "삭제",
-            style: "destructive",
-            onPress: () => {
-              // Logic to delete or hide items would go here. 
-              // For now, we remove the category, effectively hiding the items from the filtered view.
-              const newCategories = menuCategories.filter(c => c !== categoryToDelete);
-              setMenuCategories(newCategories);
-              if (selectedCategory === categoryToDelete) {
-                setSelectedCategory(newCategories.length > 0 ? newCategories[0] : '');
-              }
-            }
-          }
-        ]
-      );
-    } else {
-      Alert.alert(
-        "카테고리 삭제",
-        `'${categoryToDelete}' 카테고리를 삭제하시겠습니까?`,
-        [
-          { text: "취소", style: "cancel" },
-          {
-            text: "삭제",
-            style: "destructive",
-            onPress: () => {
-              const newCategories = menuCategories.filter(c => c !== categoryToDelete);
-              setMenuCategories(newCategories);
-              if (selectedCategory === categoryToDelete) {
-                setSelectedCategory(newCategories.length > 0 ? newCategories[0] : '');
-              }
-            }
-          }
-        ]
-      );
-    }
-  };
 
   // # Menu Modal Logic
   const openAddMenuModal = () => {
     setIsEditMode(false);
     setTargetItemId(null);
     setMenuForm({
-      name: '', price: '', desc: '', category: selectedCategory,
+      name: '', price: '', desc: '',
+      category: '', // Name is redundant but kept for form compatibility if needed
       isRepresentative: false, badge: null, isSoldOut: false, isHidden: false,
       image: null,
-      categoryId: findCategoryId(selectedCategory) // Dynamically find ID
+      categoryId: selectedCategoryId || (categories[0]?.id) // Use selected or first category
     });
     setIsCategoryDropdownOpen(false);
     setMenuModalVisible(true);
@@ -1145,11 +1183,15 @@ export default function StoreScreen() {
             /* ==================== 메뉴 관리 탭 ==================== */
             <View style={{ flex: 1 }}>
               <View style={styles.categoryScrollContainer}>
-                <View style={{ flex: 1 }}>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ alignItems: 'center', paddingRight: rs(10) }}>
-                    {menuCategories.map((category, index) => (
-                      <TouchableOpacity key={index} style={[styles.categoryTab, selectedCategory === category ? styles.categoryTabSelected : styles.categoryTabUnselected]} onPress={() => setSelectedCategory(category)}>
-                        <Text style={[styles.categoryText, selectedCategory === category ? styles.categoryTextSelected : styles.categoryTextUnselected]}>{category}</Text>
+                <View style={[styles.categoryTabsContainer, { flex: 1 }]}>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingRight: rs(20) }}>
+                    {categories.map((category) => (
+                      <TouchableOpacity
+                        key={category.id}
+                        style={[styles.categoryTab, selectedCategoryId === category.id ? styles.categoryTabSelected : styles.categoryTabUnselected]}
+                        onPress={() => setSelectedCategoryId(category.id)}
+                      >
+                        <Text style={[styles.categoryText, selectedCategoryId === category.id ? styles.categoryTextSelected : styles.categoryTextUnselected]}>{category.name}</Text>
                       </TouchableOpacity>
                     ))}
                   </ScrollView>
@@ -1228,7 +1270,7 @@ export default function StoreScreen() {
                 <TouchableOpacity style={styles.catModalOverlay} activeOpacity={1} onPress={() => setCategoryModalVisible(false)}>
                   <View style={[styles.catModalContent, { width: '80%', maxHeight: rs(400) }]}>
                     <ScrollView style={{ maxHeight: rs(300) }} nestedScrollEnabled={true}>
-                      {menuCategories.map((cat, idx) => (
+                      {categories.map((cat, idx) => (
                         <View
                           key={idx}
                           style={{
@@ -1248,17 +1290,17 @@ export default function StoreScreen() {
                               alignItems: 'center',
                               paddingHorizontal: rs(12),
                               paddingVertical: rs(10),
-                              backgroundColor: selectedCategory === cat ? '#F6A823' : 'transparent',
+                              backgroundColor: selectedCategoryId === cat.id ? '#F6A823' : 'transparent',
                               borderRadius: rs(8)
                             }}
                             onPress={() => {
-                              setSelectedCategory(cat);
+                              setSelectedCategoryId(cat.id);
                               setCategoryModalVisible(false);
                             }}
                           >
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: rs(8) }}>
-                              {selectedCategory === cat && <Ionicons name="checkmark" size={rs(14)} color="white" />}
-                              <Text style={[styles.dropdownItemText, selectedCategory === cat && styles.dropdownItemTextChecked]}>{cat}</Text>
+                              {selectedCategoryId === cat.id && <Ionicons name="checkmark" size={rs(14)} color="white" />}
+                              <Text style={[styles.dropdownItemText, selectedCategoryId === cat.id && styles.dropdownItemTextChecked]}>{cat.name}</Text>
                             </View>
                           </TouchableOpacity>
 
@@ -1283,13 +1325,7 @@ export default function StoreScreen() {
                               onChangeText={setNewCategoryName}
                               maxLength={20}
                               autoFocus={true}
-                              onSubmitEditing={() => {
-                                if (newCategoryName.trim()) {
-                                  setMenuCategories([...menuCategories, newCategoryName.trim()]);
-                                  setNewCategoryName('');
-                                  setIsAddingCategory(false);
-                                }
-                              }}
+                              onSubmitEditing={handleCreateCategory}
                             />
                             <Text style={styles.charCount}>{newCategoryName.length}/20</Text>
                           </View>
@@ -1390,32 +1426,34 @@ export default function StoreScreen() {
                       onPress={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
                       activeOpacity={0.8}
                     >
-                      <Text style={styles.dropdownText}>{menuForm.category}</Text>
+                      <Text style={styles.dropdownText}>
+                        {categories.find(c => c.id === menuForm.categoryId)?.name || '카테고리 선택'}
+                      </Text>
                       <Ionicons name={isCategoryDropdownOpen ? "caret-up" : "caret-down"} size={rs(10)} color="#333" />
                     </TouchableOpacity>
 
+                    {/* 드롭다운 리스트 */}
                     {isCategoryDropdownOpen && (
                       <View style={styles.dropdownList}>
-                        {menuCategories.length > 0 ? (
+                        {categories.length > 0 ? (
                           <>
                             <ScrollView style={{ maxHeight: rs(200) }} nestedScrollEnabled={true}>
-                              {menuCategories.map((cat, idx) => (
+                              {categories.map((cat, idx) => (
                                 <TouchableOpacity
                                   key={idx}
                                   style={[
                                     styles.dropdownItem,
-                                    menuForm.category === cat && styles.dropdownItemChecked,
+                                    menuForm.categoryId === cat.id && styles.dropdownItemChecked,
                                     { borderRadius: rs(8), marginVertical: rs(2), marginHorizontal: rs(8) }
                                   ]}
                                   onPress={() => {
-                                    const newId = findCategoryId(cat);
-                                    setMenuForm({ ...menuForm, category: cat, categoryId: newId });
-                                    // setIsCategoryDropdownOpen(false); // Keep open as requested
+                                    setMenuForm({ ...menuForm, category: cat.name, categoryId: cat.id });
+                                    setIsCategoryDropdownOpen(false);
                                   }}
                                 >
                                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: rs(8) }}>
-                                    {menuForm.category === cat && <Ionicons name="checkmark" size={rs(14)} color="white" />}
-                                    <Text style={[styles.dropdownItemText, menuForm.category === cat && styles.dropdownItemTextChecked]}>{cat}</Text>
+                                    {menuForm.categoryId === cat.id && <Ionicons name="checkmark" size={rs(14)} color="white" />}
+                                    <Text style={[styles.dropdownItemText, menuForm.categoryId === cat.id && styles.dropdownItemTextChecked]}>{cat.name}</Text>
                                   </View>
                                   {/* 삭제 버튼 등 추가 가능 */}
                                 </TouchableOpacity>
@@ -1432,13 +1470,7 @@ export default function StoreScreen() {
                                       onChangeText={setNewCategoryName}
                                       maxLength={20}
                                       autoFocus={true}
-                                      onSubmitEditing={() => {
-                                        if (newCategoryName.trim()) {
-                                          setMenuCategories([...menuCategories, newCategoryName.trim()]);
-                                          setNewCategoryName('');
-                                          setIsAddingCategory(false);
-                                        }
-                                      }}
+                                      onSubmitEditing={handleCreateCategory}
                                     />
                                     <Text style={styles.charCount}>{newCategoryName.length}/20</Text>
                                   </View>

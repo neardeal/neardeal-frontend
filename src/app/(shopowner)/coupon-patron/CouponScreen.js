@@ -494,7 +494,7 @@ export default function CouponScreen({ navigation, route }) {
                                             <Text style={styles.progressLabel}>사용 수량</Text>
                                             <Text style={styles.progressValue}>
                                                 {coupon.total === -1
-                                                    ? `${coupon.used}장 사용됨`
+                                                    ? `${coupon.used}/무제한`
                                                     : `${coupon.used} / ${coupon.total}장`}
                                             </Text>
                                         </View>
