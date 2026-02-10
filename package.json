@@ -9,7 +9,7 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "generate": "node scripts/patch-openapi.js && npx orval && node scripts/patch-generated.js",
-    "eas-install": "npm ci --include=dev",
+    "eas-install": "npm install --include=dev",
     "prebuild": "npm run eas-install"
   },
   "dependencies": {
