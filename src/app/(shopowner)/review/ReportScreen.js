@@ -7,13 +7,13 @@ import { useReportReview } from '@/src/api/review';
 
 // UI 라벨 → API reason enum 매핑
 const REASON_MAP = {
-  '근거 없이 악의적인 내용': 'SPAM',
+  '근거 없이 악의적인 내용': 'MALICIOUS_SLANDER',
   '음란성 또는 욕설 등 부적절한 내용': 'INAPPROPRIATE_CONTENT',
-  '명예훼손 및 저작권 침해': 'INAPPROPRIATE_CONTENT',
+  '명예훼손 및 저작권 침해': 'RIGHTS_VIOLATION',
   '다른 매장 리뷰': 'IRRELEVANT',
-  '초상권 침해 또는 개인정보 노출': 'INAPPROPRIATE_CONTENT',
-  '서비스나 메뉴 등 대가를 목적으로 작성된 리뷰': 'SPAM',
-  '리뷰 작성 대행업체를 통해 게제된 허위 리뷰': 'SPAM',
+  '초상권 침해 또는 개인정보 노출': 'PRIVACY_INFRINGEMENT',
+  '서비스나 메뉴 등 대가를 목적으로 작성된 리뷰': 'COMMERCIAL_PROMOTION',
+  '리뷰 작성 대행업체를 통해 게제된 허위 리뷰': 'FRAUDULENT_REVIEW',
   '기타': 'OTHER',
 };
 
