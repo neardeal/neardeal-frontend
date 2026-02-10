@@ -13,10 +13,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   newArchEnabled: true,
   ios: {
     supportsTablet: true,
-    bundleIdentifier: "kr.looky.app",
+    bundleIdentifier: "kr.looky.looky",
   },
   android: {
-    package: "kr.looky.app",
+    package: "kr.looky.looky",
     adaptiveIcon: {
       backgroundColor: "#E6F4FE",
       foregroundImage: "./assets/images/android-icon-foreground.png",
