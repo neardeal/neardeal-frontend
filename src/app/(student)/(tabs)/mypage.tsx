@@ -4,13 +4,14 @@ import { useGetStudentInfo } from "@/src/api/my-page";
 import { useGetMyReviews } from "@/src/api/review";
 import { ThemedText } from "@/src/shared/common/themed-text";
 import { useAuth } from "@/src/shared/lib/auth";
+import { getUsername } from "@/src/shared/lib/auth/token";
 import { rs } from "@/src/shared/theme/scale";
 import { Fonts, Gray, Owner, Primary, System, Text as TextColor } from "@/src/shared/theme/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
   ScrollView,
@@ -62,6 +63,11 @@ export default function MyPageTab() {
   const { data: favoritesRes } = useGetMyFavorites({ pageable: { page: 0, size: 100 } });
   const { data: myReviewsRes } = useGetMyReviews({ pageable: { page: 0, size: 100 } });
   const { data: studentInfo } = useGetStudentInfo();
+
+  const [username, setUsername] = useState<string | null>(null);
+  useEffect(() => {
+    getUsername().then(setUsername);
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -142,13 +148,13 @@ export default function MyPageTab() {
             </View>
             <View style={styles.profileTextColumn}>
               <ThemedText style={styles.profileName}>
-                {(studentInfo as any)?.data?.data?.nickname ?? "알 수 없음"}
+                {username ?? "알 수 없음"}
               </ThemedText>
               <ThemedText style={styles.profileGreeting}>
                 {(studentInfo as any)?.data?.data?.universityName ?? "대학교 정보 없음"} {(studentInfo as any)?.data?.data?.collegeName ?? ""} {(studentInfo as any)?.data?.data?.departmentName ?? ""}
               </ThemedText>
             </View>
-            <TouchableOpacity style={styles.editButton}>
+            <TouchableOpacity style={styles.editButton} onPress={() => router.push('/mypage/profile-edit')}>
               <ThemedText style={styles.editButtonText}>수정</ThemedText>
             </TouchableOpacity>
           </View>
