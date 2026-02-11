@@ -426,6 +426,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: rs(16),
     height: rs(44),
     justifyContent: "center",
+    alignItems: "flex-start",
     backgroundColor: Gray.white,
   },
   bannerPadding: {
