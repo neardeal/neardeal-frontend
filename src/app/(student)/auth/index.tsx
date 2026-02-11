@@ -72,8 +72,8 @@ export default function SignInPage() {
           style={styles.universityButton}
           onPress={() => router.push("/auth/sign-in")}
         >
-          <SignupIcons.graduation width={20} height={20} />
-          <Text style={styles.universityButtonText}>니어딜 시작하기</Text>
+          <SignupIcons.clover width={20} height={20} />
+          <Text style={styles.universityButtonText}>루키 시작하기</Text>
         </Pressable>
 
         {/* Divider */}
@@ -85,7 +85,7 @@ export default function SignInPage() {
 
         {/* Social Buttons */}
         <Pressable
-          style={[styles.socialButton, isLoading && styles.disabledButton]}
+          style={[styles.socialButton, styles.kakaoButton, isLoading && styles.disabledButton]}
           onPress={handleKakaoLogin}
           disabled={isLoading}
         >
@@ -94,7 +94,7 @@ export default function SignInPage() {
         </Pressable>
 
         <Pressable
-          style={[styles.socialButton, isLoading && styles.disabledButton]}
+          style={[styles.socialButton, styles.googleButton, isLoading && styles.disabledButton]}
           onPress={handleGoogleLogin}
           disabled={isLoading}
         >
@@ -103,7 +103,7 @@ export default function SignInPage() {
         </Pressable>
 
         <Pressable 
-          style={styles.socialButton}
+          style={[styles.socialButton, styles.appleButton]}
           onPress={appleLogin}
         >
           <SignupIcons.apple width={20} height={20} />
@@ -210,6 +210,17 @@ const styles = StyleSheet.create({
   termsLink: {
     color: "#000000",
     fontWeight: "600",
+  },
+  kakaoButton: {
+    backgroundColor: "#FEE500",
+  },
+  googleButton: {
+    backgroundColor: "#F2F2F2",
+  },
+  appleButton: {
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#DCDCDC",
   },
   disabledButton: {
     opacity: 0.5,

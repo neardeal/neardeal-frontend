@@ -12,7 +12,7 @@ import { useSignupStore } from "@/src/shared/stores/signup-store";
 import { rs } from "@/src/shared/theme/scale";
 import { Brand, Gray, Text as TextColors } from "@/src/shared/theme/theme";
 import { useRouter } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   ScrollView,
@@ -23,7 +23,7 @@ import {
 } from "react-native";
 
 import { SafeAreaView } from "react-native-safe-area-context";
-import Svg, { Path } from "react-native-svg";
+import Svg, { Circle, Path } from "react-native-svg";
 
 // 드롭다운 화살표 아이콘
 function ChevronDownIcon({ color = Gray.gray6 }: { color?: string }) {
@@ -37,6 +37,36 @@ function ChevronDownIcon({ color = Gray.gray6 }: { color?: string }) {
         strokeLinejoin="round"
       />
     </Svg>
+  );
+}
+
+// 라디오 버튼 컴포넌트
+function RadioButton({
+  selected,
+  label,
+  onPress,
+  activeColor = Brand.primary,
+}: {
+  selected: boolean;
+  label: string;
+  onPress: () => void;
+  activeColor?: string;
+}) {
+  return (
+    <TouchableOpacity style={styles.radioButton} onPress={onPress}>
+      <Svg width={rs(20)} height={rs(20)} viewBox="0 0 20 20">
+        <Circle
+          cx="10"
+          cy="10"
+          r="9"
+          stroke={selected ? activeColor : Gray.gray5}
+          strokeWidth="1.5"
+          fill="none"
+        />
+        {selected && <Circle cx="10" cy="10" r="5" fill={activeColor} />}
+      </Svg>
+      <ThemedText style={styles.radioLabel}>{label}</ThemedText>
+    </TouchableOpacity>
   );
 }
 
@@ -77,6 +107,11 @@ export default function StudentVerificationPage() {
   const [timer, setTimer] = useState(295); // 4:55
   const [isEmailVerified, setIsEmailVerified] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
+  const [sendCodeMessage, setSendCodeMessage] = useState("");
+  const sendCodeMessageTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // 동아리 가입 여부
+  const [isClubMember, setIsClubMember] = useState<boolean | null>(null);
 
   // 단과대학/학과 선택 상태
   const [selectedCollegeId, setSelectedCollegeId] = useState<number | null>(null);
@@ -150,6 +185,25 @@ export default function StudentVerificationPage() {
     return () => clearInterval(interval);
   }, [resendCooldown]);
 
+  // 인라인 메시지 30초 후 자동 제거
+  const showSendCodeMessage = useCallback((message: string) => {
+    if (sendCodeMessageTimerRef.current) {
+      clearTimeout(sendCodeMessageTimerRef.current);
+    }
+    setSendCodeMessage(message);
+    sendCodeMessageTimerRef.current = setTimeout(() => {
+      setSendCodeMessage("");
+    }, 30000);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (sendCodeMessageTimerRef.current) {
+        clearTimeout(sendCodeMessageTimerRef.current);
+      }
+    };
+  }, []);
+
   // 타이머 포맷 (MM:SS)
   const formatTimer = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -167,11 +221,11 @@ export default function StudentVerificationPage() {
       });
       setIsCodeSent(true);
       setTimer(300);
-      setResendCooldown(10);
-      Alert.alert("인증번호 발송", "이메일로 인증번호가 발송되었습니다.");
+      setResendCooldown(5);
+      showSendCodeMessage("인증번호가 발송되었습니다.");
     } catch (error: any) {
       console.error("이메일 발송 실패:", error);
-      Alert.alert("발송 실패", error?.message || "인증번호 발송에 실패했습니다.");
+      showSendCodeMessage(error?.message || "대학 이메일을 입력해주세요.");
     }
   };
 
@@ -187,10 +241,9 @@ export default function StudentVerificationPage() {
         }
       });
       setIsEmailVerified(true);
-      Alert.alert("인증 성공", "이메일 인증이 완료되었습니다.");
     } catch (error: any) {
       console.error("이메일 인증 실패:", error);
-      Alert.alert("인증 실패", error?.message || "인증번호가 일치하지 않습니다.");
+      showSendCodeMessage(error?.message || "인증번호가 일치하지 않습니다.");
     }
   };
 
@@ -199,7 +252,8 @@ export default function StudentVerificationPage() {
     selectedUniversityId !== null &&
     isEmailVerified &&
     selectedCollegeId !== null &&
-    selectedDepartmentId !== null;
+    selectedDepartmentId !== null &&
+    isClubMember !== null;
 
   // 완료 처리
   const handleComplete = () => {
@@ -221,6 +275,7 @@ export default function StudentVerificationPage() {
             universityId: selectedUniversityId,
             collegeId: selectedCollegeId,
             departmentId: selectedDepartmentId,
+            isClubMember: isClubMember ?? false,
           },
         },
         {
@@ -276,6 +331,7 @@ export default function StudentVerificationPage() {
           universityId: selectedUniversityId,
           collegeId: selectedCollegeId,
           departmentId: selectedDepartmentId,
+          isClubMember: isClubMember ?? false,
         },
       },
       {
@@ -391,16 +447,23 @@ export default function StudentVerificationPage() {
             <TouchableOpacity
               style={[
                 styles.smallButton,
-                { backgroundColor: email && !isEmailVerified && resendCooldown <= 0 ? Brand.primary : Gray.gray5 },
+                { backgroundColor: email && !isEmailVerified && resendCooldown <= 0 && !sendEmailMutation.isPending ? Brand.primary : Gray.gray5 },
               ]}
               onPress={handleSendCode}
-              disabled={!email || isEmailVerified || resendCooldown > 0}
+              disabled={!email || isEmailVerified || resendCooldown > 0 || sendEmailMutation.isPending}
             >
               <ThemedText style={styles.smallButtonText}>
-                {resendCooldown > 0 ? `재발송 (${resendCooldown}초)` : isCodeSent ? "인증번호 재발송" : "인증번호 받기"}
+                {sendEmailMutation.isPending ? "발송 중..." : resendCooldown > 0 ? `재발송 (${resendCooldown}초)` : isCodeSent ? "인증번호 재발송" : "인증번호 받기"}
               </ThemedText>
             </TouchableOpacity>
           </View>
+
+          {/* 인라인 발송 메시지 */}
+          {sendCodeMessage !== "" && (
+            <ThemedText style={styles.inlineMessage}>
+              {sendCodeMessage}
+            </ThemedText>
+          )}
 
           {/* 인증번호 입력 */}
           {isCodeSent && !isEmailVerified && (
@@ -485,6 +548,25 @@ export default function StudentVerificationPage() {
             </ThemedText>
             <ChevronDownIcon />
           </TouchableOpacity>
+        </View>
+
+        {/* 동아리 가입 여부 */}
+        <View style={styles.section}>
+          <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+            동아리 가입 여부
+          </ThemedText>
+          <View style={styles.radioGroup}>
+            <RadioButton
+              selected={isClubMember === true}
+              label="예"
+              onPress={() => setIsClubMember(true)}
+            />
+            <RadioButton
+              selected={isClubMember === false}
+              label="아니오"
+              onPress={() => setIsClubMember(false)}
+            />
+          </View>
         </View>
       </ScrollView>
 
@@ -633,6 +715,24 @@ const styles = StyleSheet.create({
   },
   selectFieldPlaceholder: {
     color: TextColors.placeholder,
+  },
+  radioGroup: {
+    flexDirection: "row",
+    gap: rs(24),
+  },
+  radioButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: rs(8),
+  },
+  radioLabel: {
+    fontSize: rs(14),
+    color: TextColors.primary,
+  },
+  inlineMessage: {
+    fontSize: rs(12),
+    color: TextColors.secondary,
+    paddingLeft: rs(4),
   },
   successMessage: {
     paddingVertical: rs(8),
