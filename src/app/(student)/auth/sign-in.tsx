@@ -2,7 +2,6 @@ import NearDealLogo from "@/assets/images/logo/neardeal-logo.svg";
 import { useLogin } from "@/src/api/auth";
 import { ArrowLeft } from "@/src/shared/common/arrow-left";
 import { useAuth } from "@/src/shared/lib/auth";
-import { saveUsername } from "@/src/shared/lib/auth/token";
 import { rs } from "@/src/shared/theme/scale";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -86,7 +85,6 @@ export default function LoginPage() {
             console.log("[Login] Role from JWT:", role);
 
             await handleAuthSuccess(accessToken, expiresIn ?? 3600, role);
-            await saveUsername(username);
             console.log("[Login] handleAuthSuccess completed - token should be stored");
 
             router.replace("/(student)/(tabs)");
