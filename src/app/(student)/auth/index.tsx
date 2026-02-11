@@ -11,7 +11,7 @@ import { useSocialLogin } from "@/src/shared/lib/auth/use-social-login";
 
 export default function SignInPage() {
   const router = useRouter();
-  const { loginWithGoogle, loginWithKakao, isLoading } = useSocialLogin();
+  const { loginWithGoogle, loginWithKakao, loginWithApple, isLoading, loadingProvider } = useSocialLogin();
 
   const handleGoogleLogin = async () => {
     const result = await loginWithGoogle();
@@ -47,10 +47,21 @@ export default function SignInPage() {
     }
   };
 
-  // 임시
-  const appleLogin = () => {
-    router.replace("/(student)/(tabs)")
-  }
+  const handleAppleLogin = async () => {
+    const result = await loginWithApple();
+    if (result.success) {
+      if (result.needsSignup && result.userId != null) {
+        router.push({
+          pathname: "/auth/sign-up-social-form",
+          params: { userId: result.userId, provider: "apple" },
+        });
+      } else {
+        router.replace("/(student)/(tabs)");
+      }
+    } else if (result.error !== "cancelled") {
+      Alert.alert("로그인 실패", result.error || "다시 시도해주세요.");
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
@@ -85,7 +96,7 @@ export default function SignInPage() {
 
         {/* Social Buttons */}
         <Pressable
-          style={[styles.socialButton, styles.kakaoButton, isLoading && styles.disabledButton]}
+          style={[styles.socialButton, styles.kakaoButton, loadingProvider === "kakao" && styles.disabledButton]}
           onPress={handleKakaoLogin}
           disabled={isLoading}
         >
@@ -94,7 +105,7 @@ export default function SignInPage() {
         </Pressable>
 
         <Pressable
-          style={[styles.socialButton, styles.googleButton, isLoading && styles.disabledButton]}
+          style={[styles.socialButton, styles.googleButton, loadingProvider === "google" && styles.disabledButton]}
           onPress={handleGoogleLogin}
           disabled={isLoading}
         >
@@ -102,12 +113,13 @@ export default function SignInPage() {
           <Text style={styles.socialButtonText}>Google로 시작하기</Text>
         </Pressable>
 
-        <Pressable 
-          style={[styles.socialButton, styles.appleButton]}
-          onPress={appleLogin}
+        <Pressable
+          style={[styles.socialButton, styles.appleButton, loadingProvider === "apple" && styles.disabledButton]}
+          onPress={handleAppleLogin}
+          disabled={isLoading}
         >
           <SignupIcons.apple width={20} height={20} />
-          <Text style={styles.socialButtonText}>Apple로 시작하기(메인화면으로-임시)</Text>
+          <Text style={styles.socialButtonText}>Apple로 시작하기</Text>
         </Pressable>
 
         {/* Terms Text */}
