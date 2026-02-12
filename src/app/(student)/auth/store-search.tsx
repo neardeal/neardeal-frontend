@@ -1,4 +1,4 @@
-import { customFetch } from "@/src/api/mutator";
+import { searchUnclaimedStores } from "@/src/api/store-claim";
 import { ArrowLeft } from "@/src/shared/common/arrow-left";
 import { ThemedText } from "@/src/shared/common/themed-text";
 import { useSignupStore } from "@/src/shared/stores/signup-store";
@@ -24,17 +24,9 @@ interface StoreItem {
 }
 
 async function searchStores(keyword: string): Promise<StoreItem[]> {
-  const qs = new URLSearchParams();
-  qs.append("keyword", keyword);
-  qs.append("page", "0");
-  qs.append("size", "20");
-
-  const res = await customFetch<{
-    data: { data?: { content?: StoreItem[] } };
-    status: number;
-  }>(`/api/stores?${qs.toString()}`, { method: "GET" });
-
-  return res.data?.data?.content ?? [];
+  const res = await searchUnclaimedStores({ keyword });
+  const data = (res as any).data;
+  return data?.data ?? [];
 }
 
 export default function StoreSearchPage() {
