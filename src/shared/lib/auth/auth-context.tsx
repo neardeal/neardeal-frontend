@@ -8,7 +8,7 @@ import {
 } from "react";
 import { Alert } from "react-native";
 import { useRouter } from "expo-router";
-import { clearToken, getCollegeId, getUserType, isTokenValid, saveCollegeId, saveToken, UserType } from "./token";
+import { clearToken, getCollegeId, getUserType, isTokenValid, saveCollegeId, saveToken, UserType, getCredentials, clearCredentials } from "./token";
 import { authEvents } from "./auth-events";
 
 interface AuthState {
@@ -47,12 +47,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })();
   }, []);
 
-  // ✅ 이벤트 리스너: 토큰 리프레시 실패 → 자동 로그아웃
+  // ✅ 이벤트 리스너: 토큰 리프레시 실패 → 자동 재로그인 시도 후 실패 시 로그아웃
   useEffect(() => {
     const handleRefreshFailed = async (payload: { reason?: string }) => {
-      console.log("[AuthContext] Token refresh failed, logging out...", payload);
+      console.log("[AuthContext] Token refresh failed, trying auto-login...", payload);
 
+      const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:4010";
+      const credentials = await getCredentials();
+
+      if (credentials) {
+        try {
+          const res = await fetch(`${BASE_URL}/api/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username: credentials.username, password: credentials.password }),
+            credentials: "include",
+          });
+          const body = await res.text();
+          const data = JSON.parse(body);
+
+          if (res.status === 200 && data.data?.accessToken) {
+            const { accessToken, expiresIn } = data.data;
+            let role: UserType = "ROLE_CUSTOMER";
+            try {
+              const payload = JSON.parse(atob(accessToken.split(".")[1]));
+              if (payload?.role) role = payload.role as UserType;
+            } catch {}
+
+            await saveToken(accessToken, expiresIn ?? 3600, role);
+            const collegeId = await getCollegeId();
+            setState({ isAuthenticated: true, isLoading: false, userType: role, collegeId });
+            console.log("[AuthContext] Auto-login succeeded");
+            return;
+          }
+        } catch (e) {
+          console.log("[AuthContext] Auto-login failed:", e);
+        }
+      }
+
+      // 자동 재로그인 실패 → 자격증명 삭제 후 로그아웃
       await clearToken();
+      await clearCredentials();
       setState({
         isAuthenticated: false,
         isLoading: false,
@@ -87,6 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const handleLogout = useCallback(async () => {
     await clearToken();
+    await clearCredentials();
     setState({ isAuthenticated: false, isLoading: false, userType: null, collegeId: null });
   }, []);
 

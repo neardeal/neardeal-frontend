@@ -113,8 +113,8 @@ export async function customFetch<T>(
   try {
     let res = await fetch(fullUrl, { ...options, headers });
 
-    // 401 Unauthorized → 토큰 리프레시 시도 (public 엔드포인트도 서버가 인증 요구할 수 있으므로 시도)
-    if (res.status === 401 && !url.includes("/refresh")) {
+    // 401 Unauthorized → 토큰 리프레시 시도 (public 엔드포인트 제외)
+    if (res.status === 401 && !url.includes("/refresh") && !isPublic) {
       if (!refreshPromise) {
         refreshPromise = refreshAccessToken().finally(() => {
           refreshPromise = null;

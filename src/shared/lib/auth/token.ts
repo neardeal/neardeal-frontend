@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
 
 const ACCESS_TOKEN_KEY = "auth_access_token";
 const EXPIRES_AT_KEY = "auth_expires_at";
@@ -61,6 +62,24 @@ export async function saveUsername(username: string): Promise<void> {
 
 export async function getUsername(): Promise<string | null> {
   return await AsyncStorage.getItem(USERNAME_KEY);
+}
+
+export async function saveCredentials(username: string, password: string): Promise<void> {
+  await SecureStore.setItemAsync("auth_credentials", JSON.stringify({ username, password }));
+}
+
+export async function getCredentials(): Promise<{ username: string; password: string } | null> {
+  const raw = await SecureStore.getItemAsync("auth_credentials");
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+export async function clearCredentials(): Promise<void> {
+  await SecureStore.deleteItemAsync("auth_credentials");
 }
 
 export async function clearToken(): Promise<void> {
