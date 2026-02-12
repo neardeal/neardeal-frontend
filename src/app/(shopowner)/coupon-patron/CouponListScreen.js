@@ -18,7 +18,7 @@ import {
 } from 'react-native';
 
 // [API] 함수 임포트
-import { getCouponsByStore } from '@/src/api/coupon';
+import { expireCoupon, getCouponsByStore } from '@/src/api/coupon';
 import { getMyStores } from '@/src/api/store';
 
 const { width } = Dimensions.get('window');
@@ -80,6 +80,12 @@ export default function CouponListScreen({ navigation, route }) {
     const [allCoupons, setAllCoupons] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
+    // [UI 상태]
+    const [menuVisibleId, setMenuVisibleId] = useState(null); // 어떤 쿠폰의 메뉴가 보이는지
+    const [confirmModalVisible, setConfirmModalVisible] = useState(false);
+    const [selectedCouponId, setSelectedCouponId] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
     // [API] 데이터 로딩
     const fetchData = async () => {
         try {
@@ -121,6 +127,7 @@ export default function CouponListScreen({ navigation, route }) {
                     issuedCount: coupon.issuedCount || 0,
                     usedCount: coupon.usedCount || 0,
                     validDays: coupon.validDays,
+                    status: coupon.status, // 상태 추가
                 };
             });
 
@@ -137,8 +144,33 @@ export default function CouponListScreen({ navigation, route }) {
     useFocusEffect(
         useCallback(() => {
             fetchData();
+            setMenuVisibleId(null);
         }, [])
     );
+
+    // 쿠폰 종료 처리
+    const handleExpireCoupon = async () => {
+        if (!selectedCouponId) return;
+
+        try {
+            setIsSubmitting(true);
+            const res = await expireCoupon(selectedCouponId);
+
+            if (res.status === 200) {
+                setConfirmModalVisible(false);
+                setSelectedCouponId(null);
+                fetchData(); // 종료 후 데이터 새로고침
+                setMenuVisibleId(null);
+            } else {
+                alert("쿠폰 종료 처리에 실패했습니다.");
+            }
+        } catch (error) {
+            console.error("쿠폰 종료 오류:", error);
+            alert("오류가 발생했습니다 다시 시도해주세요.");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     // [로직] 데이터 필터링 (탭 + 상단 필터)
     const getFilteredCoupons = () => {
@@ -147,10 +179,11 @@ export default function CouponListScreen({ navigation, route }) {
         // 1차 필터: 탭 (진행중 vs 종료)
         let filtered = allCoupons.filter(coupon => {
             const expireDate = new Date(coupon.expiredAt);
+            const isTerminated = coupon.status === 'EXPIRED' || expireDate < now;
             if (activeTab === 'active') {
-                return expireDate >= now;
+                return !isTerminated;
             } else {
-                return expireDate < now;
+                return isTerminated;
             }
         });
 
@@ -300,6 +333,34 @@ export default function CouponListScreen({ navigation, route }) {
                                                     item.type === 'percent' ? `${item.discountValue}% 할인` :
                                                         `${item.discountValue || '서비스'} 증정`}
                                             </Text>
+
+                                            {/* (...) 메뉴 버튼 (진행중 탭에서만 노출) */}
+                                            {activeTab === 'active' && (
+                                                <View style={{ position: 'relative' }}>
+                                                    <TouchableOpacity
+                                                        onPress={() => setMenuVisibleId(menuVisibleId === item.id ? null : item.id)}
+                                                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                                                    >
+                                                        <Ionicons name="ellipsis-vertical" size={rs(16)} color="#828282" />
+                                                    </TouchableOpacity>
+
+                                                    {/* 컨텍스트 메뉴 */}
+                                                    {menuVisibleId === item.id && (
+                                                        <View style={styles.contextMenu}>
+                                                            <TouchableOpacity
+                                                                style={styles.menuItem}
+                                                                onPress={() => {
+                                                                    setSelectedCouponId(item.id);
+                                                                    setConfirmModalVisible(true);
+                                                                    setMenuVisibleId(null);
+                                                                }}
+                                                            >
+                                                                <Text style={styles.menuText}>종료</Text>
+                                                            </TouchableOpacity>
+                                                        </View>
+                                                    )}
+                                                </View>
+                                            )}
                                         </View>
 
                                         <Text style={[styles.cardCouponName, activeTab === 'expired' && { color: '#A3A3A3' }]} numberOfLines={1}>
@@ -327,7 +388,7 @@ export default function CouponListScreen({ navigation, route }) {
                                             ) : (
                                                 <View style={[styles.cardBadge, styles.badgeIssued, activeTab === 'expired' && styles.expiredBadge]}>
                                                     <Text style={[styles.cardBadgeText, styles.textIssued, activeTab === 'expired' && styles.expiredBadgeText]}>
-                                                        {item.issuedCount}/{item.limitCount}장 발급
+                                                        {item.issuedCount}/{item.totalQuantity}장 발급
                                                     </Text>
                                                 </View>
                                             )}
@@ -346,6 +407,36 @@ export default function CouponListScreen({ navigation, route }) {
                 </View>
 
             </ScrollView>
+
+            {/* 종료 확인 모달 */}
+            {confirmModalVisible && (
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>쿠폰 종료</Text>
+                        <Text style={styles.modalSubtitle}>해당 쿠폰을 종료하시겠습니까?{'\n'}종료된 쿠폰은 다시 활성화할 수 없습니다.</Text>
+
+                        <View style={styles.modalButtonRow}>
+                            <TouchableOpacity
+                                style={[styles.modalButton, styles.cancelButton]}
+                                onPress={() => setConfirmModalVisible(false)}
+                            >
+                                <Text style={styles.cancelButtonText}>취소</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.modalButton, styles.confirmButton]}
+                                onPress={handleExpireCoupon}
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? (
+                                    <ActivityIndicator size="small" color="white" />
+                                ) : (
+                                    <Text style={styles.confirmButtonText}>종료하기</Text>
+                                )}
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            )}
         </SafeAreaView>
     );
 }
@@ -387,21 +478,38 @@ const styles = StyleSheet.create({
 
     // 리스트
     listContainer: { paddingHorizontal: rs(20), gap: rs(10) },
-    couponCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FBFBFB', borderRadius: rs(15), paddingLeft: rs(15), paddingRight: rs(10), shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 3, elevation: 2, height: rs(100), },
+    couponCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FBFBFB', borderRadius: rs(15), paddingLeft: rs(15), paddingRight: rs(10), shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 3, elevation: 2, height: rs(100) },
     // [종료 탭]
     expiredCard: { backgroundColor: '#FAFAFA', opacity: 0.7, },
 
     cardIconBox: { width: rs(65), height: rs(65), borderRadius: rs(12), justifyContent: 'center', alignItems: 'center', marginRight: rs(15), },
     cardIconImage: { width: rs(42), height: rs(42) },
     cardInfo: { flex: 1, paddingVertical: rs(5), justifyContent: 'center', alignItems: 'flex-start', gap: rs(3) },
-    cardTitleRow: { alignSelf: 'stretch', flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'flex-start', gap: rs(3) },
+    cardTitleRow: { alignSelf: 'stretch', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     cardBenefitTitle: { fontSize: rs(14), fontWeight: '600', color: 'black', fontFamily: 'Pretendard' },
     cardCouponName: { fontSize: rs(12), fontWeight: '400', color: 'black', fontFamily: 'Pretendard', marginVertical: rs(1) },
     cardMetaRow: { alignSelf: 'stretch', gap: rs(1) },
     cardMetaText: { fontSize: rs(10), fontWeight: '400', color: '#757575', fontFamily: 'Pretendard' },
-    cardBadgeRow: { flexDirection: 'row', alignItems: 'center', gap: rs(5) },
+    cardBadgeRow: { flexDirection: 'row', alignItems: 'center', gap: rs(5), marginTop: rs(5) },
     cardBadge: { paddingHorizontal: rs(6), paddingVertical: rs(2), borderRadius: rs(2), justifyContent: 'center', alignItems: 'center' },
     cardBadgeText: { fontSize: rs(8), fontWeight: '600', fontFamily: 'Pretendard' },
+
+    // 컨텍스트 메뉴
+    contextMenu: { position: 'absolute', top: rs(20), right: 0, backgroundColor: 'white', borderRadius: rs(8), paddingVertical: rs(4), width: rs(80), zIndex: 100, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 5, borderWidth: 1, borderColor: '#F0F0F0' },
+    menuItem: { paddingHorizontal: rs(12), paddingVertical: rs(8), alignItems: 'center' },
+    menuText: { fontSize: rs(12), color: '#313333', fontWeight: '500', fontFamily: 'Pretendard' },
+
+    // 모달 오버레이
+    modalOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', zIndex: 1000, height: Dimensions.get('window').height },
+    modalContent: { width: rs(300), backgroundColor: 'white', borderRadius: rs(16), padding: rs(24), alignItems: 'center' },
+    modalTitle: { fontSize: rs(18), fontWeight: '700', color: 'black', marginBottom: rs(12), fontFamily: 'Pretendard' },
+    modalSubtitle: { fontSize: rs(13), color: '#666', textAlign: 'center', marginBottom: rs(24), lineHeight: rs(18), fontFamily: 'Pretendard' },
+    modalButtonRow: { flexDirection: 'row', gap: rs(12) },
+    modalButton: { flex: 1, height: rs(44), borderRadius: rs(8), justifyContent: 'center', alignItems: 'center' },
+    cancelButton: { backgroundColor: '#F2F2F2' },
+    confirmButton: { backgroundColor: '#34B262' },
+    cancelButtonText: { fontSize: rs(14), fontWeight: '600', color: '#828282', fontFamily: 'Pretendard' },
+    confirmButtonText: { fontSize: rs(14), fontWeight: '600', color: 'white', fontFamily: 'Pretendard' },
 
     badgeUnlimited: { backgroundColor: '#FFE5F1' },
     textUnlimited: { color: '#FF2F90' },

@@ -6,6 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
+  Linking,
   Platform,
   SafeAreaView,
   ScrollView,
@@ -85,7 +86,9 @@ export default function MypageScreen({ navigation }) {
       navigation.navigate('EditProfile');
     }
     else if (menuName === '고객센터') {
-      navigation.navigate('Inquiry');
+      Linking.openURL('http://pf.kakao.com/_rvkhX/friend').catch((err) =>
+        console.error('카카오톡 연결 오류:', err)
+      );
     }
     else if (menuName === '설정') {
       navigation.navigate('Setting');

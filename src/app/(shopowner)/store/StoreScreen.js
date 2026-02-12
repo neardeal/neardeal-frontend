@@ -22,7 +22,7 @@ import { getToken } from '@/src/shared/lib/auth/token';
 
 // [API] Hooks Import
 import { useCreateItem, useDeleteItem, useGetItems, useUpdateItem } from '@/src/api/item';
-import { useCreateItemCategory, useDeleteItemCategory, useGetItemCategories } from '@/src/api/item-category';
+import { useCreateItemCategory, useDeleteItemCategory, useGetItemCategories, useUpdateItemCategory } from '@/src/api/item-category';
 import { useGetMyStores } from '@/src/api/store';
 
 // # Helper Functions & Constants
@@ -142,6 +142,7 @@ export default function StoreScreen() {
     day, open: '10:00', close: '22:00', breakStart: '15:00', breakEnd: '17:00', isClosed: false
   }));
   const [operatingHours, setOperatingHours] = useState(initialHours);
+  const [hasBreakTime, setHasBreakTime] = useState(false);
 
   // # State: Calendar
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -173,7 +174,14 @@ export default function StoreScreen() {
 
   // Mutations for Category
   const createCategoryMutation = useCreateItemCategory();
+  const updateCategoryMutation = useUpdateItemCategory();
   const deleteCategoryMutation = useDeleteItemCategory();
+
+  // Category Options & Editing State
+  const [categoryOptionsId, setCategoryOptionsId] = useState(null); // ID of category showing ... menu
+  const [editingCategoryId, setEditingCategoryId] = useState(null); // ID of category being renamed
+  const [editingCategoryName, setEditingCategoryName] = useState(''); // Temp name for rename
+  const [isDeleteErrorVisible, setIsDeleteErrorVisible] = useState(false); // Custom error modal
 
   // Handle Create Category
   const handleCreateCategory = () => {
@@ -195,28 +203,45 @@ export default function StoreScreen() {
     );
   };
 
+  // Handle Update Category (Rename)
+  const handleUpdateCategory = (categoryId) => {
+    if (!editingCategoryName.trim()) {
+      setEditingCategoryId(null);
+      return;
+    }
+    updateCategoryMutation.mutate(
+      { storeId: myStoreId, categoryId: categoryId, data: { name: editingCategoryName.trim() } },
+      {
+        onSuccess: () => {
+          refetchCategories();
+          setEditingCategoryId(null);
+          setEditingCategoryName('');
+        },
+        onError: (err) => {
+          console.error(err);
+          Alert.alert("실패", "카테고리 수정에 실패했습니다.");
+        }
+      }
+    );
+  };
+
   // Handle Delete Category
   const handleDeleteCategory = (categoryToDelete) => {
     // Check if items exist in this category
-    const hasItems = menuListArray && menuListArray.some(item => item.categoryId === categoryToDelete.id);
+    const hasItems = menuListArray && menuListArray.some(item => {
+      const catId = item.itemCategoryId ?? item.categoryId ?? item.item_category_id ?? item.category_id;
+      return Number(catId) === categoryToDelete.id;
+    });
 
     if (hasItems) {
-      Alert.alert(
-        "카테고리 삭제",
-        `'${categoryToDelete.name}' (해당 카테고리)에 있는 메뉴가 모두 삭제됩니다. 삭제하시겠습니까?`,
-        [
-          { text: "취소", style: "cancel" },
-          {
-            text: "삭제",
-            style: "destructive",
-            onPress: () => confirmDeleteCategory(categoryToDelete.id)
-          }
-        ]
-      );
+      // Show custom error modal instead of Alert
+      setIsDeleteErrorVisible(true);
+      setCategoryOptionsId(null);
     } else {
+      // Re-confirm deletion for empty categories
       Alert.alert(
         "카테고리 삭제",
-        `'${categoryToDelete.name}' 카테고리를 삭제하시겠습니까?`,
+        `'${categoryToDelete.name}' 카테고리를 정말 삭제하시겠습니까?`,
         [
           { text: "취소", style: "cancel" },
           {
@@ -389,6 +414,10 @@ export default function StoreScreen() {
             });
             setOperatingHours(newHours);
             setEditHoursData(JSON.parse(JSON.stringify(newHours)));
+
+            // 브레이크타임 유무 판단
+            const anyBreakTime = newHours.some(h => !h.isClosed && h.breakStart && h.breakEnd);
+            setHasBreakTime(anyBreakTime);
           } catch (e) {
             console.error("영업시간 파싱 실패:", e);
           }
@@ -882,7 +911,15 @@ export default function StoreScreen() {
   };
 
   const openHoursEditModal = () => {
-    setEditHoursData(JSON.parse(JSON.stringify(operatingHours)));
+    const currentHours = JSON.parse(JSON.stringify(operatingHours));
+
+    // 모달 열 때 현재 데이터 기준으로 브레이크타임 설정이 하나라도 있는지 체크
+    const exists = currentHours.some(h => !h.isClosed && h.breakStart && h.breakEnd);
+
+    // 기존에 브레이크타임이 설정된 요일들은 그대로 두고, 
+    // 전역 토글이 한번도 켜진 적 없는 상태를 대비해 데이터만 준비 (실제 null 유지는 UI에서 체크박스로 판단)
+    setEditHoursData(currentHours);
+    setHasBreakTime(exists);
     setHoursModalVisible(true);
   };
 
@@ -907,52 +944,11 @@ export default function StoreScreen() {
       editHoursData.forEach((item, index) => {
         const key = index.toString();
         if (item.isClosed) {
-          // If closed, maybe we send null or specific closed format? 
-          // Based on user request: "1": [["10:30", "22:00"], null] implies it retains times but maybe second param is null?
-          // Wait, user said: "1": [["10:30", "22:00"], null].
-          // And "0": [["10:30", "22:00"], ["13:00","15:00"]].
-          // It seems [OpenTime, BreakTime]. 
-          // If closed, usually it handled by `isClosed` flag elsewhere OR maybe empty array? 
-          // BUT `StoreScreen` `initStore` logic (lines 380) checks `dayData[0]`. 
-          // If `isClosed` is true, we should probably send something that indicates closed.
-          // However, user specifically asked for `null` in second slot for 'No Break Time'.
-          // Let's assume for now we send the times even if closed (maybe backend uses another flag? or we send empty?)
-          // Actually, look at `initStore`: `if (dayData && ... dayData[0])`.
-          // If I send `null` for the whole day, it might be closed.
-          // Let's follow the user's explicit example for Monday (index 1?):
-          // "1": [["10:30", "22:00"], null] 
-          // This looks like "Open 10:30-22:00, No Break".
-          // If it was closed, maybe the user didn't show the closed example properly or "1" was just an example of a day WITHOUT break.
-          // Let's look at `initStore` again.
-          // `if (dayData && ...)` -> `isClosed = false`. Else `isClosed = true`.
-          // So if I want to set it CLOSED, I should probably NOT send data for that key, or send `null`.
-          // `hoursJson[key] = null;` or `[]`?
-          // User said: "If I modify Monday break time... send like this..."
-          // I will assume for OPEN days: `[ [open, close], [breakStart, breakEnd] ]`.
-          // For BREAK TIME: If null -> `null`.
-          // For CLOSED days: I will try sending `null` or `[]`. 
-          // But wait, if I want to save "Closed", I must satisfy `initStore`'s "else" condition.
-          // `initStore` checks `dayData[0]`. So if I send `[null, null]`, it might close it.
-          // Or simply omitting the key?
-          // Let's try sending `[]` for closed days to be safe, or check if existing data has format.
-          // Actually, if I look at the user request again, all days 0-6 are present.
-          // "1": [["10:30", "22:00"], null] -> This is likely "Open, No Break".
-          // If the user meant "1" is closed, then `[["10:30", "22:00"], null]` would mean "Closed"? No, that looks like open hours.
-          // I will assume the user's example "1" was just "Another day with no break".
-          // Implementation:
-          // Open: `[[item.open, item.close], (item.breakStart && item.breakEnd) ? [item.breakStart, item.breakEnd] : null]`
-          // Closed: `[]` (To trigger `dayData[0]` check fail in `initStore`)
-
-          if (item.isClosed) {
-            hoursJson[key] = [];
-          } else {
-            const openTimes = [item.open, item.close];
-            const breakTimes = (item.breakStart && item.breakEnd) ? [item.breakStart, item.breakEnd] : null;
-            hoursJson[key] = [openTimes, breakTimes];
-          }
+          hoursJson[key] = [];
         } else {
           const openTimes = [item.open, item.close];
-          const breakTimes = (item.breakStart && item.breakEnd) ? [item.breakStart, item.breakEnd] : null;
+          // hasBreakTime이 true이고, 브레이크 시작/종료 시간이 있을 때만 전송
+          const breakTimes = (hasBreakTime && item.breakStart && item.breakEnd) ? [item.breakStart, item.breakEnd] : null;
           hoursJson[key] = [openTimes, breakTimes];
         }
       });
@@ -985,7 +981,15 @@ export default function StoreScreen() {
       });
 
       if (response.ok) {
-        setOperatingHours(editHoursData);
+        // 성공 시, 서버에 보낸 hoursJson 구조와 동일하게 로컬 operatingHours도 업데이트
+        const updatedHours = editHoursData.map(item => ({
+          ...item,
+          // hasBreakTime이 꺼져있으면 명시적으로 null 처리
+          breakStart: hasBreakTime ? item.breakStart : null,
+          breakEnd: hasBreakTime ? item.breakEnd : null
+        }));
+
+        setOperatingHours(updatedHours);
         setHoursModalVisible(false);
         Alert.alert("성공", "영업시간이 저장되었습니다.");
       } else {
@@ -1000,9 +1004,11 @@ export default function StoreScreen() {
   };
 
   const toggleHoliday = (index) => {
-    const newHours = [...editHoursData];
-    newHours[index].isClosed = !newHours[index].isClosed;
-    setEditHoursData(newHours);
+    setEditHoursData(prev => {
+      const next = [...prev];
+      next[index] = { ...next[index], isClosed: !next[index].isClosed };
+      return next;
+    });
   };
 
 
@@ -1020,9 +1026,11 @@ export default function StoreScreen() {
   const confirmTimePicker = () => {
     if (targetIndex !== null && targetField) {
       const time24 = convert12to24(tempAmpm, tempTime);
-      const newHours = [...editHoursData];
-      newHours[targetIndex][targetField] = time24;
-      setEditHoursData(newHours);
+      setEditHoursData(prev => {
+        const next = [...prev];
+        next[targetIndex] = { ...next[targetIndex], [targetField]: time24 };
+        return next;
+      });
     }
     setPickerVisible(false);
   };
@@ -1416,7 +1424,7 @@ export default function StoreScreen() {
                               <Text style={styles.breakTimeText}>{item.breakEnd}</Text>
                             </View>
                           ) : (
-                            <Text style={{ fontSize: rs(12), color: '#999' }}>브레이크타임 없음</Text>
+                            <Text style={{ fontSize: rs(11), color: '#828282', fontFamily: 'Pretendard', fontWeight: '500' }}>브레이크타임 없음</Text>
                           )}
                         </View>
                       )}
@@ -1581,86 +1589,144 @@ export default function StoreScreen() {
             {/* + 메뉴 추가하기 버튼 (Floating) */}
             <View style={{ height: rs(80) }} />
 
-            {/* 카테고리 관리 모달 (UI Only) */}
+            {/* 카테고리 관리 모달 (Redesigned & Repositioned) */}
             <Modal transparent={true} visible={categoryModalVisible} animationType="fade" onRequestClose={() => setCategoryModalVisible(false)}>
-              <TouchableOpacity style={styles.catModalOverlay} activeOpacity={1} onPress={() => setCategoryModalVisible(false)}>
-                <View style={[styles.catModalContent, { width: '80%', maxHeight: rs(400) }]}>
+              <TouchableOpacity
+                style={styles.catModalOverlay}
+                activeOpacity={1}
+                onPress={() => {
+                  setCategoryModalVisible(false);
+                  setCategoryOptionsId(null);
+                  setEditingCategoryId(null);
+                }}
+              >
+                <View style={[styles.catModalContent, { width: rs(230) }]}>
                   <ScrollView style={{ maxHeight: rs(300) }} nestedScrollEnabled={true}>
-                    {categories.map((cat, idx) => (
-                      <View
-                        key={idx}
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          paddingRight: rs(10),
-                          borderRadius: rs(8),
-                          marginVertical: rs(2),
-                          marginHorizontal: rs(8)
-                        }}
-                      >
-                        <TouchableOpacity
-                          style={{
-                            flex: 1,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            paddingHorizontal: rs(12),
-                            paddingVertical: rs(10),
-                            backgroundColor: selectedCategoryId === cat.id ? '#F6A823' : 'transparent',
-                            borderRadius: rs(8)
-                          }}
-                          onPress={() => {
-                            setSelectedCategoryId(cat.id);
-                            setCategoryModalVisible(false);
-                          }}
-                        >
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: rs(8) }}>
-                            {selectedCategoryId === cat.id && <Ionicons name="checkmark" size={rs(14)} color="white" />}
-                            <Text style={[styles.dropdownItemText, selectedCategoryId === cat.id && styles.dropdownItemTextChecked]}>{cat.name}</Text>
-                          </View>
-                        </TouchableOpacity>
+                    {categories.map((cat, idx) => {
+                      const isActive = selectedCategoryId === cat.id;
+                      const isEditing = editingCategoryId === cat.id;
 
-                        {/* Delete Button */}
-                        <TouchableOpacity
-                          style={{ padding: rs(10), justifyContent: 'center', alignItems: 'center' }}
-                          onPress={() => handleDeleteCategory(cat)}
-                        >
-                          <Ionicons name="trash-outline" size={rs(16)} color="#828282" />
-                        </TouchableOpacity>
-                      </View>
-                    ))}
+                      return (
+                        <View key={cat.id} style={{ position: 'relative', zIndex: categories.length - idx }}>
+                          <TouchableOpacity
+                            style={[styles.categoryItem, isActive && styles.categoryItemActive]}
+                            activeOpacity={0.7}
+                            onPress={() => {
+                              setSelectedCategoryId(cat.id);
+                              setCategoryModalVisible(false);
+                              setCategoryOptionsId(null);
+                            }}
+                          >
+                            {isEditing ? (
+                              <View style={styles.inlineEditContainer}>
+                                <TextInput
+                                  style={styles.inlineInput}
+                                  value={editingCategoryName}
+                                  onChangeText={setEditingCategoryName}
+                                  autoFocus={true}
+                                  onSubmitEditing={() => handleUpdateCategory(cat.id)}
+                                />
+                                <TouchableOpacity style={styles.inlineDoneBtn} onPress={() => handleUpdateCategory(cat.id)}>
+                                  <Text style={styles.inlineDoneText}>완료</Text>
+                                </TouchableOpacity>
+                              </View>
+                            ) : (
+                              <>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: rs(5) }}>
+                                  <View style={{ width: rs(18), alignItems: 'center' }}>
+                                    {isActive && <Ionicons name="checkmark" size={rs(14)} color="#FFA100" />}
+                                  </View>
+                                  <Text style={[styles.categoryText, isActive && styles.categoryTextActive]}>{cat.name}</Text>
+                                </View>
 
-                    {/* 인라인 카테고리 추가 입력 (모달용) */}
-                    {isAddingCategory ? (
-                      <View style={{ paddingHorizontal: rs(10), paddingVertical: rs(8) }}>
-                        <View style={styles.newCategoryInputBox}>
-                          <TextInput
-                            style={styles.newCategoryInput}
-                            placeholder="새 카테고리 입력"
-                            value={newCategoryName}
-                            onChangeText={setNewCategoryName}
-                            maxLength={20}
-                            autoFocus={true}
-                            onSubmitEditing={handleCreateCategory}
-                          />
-                          <Text style={styles.charCount}>{newCategoryName.length}/20</Text>
+                                {/* Options Button (...) */}
+                                <TouchableOpacity
+                                  style={styles.dotsButton}
+                                  onPress={() => setCategoryOptionsId(categoryOptionsId === cat.id ? null : cat.id)}
+                                >
+                                  <Text style={styles.dotsText}>···</Text>
+                                </TouchableOpacity>
+                              </>
+                            )}
+                          </TouchableOpacity>
+
+                          {/* Options Popover (Vertical Redesign - Image Reflected) */}
+                          {categoryOptionsId === cat.id && !isEditing && (
+                            <View style={styles.optionsPopover}>
+                              <TouchableOpacity
+                                style={styles.optionBtn}
+                                onPress={() => {
+                                  setEditingCategoryId(cat.id);
+                                  setEditingCategoryName(cat.name);
+                                  setCategoryOptionsId(null);
+                                }}
+                              >
+                                <Text style={styles.optionBtnText}>수정</Text>
+                              </TouchableOpacity>
+                              <TouchableOpacity
+                                style={styles.optionBtn}
+                                onPress={() => {
+                                  // 팝업 닫고 삭제 함수 호출
+                                  setCategoryOptionsId(null);
+                                  handleDeleteCategory(cat);
+                                }}
+                              >
+                                <Text style={styles.optionBtnText}>삭제</Text>
+                              </TouchableOpacity>
+                            </View>
+                          )}
                         </View>
-                      </View>
-                    ) : null}
+                      );
+                    })}
                   </ScrollView>
 
-                  {/* + 카테고리 추가 버튼 (모달용) */}
-                  {!isAddingCategory && (
-                    <TouchableOpacity
-                      style={[styles.dropdownItem, { justifyContent: 'center' }]}
-                      onPress={() => setIsAddingCategory(true)}
-                    >
-                      <Ionicons name="add" size={rs(14)} color="#828282" />
-                      <Text style={{ color: '#828282', fontSize: rs(11), marginLeft: rs(4) }}>카테고리 추가</Text>
-                    </TouchableOpacity>
-                  )}
+                  {/* 인라인 카테고리 추가 입력 Area (Cleaned Up) */}
+                  <View style={styles.newCatInputArea}>
+                    {isAddingCategory ? (
+                      <View style={styles.newCategoryInputBox}>
+                        <TextInput
+                          style={[styles.newCategoryInput, { flex: 1, fontSize: rs(11) }]}
+                          placeholder="새 카테고리 추가"
+                          placeholderTextColor="#DADADA"
+                          value={newCategoryName}
+                          onChangeText={setNewCategoryName}
+                          maxLength={20}
+                          autoFocus={true}
+                          onSubmitEditing={handleCreateCategory}
+                        />
+                        <TouchableOpacity style={[styles.inlineDoneBtn, { height: rs(23), borderRadius: rs(6) }]} onPress={handleCreateCategory}>
+                          <Text style={styles.inlineDoneText}>완료</Text>
+                        </TouchableOpacity>
+                      </View>
+                    ) : (
+                      <TouchableOpacity
+                        style={[styles.newCategoryInputBox, { opacity: 0.7 }]}
+                        onPress={() => setIsAddingCategory(true)}
+                      >
+                        <Ionicons name="add" size={rs(14)} color="#828282" />
+                        <Text style={{ color: '#828282', fontSize: rs(11), marginLeft: rs(4) }}>카테고리 추가</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
                 </View>
               </TouchableOpacity>
+            </Modal>
+
+            {/* 카테고리에 메뉴가 있어요 (Delete Blocked Popover) */}
+            <Modal transparent={true} visible={isDeleteErrorVisible} animationType="fade" onRequestClose={() => setIsDeleteErrorVisible(false)}>
+              <View style={styles.deleteErrorModalOverlay}>
+                <View style={styles.deleteErrorModalContainer}>
+                  <Text style={styles.deleteErrorTitle}>카테고리에 메뉴가 있어요</Text>
+                  <Text style={styles.deleteErrorDesc}>해당 카테고리에 메뉴가 있어 삭제할 수 없어요</Text>
+                  <TouchableOpacity
+                    style={styles.deleteErrorConfirmBtn}
+                    onPress={() => setIsDeleteErrorVisible(false)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.deleteErrorConfirmText}>확인</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
             </Modal>
           </View >
         )}
@@ -1752,33 +1818,37 @@ export default function StoreScreen() {
                         {categories.length > 0 ? (
                           <>
                             <ScrollView style={{ maxHeight: rs(200) }} nestedScrollEnabled={true}>
-                              {categories.map((cat, idx) => (
-                                <TouchableOpacity
-                                  key={idx}
-                                  style={[
-                                    styles.dropdownItem,
-                                    menuForm.categoryId === cat.id && styles.dropdownItemChecked,
-                                    { borderRadius: rs(8), marginVertical: rs(2), marginHorizontal: rs(8) }
-                                  ]}
-                                  onPress={() => {
-                                    setMenuForm({ ...menuForm, category: cat.name, categoryId: cat.id });
-                                    setIsCategoryDropdownOpen(false);
-                                  }}
-                                >
-                                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: rs(8) }}>
-                                    {menuForm.categoryId === cat.id && <Ionicons name="checkmark" size={rs(14)} color="white" />}
-                                    <Text style={[styles.dropdownItemText, menuForm.categoryId === cat.id && styles.dropdownItemTextChecked]}>{cat.name}</Text>
-                                  </View>
-                                  {/* 삭제 버튼 등 추가 가능 */}
-                                </TouchableOpacity>
-                              ))}
+                              {categories.map((cat, idx) => {
+                                const isCurrent = menuForm.categoryId === cat.id;
+                                return (
+                                  <TouchableOpacity
+                                    key={cat.id}
+                                    style={[
+                                      styles.categoryItem,
+                                      isCurrent && styles.categoryItemActive,
+                                      { height: rs(35) } // Slightly taller for dropdown
+                                    ]}
+                                    onPress={() => {
+                                      setMenuForm({ ...menuForm, category: cat.name, categoryId: cat.id });
+                                      setIsCategoryDropdownOpen(false);
+                                    }}
+                                  >
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: rs(5) }}>
+                                      <View style={{ width: rs(20), alignItems: 'center' }}>
+                                        {isCurrent && <Ionicons name="checkmark" size={rs(16)} color="#FFA100" />}
+                                      </View>
+                                      <Text style={[styles.categoryText, isCurrent && styles.categoryTextActive]}>{cat.name}</Text>
+                                    </View>
+                                  </TouchableOpacity>
+                                );
+                              })}
 
                               {/* 인라인 카테고리 추가 입력 */}
                               {isAddingCategory ? (
                                 <View style={{ paddingHorizontal: rs(10), paddingVertical: rs(8) }}>
                                   <View style={styles.newCategoryInputBox}>
                                     <TextInput
-                                      style={styles.newCategoryInput}
+                                      style={[styles.newCategoryInput, { flex: 1, fontSize: rs(11) }]}
                                       placeholder="새 카테고리 입력"
                                       value={newCategoryName}
                                       onChangeText={setNewCategoryName}
@@ -1786,7 +1856,9 @@ export default function StoreScreen() {
                                       autoFocus={true}
                                       onSubmitEditing={handleCreateCategory}
                                     />
-                                    <Text style={styles.charCount}>{newCategoryName.length}/20</Text>
+                                    <TouchableOpacity style={[styles.inlineDoneBtn, { height: rs(23) }]} onPress={handleCreateCategory}>
+                                      <Text style={styles.inlineDoneText}>완료</Text>
+                                    </TouchableOpacity>
                                   </View>
                                 </View>
                               ) : null}
@@ -1795,11 +1867,11 @@ export default function StoreScreen() {
                             {/* + 카테고리 추가 버튼 */}
                             {!isAddingCategory && (
                               <TouchableOpacity
-                                style={[styles.dropdownItem, { justifyContent: 'center' }]} // Removed borderTopWidth
+                                style={[styles.categoryItem, { justifyContent: 'center', opacity: 0.7 }]}
                                 onPress={() => setIsAddingCategory(true)}
                               >
                                 <Ionicons name="add" size={rs(14)} color="#828282" />
-                                <Text style={{ color: '#828282', fontSize: rs(11), marginLeft: rs(4) }}>카테고리 추가</Text>
+                                <Text style={{ color: '#828282', fontSize: rs(11) }}>카테고리 추가</Text>
                               </TouchableOpacity>
                             )}
                           </>
@@ -2030,10 +2102,43 @@ export default function StoreScreen() {
                     </View>
                   </View>
                   <View style={{ flexDirection: 'row', gap: rs(8) }}>
-                    <TouchableOpacity style={styles.cancelButton} onPress={() => setHoursModalVisible(false)}><Text style={styles.cancelButtonText}>취소</Text></TouchableOpacity>
-                    <TouchableOpacity style={styles.saveButton} onPress={handleHoursSave}><Text style={styles.saveButtonText}>완료</Text></TouchableOpacity>
+                    <TouchableOpacity style={styles.cancelButton} onPress={() => setHoursModalVisible(false)}>
+                      <Text style={styles.cancelButtonText}>취소</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.completeBtn} onPress={handleHoursSave}>
+                      <Text style={styles.completeBtnText}>완료</Text>
+                    </TouchableOpacity>
                   </View>
                 </View>
+
+                {/* 브레이크타임 있음 체크박스 */}
+                <TouchableOpacity
+                  style={styles.breakTimeCheckRow}
+                  onPress={() => {
+                    const nextVal = !hasBreakTime;
+                    setHasBreakTime(nextVal);
+                    if (nextVal) {
+                      // 전역 토글을 켰을 때, 모든 요일이 null이면 전체에 기본값 부여
+                      // 하나라도 값이 있다면 그 요일들만 체크 상태로 유지됨
+                      const hasAnyValue = editHoursData.some(h => h.breakStart && h.breakEnd);
+                      if (!hasAnyValue) {
+                        const updated = editHoursData.map(h => ({
+                          ...h,
+                          breakStart: '15:00',
+                          breakEnd: '17:00'
+                        }));
+                        setEditHoursData(updated);
+                      }
+                    }
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.checkbox, hasBreakTime && styles.checkboxCheckedBlue]}>
+                    {hasBreakTime && <Ionicons name="checkmark" size={rs(10)} color="white" />}
+                  </View>
+                  <Text style={styles.breakTimeCheckLabel}>브레이크타임 있음</Text>
+                </TouchableOpacity>
+
                 {editHoursData.map((item, index) => {
                   const open12 = convert24to12(item.open); const close12 = convert24to12(item.close);
                   const breakStart12 = convert24to12(item.breakStart);
@@ -2041,44 +2146,98 @@ export default function StoreScreen() {
 
                   return (
                     <View key={index} style={styles.editHourRow}>
-                      <Text style={styles.editHourDay}>{item.day}</Text>
                       <View style={{ flex: 1, gap: rs(8) }}>
-                        {/* 1. 영업시간 (기본) */}
-                        <View style={styles.timeInputGroup}>
-                          <TouchableOpacity style={styles.timeInputBox} onPress={() => !item.isClosed && openTimePicker(index, 'open')} activeOpacity={0.7}><Text style={styles.timeLabel}>{open12.ampm}</Text><Text style={styles.timeValue}>{open12.time}</Text><Ionicons name="caret-down" size={rs(10)} color="black" /></TouchableOpacity>
+                        {/* 1. 영업시간 (기본) - 요일 레이블과 나란히 배치 */}
+                        <View style={[styles.timeInputGroup, item.isClosed && { opacity: 0.3 }]}>
+                          <View style={{ width: rs(35), alignItems: 'center' }}>
+                            <Text style={[styles.editHourDay, { width: 'auto', marginTop: 0 }]}>{item.day}</Text>
+                          </View>
+
+                          <TouchableOpacity
+                            style={styles.timeInputBox}
+                            onPress={() => !item.isClosed && openTimePicker(index, 'open')}
+                            activeOpacity={0.7}
+                            disabled={item.isClosed}
+                          >
+                            <Text style={styles.timeLabel}>{open12.ampm}</Text>
+                            <Text style={styles.timeValue}>{open12.time}</Text>
+                            <Ionicons name="caret-down" size={rs(10)} color="black" />
+                          </TouchableOpacity>
                           <Text style={{ marginHorizontal: 5, color: 'black' }}>~</Text>
-                          <TouchableOpacity style={styles.timeInputBox} onPress={() => !item.isClosed && openTimePicker(index, 'close')} activeOpacity={0.7}><Text style={styles.timeLabel}>{close12.ampm}</Text><Text style={styles.timeValue}>{close12.time}</Text><Ionicons name="caret-down" size={rs(10)} color="black" /></TouchableOpacity>
-                        </View>
-
-                        {/* 2. 브레이크 타임 (주황색) */}
-                        <View style={[styles.timeInputGroup, (!item.breakStart || item.isClosed) && { opacity: 0.3 }]}>
                           <TouchableOpacity
-                            style={[styles.timeInputBox, { borderColor: '#FF7F00' }]}
-                            onPress={() => !item.isClosed && openTimePicker(index, 'breakStart')}
+                            style={styles.timeInputBox}
+                            onPress={() => !item.isClosed && openTimePicker(index, 'close')}
                             activeOpacity={0.7}
                             disabled={item.isClosed}
                           >
-                            <Text style={[styles.timeLabel, { color: '#FF7F00' }]}>{breakStart12.ampm}</Text>
-                            <Text style={[styles.timeValue, { color: '#FF7F00' }]}>{breakStart12.time}</Text>
-                            <Ionicons name="caret-down" size={rs(10)} color="#FF7F00" />
-                          </TouchableOpacity>
-                          <Text style={{ marginHorizontal: 5, color: '#FF7F00' }}>~</Text>
-                          <TouchableOpacity
-                            style={[styles.timeInputBox, { borderColor: '#FF7F00' }]}
-                            onPress={() => !item.isClosed && openTimePicker(index, 'breakEnd')}
-                            activeOpacity={0.7}
-                            disabled={item.isClosed}
-                          >
-                            <Text style={[styles.timeLabel, { color: '#FF7F00' }]}>{breakEnd12.ampm}</Text>
-                            <Text style={[styles.timeValue, { color: '#FF7F00' }]}>{breakEnd12.time}</Text>
-                            <Ionicons name="caret-down" size={rs(10)} color="#FF7F00" />
+                            <Text style={styles.timeLabel}>{close12.ampm}</Text>
+                            <Text style={styles.timeValue}>{close12.time}</Text>
+                            <Ionicons name="caret-down" size={rs(10)} color="black" />
                           </TouchableOpacity>
                         </View>
 
-                        {item.isClosed && <View style={styles.blurOverlay} />}
+                        {/* 2. 브레이크 타임 (주황색) - 개별 체크박스와 나란히 배치 */}
+                        <View style={[styles.timeInputGroup, (!hasBreakTime || item.isClosed || (!item.breakStart && !item.breakEnd)) && { opacity: 0.3 }]}>
+                          <View style={{ width: rs(35), alignItems: 'center' }}>
+                            {hasBreakTime && !item.isClosed && (
+                              <TouchableOpacity
+                                onPress={() => {
+                                  setEditHoursData(prev => {
+                                    const next = [...prev];
+                                    const isCurrentlyActive = !!(next[index].breakStart || next[index].breakEnd);
+                                    next[index] = {
+                                      ...next[index],
+                                      breakStart: isCurrentlyActive ? null : '15:00',
+                                      breakEnd: isCurrentlyActive ? null : '17:00'
+                                    };
+                                    return next;
+                                  });
+                                }}
+                              >
+                                <View style={[styles.checkbox, (item.breakStart || item.breakEnd) && { backgroundColor: '#FF7F00', borderColor: '#FF7F00' }]}>
+                                  {(item.breakStart || item.breakEnd) && <Ionicons name="checkmark" size={rs(10)} color="white" />}
+                                </View>
+                              </TouchableOpacity>
+                            )}
+                          </View>
+
+                          <TouchableOpacity
+                            style={[
+                              styles.timeInputBox,
+                              (!hasBreakTime || item.isClosed || (!item.breakStart && !item.breakEnd)) && { backgroundColor: '#F5F5F5' },
+                              hasBreakTime && !item.isClosed && (item.breakStart || item.breakEnd) && { borderColor: '#FF7F00' }
+                            ]}
+                            onPress={() => hasBreakTime && !item.isClosed && (item.breakStart || item.breakEnd) && openTimePicker(index, 'breakStart')}
+                            activeOpacity={0.7}
+                            disabled={!hasBreakTime || item.isClosed || (!item.breakStart && !item.breakEnd)}
+                          >
+                            <Text style={[styles.timeLabel, hasBreakTime && !item.isClosed && (item.breakStart || item.breakEnd) && { color: '#FF7F00' }]}>{breakStart12.ampm}</Text>
+                            <Text style={[styles.timeValue, hasBreakTime && !item.isClosed && (item.breakStart || item.breakEnd) && { color: '#FF7F00' }]}>{breakStart12.time}</Text>
+                            <Ionicons name="caret-down" size={rs(10)} color={hasBreakTime && !item.isClosed && (item.breakStart || item.breakEnd) ? "#FF7F00" : "black"} />
+                          </TouchableOpacity>
+                          <Text style={{ marginHorizontal: 5, color: hasBreakTime && !item.isClosed && (item.breakStart || item.breakEnd) ? '#FF7F00' : 'black' }}>~</Text>
+                          <TouchableOpacity
+                            style={[
+                              styles.timeInputBox,
+                              (!hasBreakTime || item.isClosed || (!item.breakStart && !item.breakEnd)) && { backgroundColor: '#F5F5F5' },
+                              hasBreakTime && !item.isClosed && (item.breakStart || item.breakEnd) && { borderColor: '#FF7F00' }
+                            ]}
+                            onPress={() => hasBreakTime && !item.isClosed && (item.breakStart || item.breakEnd) && openTimePicker(index, 'breakEnd')}
+                            activeOpacity={0.7}
+                            disabled={!hasBreakTime || item.isClosed || (!item.breakStart && !item.breakEnd)}
+                          >
+                            <Text style={[styles.timeLabel, hasBreakTime && !item.isClosed && (item.breakStart || item.breakEnd) && { color: '#FF7F00' }]}>{breakEnd12.ampm}</Text>
+                            <Text style={[styles.timeValue, hasBreakTime && !item.isClosed && (item.breakStart || item.breakEnd) && { color: '#FF7F00' }]}>{breakEnd12.time}</Text>
+                            <Ionicons name="caret-down" size={rs(10)} color={hasBreakTime && !item.isClosed && (item.breakStart || item.breakEnd) ? "#FF7F00" : "black"} />
+                          </TouchableOpacity>
+                        </View>
                       </View>
+
                       <TouchableOpacity style={styles.checkboxContainer} onPress={() => toggleHoliday(index)}>
-                        <View style={[styles.checkbox, item.isClosed && styles.checkboxChecked]}>{item.isClosed && <Ionicons name="checkmark" size={rs(10)} color="white" />}</View><Text style={styles.checkboxLabel}>휴무</Text>
+                        <View style={[styles.checkbox, item.isClosed && styles.checkboxCheckedBlue]}>
+                          {item.isClosed && <Ionicons name="checkmark" size={rs(10)} color="white" />}
+                        </View>
+                        <Text style={[styles.checkboxLabel, { fontWeight: '700' }]}>휴무</Text>
                       </TouchableOpacity>
                     </View>
                   )
@@ -2277,8 +2436,61 @@ const styles = StyleSheet.create({
   blurOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(255, 255, 255, 0.60)', zIndex: 10 },
   checkboxContainer: { flexDirection: 'row', alignItems: 'center', gap: rs(5), marginLeft: rs(10), marginTop: rs(6) },
   checkbox: { width: rs(14), height: rs(14), borderRadius: rs(2), borderWidth: 1, borderColor: '#DADADA', justifyContent: 'center', alignItems: 'center' },
-  checkboxChecked: { backgroundColor: '#2D6EFF', borderColor: '#2D6EFF', borderWidth: 0 },
-  checkboxLabel: { fontSize: rs(11), fontWeight: '500', color: 'black', fontFamily: 'Pretendard' },
+  checkboxChecked: { backgroundColor: '#34B262', borderColor: '#34B262' },
+  checkboxCheckedBlue: { backgroundColor: '#2D6EFF', borderColor: '#2D6EFF' },
+  // Category Modal Styles
+  catModalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-start', alignItems: 'flex-end', paddingTop: rs(100), paddingRight: rs(30) },
+  catModalContent: { backgroundColor: 'white', borderRadius: rs(12), padding: rs(12), shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 8, elevation: 10 },
+  categoryItem: { alignSelf: 'stretch', height: rs(28), flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: rs(5), borderRadius: rs(8), marginVertical: rs(1) },
+  categoryItemActive: { backgroundColor: '#FFEFB9' },
+  categoryText: { fontSize: rs(11), fontFamily: 'Pretendard', fontWeight: '400', lineHeight: rs(24), color: 'black' },
+  categoryTextActive: { color: '#FFA100', fontWeight: '500', fontFamily: 'Inter' },
+  dotsButton: { width: rs(25), height: rs(25), justifyContent: 'center', alignItems: 'center' },
+  dotsText: { fontSize: rs(11), color: '#A4A4A4', fontFamily: 'Pretendard' },
+
+  // Options Popover (Vertical Redesign)
+  optionsPopover: {
+    position: 'absolute',
+    right: rs(35),
+    top: rs(0),
+    backgroundColor: 'white',
+    borderRadius: rs(8),
+    padding: rs(5),
+    zIndex: 100,
+    flexDirection: 'column',
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    minWidth: rs(60),
+    paddingHorizontal: rs(10),
+    paddingVertical: rs(8)
+  },
+  optionBtn: { paddingVertical: rs(6), justifyContent: 'center' },
+  optionBtnText: { fontSize: rs(13), color: '#828282', fontFamily: 'Pretendard' },
+
+  // Inline Edit
+  inlineEditContainer: { flexDirection: 'row', alignItems: 'center', flex: 1, gap: rs(5) },
+  inlineInput: { flex: 1, height: rs(26), borderWidth: 1, borderColor: '#DADADA', borderRadius: rs(6), paddingHorizontal: rs(8), fontSize: rs(11), color: 'black' },
+  inlineDoneBtn: { backgroundColor: '#F6A823', borderRadius: rs(6), paddingHorizontal: rs(10), height: rs(26), justifyContent: 'center', alignItems: 'center' },
+  inlineDoneText: { color: 'white', fontSize: rs(11), fontWeight: '700' },
+
+  // New Category Input (Cleaned Up)
+  newCatInputArea: { marginTop: rs(10), paddingTop: rs(5) },
+  newCatInputBox: { height: rs(32), flexDirection: 'row', alignItems: 'center', paddingHorizontal: rs(5) },
+
+  // Custom Delete Error Modal
+  deleteErrorModalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
+  deleteErrorModalContainer: { width: rs(280), backgroundColor: 'white', borderRadius: rs(16), padding: rs(24), alignItems: 'center' },
+  deleteErrorTitle: { fontSize: rs(16), fontWeight: '700', color: 'black', marginBottom: rs(10), fontFamily: 'Pretendard' },
+  deleteErrorDesc: { fontSize: rs(13), color: '#666', textAlign: 'center', marginBottom: rs(24), fontFamily: 'Pretendard', lineHeight: rs(20) },
+  deleteErrorConfirmBtn: { backgroundColor: '#34B262', borderRadius: rs(12), paddingVertical: rs(12), paddingHorizontal: rs(40) },
+  deleteErrorConfirmText: { color: 'white', fontSize: rs(14), fontWeight: '700', fontFamily: 'Pretendard' },
+  completeBtn: { width: rs(58), height: rs(23), backgroundColor: '#34B262', borderRadius: rs(12), justifyContent: 'center', alignItems: 'center' },
+  completeBtnText: { color: 'white', fontSize: rs(11), fontWeight: '700', fontFamily: 'Pretendard' },
+  breakTimeCheckRow: { flexDirection: 'row', alignItems: 'center', gap: rs(8), marginBottom: rs(20), paddingLeft: rs(5) },
+  breakTimeCheckLabel: { fontSize: rs(13), fontWeight: '700', color: 'black', fontFamily: 'Pretendard' },
   bottomSheetOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, justifyContent: 'flex-end' },
   bottomSheetBackdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)' },
   bottomSheetContainer: { backgroundColor: 'white', borderTopLeftRadius: rs(20), borderTopRightRadius: rs(20), padding: rs(20), minHeight: rs(300), shadowColor: "#000", shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.25, shadowRadius: 3.84, elevation: 5 },

@@ -206,7 +206,7 @@ export default function HomeScreen({ navigation }) {
           </View>
           <View style={styles.textContainer}>
             <Text style={styles.storeName}>{homeData.storeName}</Text>
-            <Text style={styles.greeting}>{homeData.ownerName} 사장님, 반가워요!</Text>
+            <Text style={styles.greeting}>사장님, 반가워요!</Text>
           </View>
           <Ionicons name="chevron-down" size={rs(20)} color="#828282" />
         </TouchableOpacity>
