@@ -29,6 +29,16 @@ const EVENT_MARKER_ICONS: Record<EventType, any> = {
   COMMUNITY: require('@/assets/images/icons/map/event-student.png'),
 };
 
+// 진행 중(live) 이벤트 마커 아이콘 PNG
+const EVENT_MARKER_ICONS_LIVE: Record<EventType, any> = {
+  FOOD_EVENT: require('@/assets/images/icons/map/event-food-live.png'),
+  POPUP_STORE: require('@/assets/images/icons/map/event-brand-live.png'),
+  SCHOOL_EVENT: require('@/assets/images/icons/map/event-college-live.png'),
+  FLEA_MARKET: require('@/assets/images/icons/map/event-market-live.png'),
+  PERFORMANCE: require('@/assets/images/icons/map/event-busking-live.png'),
+  COMMUNITY: require('@/assets/images/icons/map/event-student-live.png'),
+};
+
 const MARKER_SIZE = rs(40);
 const EVENT_MARKER_SIZE = rs(60);
 
@@ -41,7 +51,10 @@ function getStoreMarkerIcon(isPartner: boolean, hasCoupon: boolean) {
 }
 
 // 이벤트 마커 아이콘 선택 헬퍼
-function getEventMarkerIcon(eventType: EventType) {
+function getEventMarkerIcon(eventType: EventType, status: EventStatus) {
+  if (status === 'live') {
+    return EVENT_MARKER_ICONS_LIVE[eventType] ?? EVENT_MARKER_ICONS_LIVE.COMMUNITY;
+  }
   return EVENT_MARKER_ICONS[eventType] ?? EVENT_MARKER_ICONS.COMMUNITY;
 }
 
@@ -148,6 +161,7 @@ export const NaverMap = forwardRef<NaverMapViewRef, NaverMapProps>(
           {/* 내 위치 마커 */}
           {myLocation && (
             <NaverMapMarkerOverlay
+              key="my-location"
               latitude={myLocation.lat}
               longitude={myLocation.lng}
               width={rs(20)}
@@ -180,7 +194,7 @@ export const NaverMap = forwardRef<NaverMapViewRef, NaverMapProps>(
               height={EVENT_MARKER_SIZE}
               onTap={() => onEventMarkerClick?.(marker.id)}
               anchor={{ x: 0.5, y: 0.5 }}
-              image={getEventMarkerIcon(marker.eventType)}
+              image={getEventMarkerIcon(marker.eventType, marker.status)}
               alpha={getEventMarkerOpacity(marker.status)}
             />
           ))}

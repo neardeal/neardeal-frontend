@@ -123,6 +123,9 @@ export default function SignupTypePage() {
   const isStudent = userType === "student";
   const primaryColor = userType === "owner" ? Owner.primary : Brand.primary;
 
+  const isPasswordValid = (pw: string) =>
+    /^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?]).{8,20}$/.test(pw);
+
   // 폼 유효성 검사
   const isFormValid = () => {
     if (!userType) return false;
@@ -133,7 +136,7 @@ export default function SignupTypePage() {
       birthDay.length >= 1 &&
       username.length >= 4 &&
       isUsernameChecked &&
-      password.length >= 8 &&
+      isPasswordValid(password) &&
       password === passwordConfirm;
 
     if (isStudent) {
@@ -324,7 +327,14 @@ export default function SignupTypePage() {
                   placeholder="MM"
                   placeholderTextColor={TextColors.placeholder}
                   value={birthMonth}
-                  onChangeText={setBirthMonth}
+                  onChangeText={(text) => {
+                    const num = parseInt(text, 10);
+                    if (text === "" || isNaN(num)) {
+                      setBirthMonth(text);
+                    } else {
+                      setBirthMonth(String(Math.min(num, 12)));
+                    }
+                  }}
                   keyboardType="number-pad"
                   maxLength={2}
                 />
@@ -333,7 +343,14 @@ export default function SignupTypePage() {
                   placeholder="DD"
                   placeholderTextColor={TextColors.placeholder}
                   value={birthDay}
-                  onChangeText={setBirthDay}
+                  onChangeText={(text) => {
+                    const num = parseInt(text, 10);
+                    if (text === "" || isNaN(num)) {
+                      setBirthDay(text);
+                    } else {
+                      setBirthDay(String(Math.min(num, 31)));
+                    }
+                  }}
                   keyboardType="number-pad"
                   maxLength={2}
                 />
@@ -571,9 +588,11 @@ export default function SignupTypePage() {
                   <EyeOffIcon color={Gray.gray5} />
                 </TouchableOpacity>
               </View>
-              <ThemedText style={styles.errorText}>
-                비밀번호는 영어, 숫자, 특수문자를 포함한 8자~20자 이내로 입력해주세요
-              </ThemedText>
+              {password.length > 0 && !isPasswordValid(password) && (
+                <ThemedText style={styles.errorText}>
+                  비밀번호는 영어, 숫자, 특수문자를 포함한 8자~20자 이내로 입력해주세요
+                </ThemedText>
+              )}
             </View>
 
             {/* 비밀번호 확인 */}
