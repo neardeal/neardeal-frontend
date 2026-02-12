@@ -117,9 +117,10 @@ export default function CouponListScreen({ navigation, route }) {
                     type: type,
                     discountValue: coupon.benefitValue,
                     minOrderAmount: coupon.minOrderAmount || 0,
-                    limitCount: coupon.totalQuantity,
+                    totalQuantity: coupon.totalQuantity,
                     issuedCount: coupon.issuedCount || 0,
                     usedCount: coupon.usedCount || 0,
+                    validDays: coupon.validDays,
                 };
             });
 
@@ -313,7 +314,13 @@ export default function CouponListScreen({ navigation, route }) {
                                         </View>
 
                                         <View style={styles.cardBadgeRow}>
-                                            {item.limitCount === null ? (
+                                            <View style={[styles.cardBadge, styles.badgeValidity, activeTab === 'expired' && styles.expiredBadge]}>
+                                                <Text style={[styles.cardBadgeText, styles.textValidity, activeTab === 'expired' && styles.expiredBadgeText]}>
+                                                    {item.validDays === 0 ? '발급 종료 시간까지 사용 가능' : `발급일로부터 ${item.validDays}일간 사용 가능`}
+                                                </Text>
+                                            </View>
+
+                                            {item.totalQuantity === null ? (
                                                 <View style={[styles.cardBadge, styles.badgeUnlimited, activeTab === 'expired' && styles.expiredBadge]}>
                                                     <Text style={[styles.cardBadgeText, styles.textUnlimited, activeTab === 'expired' && styles.expiredBadgeText]}>무제한 발급</Text>
                                                 </View>
@@ -407,4 +414,6 @@ const styles = StyleSheet.create({
 
     expiredBadge: { backgroundColor: '#EFEFEF' },
     expiredBadgeText: { color: '#A3A3A3' },
+    badgeValidity: { backgroundColor: '#FFE4E5' },
+    textValidity: { color: '#F15051' },
 });

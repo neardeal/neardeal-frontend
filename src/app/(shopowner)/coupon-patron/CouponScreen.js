@@ -32,6 +32,19 @@ const formatDate = (dateString) => {
     return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}까지`;
 };
 
+const formatDateTimeFull = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    let hours = date.getHours();
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? '오후' : '오전';
+    hours = hours % 12 || 12;
+    return `${year}.${month}.${day} ${ampm} ${hours}:${minutes}`;
+};
+
 export default function CouponScreen({ navigation, route }) {
     const [activeTab, setActiveTab] = useState('coupon');
 
@@ -359,11 +372,14 @@ export default function CouponScreen({ navigation, route }) {
                 const mappedCoupon = {
                     id: coupon.id,
                     title: coupon.title || coupon.name,
+                    startsAt: coupon.issueStartsAt,
+                    endsAt: coupon.issueEndsAt || coupon.expiredAt,
                     date: endDateStr ? formatDate(endDateStr) : "기한 없음",
-                    used: coupon.usedCount || 0, // TODO: 실 사용량 필드 확인 필요
-                    total: coupon.totalQuantity || 0,
+                    issued: coupon.issuedCount || 0,
+                    used: coupon.usedCount || 0,
+                    total: coupon.totalQuantity || -1, // -1 means unlimited
+                    validDays: coupon.validDays || 0,
                     type: coupon.benefitType, // 'FIXED_DISCOUNT' | 'PERCENTAGE_DISCOUNT' | 'SERVICE_GIFT'
-                    todayUsed: 0,
                 };
 
                 // 만료일이 지났거나 상태가 EXPIRED면 종료된 쿠폰
@@ -525,28 +541,70 @@ export default function CouponScreen({ navigation, route }) {
                             activeCoupons.map((coupon) => (
                                 <View key={coupon.id} style={styles.couponCard}>
                                     <View style={styles.couponHeader}>
-                                        <View style={styles.couponIconBox}>
-                                            {coupon.type === 'FIXED_DISCOUNT' && <Ionicons name="logo-usd" size={rs(18)} color="#34B262" />}
-                                            {coupon.type === 'PERCENTAGE_DISCOUNT' && <Text style={styles.percentIcon}>%</Text>}
-                                            {coupon.type === 'SERVICE_GIFT' && <Ionicons name="gift" size={rs(18)} color="#34B262" />}
+                                        <View style={[
+                                            styles.couponIconBox,
+                                            coupon.type === 'FIXED_DISCOUNT' && { backgroundColor: '#EAF6EE' },
+                                            coupon.type === 'PERCENTAGE_DISCOUNT' && { backgroundColor: '#EAF6EE' },
+                                            coupon.type === 'SERVICE_GIFT' && { backgroundColor: '#EAF6EE' }
+                                        ]}>
+                                            {coupon.type === 'FIXED_DISCOUNT' && <Ionicons name="logo-usd" size={rs(24)} color="#34B262" />}
+                                            {coupon.type === 'PERCENTAGE_DISCOUNT' && <Text style={[styles.percentIcon, { fontSize: rs(24), color: '#34B262' }]}>%</Text>}
+                                            {coupon.type === 'SERVICE_GIFT' && <Ionicons name="gift" size={rs(24)} color="#34B262" />}
                                         </View>
                                         <View style={styles.couponInfo}>
                                             <Text style={styles.couponTitle}>{coupon.title}</Text>
-                                            <Text style={styles.couponDate}>{coupon.date}</Text>
+                                            <View style={styles.couponMetaRow}>
+                                                <Ionicons name="time-outline" size={rs(9)} color="#828282" />
+                                                <Text style={styles.couponMetaTextDate}>
+                                                    {formatDateTimeFull(coupon.startsAt)} ~ {formatDateTimeFull(coupon.endsAt)}
+                                                </Text>
+                                            </View>
+                                            <View style={styles.couponMetaRow}>
+                                                <Ionicons name="checkbox-outline" size={rs(9)} color="#828282" />
+                                                <Text style={styles.couponMetaTextValidity}>
+                                                    {coupon.validDays === 0 ? '발급 종료 시간까지 사용 가능' : `발급일로부터 ${coupon.validDays}일간 사용 가능`}
+                                                </Text>
+                                            </View>
                                         </View>
-                                        {/* <Text style={styles.todayUsed}>오늘 {coupon.todayUsed}장 사용</Text> */}
                                     </View>
-                                    <View style={styles.progressContainer}>
-                                        <View style={styles.progressLabelRow}>
-                                            <Text style={styles.progressLabel}>사용 수량</Text>
-                                            <Text style={styles.progressValue}>
-                                                {coupon.total === -1
-                                                    ? `${coupon.used}/무제한`
-                                                    : `${coupon.used} / ${coupon.total}장`}
-                                            </Text>
+
+                                    {/* 프로그레스 바 영역 */}
+                                    <View style={styles.dualProgressContainer}>
+                                        {/* 1. 발급 수량 (다운로드 수 / 전체) */}
+                                        <View style={styles.progressItem}>
+                                            <View style={styles.progressLabelRow}>
+                                                <Text style={styles.progressLabel}>발급 수량</Text>
+                                                <Text style={styles.progressValue}>
+                                                    {coupon.total === -1
+                                                        ? `${coupon.issued} / 무제한`
+                                                        : `${coupon.issued} / ${coupon.total}장`}
+                                                </Text>
+                                            </View>
+                                            <View style={styles.progressBarBg}>
+                                                <View style={[
+                                                    styles.progressBarFill,
+                                                    { backgroundColor: '#7CDE9B' }, // 연두색
+                                                    { width: coupon.total === -1 ? '100%' : `${Math.min((coupon.issued / coupon.total) * 100, 100)}%` },
+                                                    coupon.total === -1 && { backgroundColor: '#D9D9D9' } // 무제한일 때 회색 바 (이미지 참고)
+                                                ]} />
+                                            </View>
                                         </View>
-                                        <View style={styles.progressBarBg}>
-                                            <View style={[styles.progressBarFill, { width: coupon.total === -1 ? '15%' : `${Math.min((coupon.used / coupon.total) * 100, 100)}%` }]} />
+
+                                        {/* 2. 사용 수량 (사용완료 / 다운로드 수) */}
+                                        <View style={styles.progressItem}>
+                                            <View style={styles.progressLabelRow}>
+                                                <Text style={styles.progressLabel}>사용 수량</Text>
+                                                <Text style={styles.progressValue}>
+                                                    {coupon.issued === 0 ? '0 / 0장' : `${coupon.used} / ${coupon.issued}장`}
+                                                </Text>
+                                            </View>
+                                            <View style={styles.progressBarBg}>
+                                                <View style={[
+                                                    styles.progressBarFill,
+                                                    { backgroundColor: '#34B262' }, // 진초록
+                                                    { width: coupon.issued === 0 ? '0%' : `${Math.min((coupon.used / coupon.issued) * 100, 100)}%` }
+                                                ]} />
+                                            </View>
                                         </View>
                                     </View>
                                 </View>
@@ -1085,15 +1143,10 @@ export default function CouponScreen({ navigation, route }) {
                     </TouchableWithoutFeedback>
 
                     {/* =======================================================
-                              [내부 모달] 쿠폰 유효 기간 설정 (상세)
-                          ======================================================= */}
-                    <Modal
-                        animationType="slide"
-                        transparent={true}
-                        visible={isPeriodModalVisible}
-                        onRequestClose={() => setIsPeriodModalVisible(false)}
-                    >
-                        <View style={styles.modalOverlay}>
+                          [내부 오버레이] 쿠폰 유효 기간 설정 (상격) - 커스텀 View 방식
+                      ======================================================= */}
+                    {isPeriodModalVisible && (
+                        <View style={[StyleSheet.absoluteFill, styles.modalOverlay, { zIndex: 100 }]}>
                             <View style={styles.periodModalContainer}>
                                 {/* 탭 헤더: 시작 / 종료 */}
                                 <View style={styles.periodTabRow}>
@@ -1168,7 +1221,6 @@ export default function CouponScreen({ navigation, route }) {
                                                     isDisabled = item.date < compareDate;
                                                 }
 
-                                                const isPast = item.date < today && item.month === 'curr';
                                                 const isSat = item.date.getDay() === 6;
                                                 const isSun = item.date.getDay() === 0;
 
@@ -1193,7 +1245,7 @@ export default function CouponScreen({ navigation, route }) {
                                     </View>
                                 </View>
 
-                                {/* 시간 선택기 (UI 유지 및 동작 추가) */}
+                                {/* 시간 선택기 */}
                                 <View style={styles.timePickerRow}>
                                     <TouchableOpacity onPress={() => {
                                         const newDate = new Date(activePeriodTab === 'start' ? customStartDate : customEndDate);
@@ -1262,16 +1314,11 @@ export default function CouponScreen({ navigation, route }) {
                                 </View>
                             </View>
                         </View>
-                    </Modal >
+                    )}
 
-                    {/* [모달] 닫기 재확인 */}
-                    <Modal
-                        animationType="fade"
-                        transparent={true}
-                        visible={isExitConfirmVisible}
-                        onRequestClose={() => setIsExitConfirmVisible(false)}
-                    >
-                        <View style={styles.modalOverlay}>
+                    {/* [내부 오버레이] 닫기 재확인 - 커스텀 View 방식 */}
+                    {isExitConfirmVisible && (
+                        <View style={[StyleSheet.absoluteFill, styles.modalOverlay, { zIndex: 110 }]}>
                             <View style={styles.confirmModalContainer}>
                                 <Text style={styles.confirmModalTitle}>쿠폰 작성을 취소하시겠습니까?</Text>
                                 <Text style={styles.confirmModalSubtitle}>지금 닫으시면 작성 중인 내용이 사라집니다.</Text>
@@ -1294,9 +1341,9 @@ export default function CouponScreen({ navigation, route }) {
                                 </View>
                             </View>
                         </View>
-                    </Modal>
+                    )}
                 </View>
-            </Modal >
+            </Modal>
 
 
             {/* =======================================================
@@ -1462,20 +1509,42 @@ const styles = StyleSheet.create({
     moreBtn: { flexDirection: 'row', alignItems: 'center', gap: rs(2) },
     moreBtnTextGreen: { fontSize: rs(10), fontWeight: '600', color: '#34B262', fontFamily: 'Pretendard' },
     moreBtnTextGray: { fontSize: rs(10), fontWeight: '600', color: '#828282', fontFamily: 'Pretendard' },
-    couponCard: { backgroundColor: 'white', borderRadius: rs(12), padding: rs(16), marginBottom: rs(12), elevation: 2, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05 },
-    couponHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: rs(15) },
-    couponIconBox: { width: rs(36), height: rs(36), backgroundColor: '#EAF6EE', borderRadius: rs(12), justifyContent: 'center', alignItems: 'center', marginRight: rs(10) },
+    couponCard: {
+        backgroundColor: 'white',
+        borderRadius: rs(12),
+        paddingHorizontal: rs(16),
+        paddingVertical: rs(11),
+        marginBottom: rs(12),
+        elevation: 2,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4
+    },
+    couponHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: rs(10) },
+    couponIconBox: {
+        width: rs(45),
+        height: rs(45),
+        backgroundColor: '#EAF6EE',
+        borderRadius: rs(12),
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: rs(12)
+    },
     percentIcon: { fontSize: rs(16), fontWeight: '700', color: '#34B262', fontFamily: 'Pretendard' },
-    couponInfo: { flex: 1 },
+    couponInfo: { flex: 1, gap: 0 },
     couponTitle: { fontSize: rs(13), fontWeight: '500', color: 'black', fontFamily: 'Pretendard', marginBottom: rs(2) },
-    couponDate: { fontSize: rs(10), color: '#828282', fontFamily: 'Pretendard' },
-    todayUsed: { fontSize: rs(10), fontWeight: '600', color: '#34B262', fontFamily: 'Pretendard' },
-    progressContainer: {},
-    progressLabelRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: rs(6) },
-    progressLabel: { fontSize: rs(10), color: '#828282', fontFamily: 'Pretendard' },
+    couponMetaRow: { flexDirection: 'row', alignItems: 'center', gap: rs(2) },
+    couponMetaTextDate: { fontSize: rs(9), color: '#828282', fontWeight: '400', fontFamily: 'Pretendard' },
+    couponMetaTextValidity: { fontSize: rs(9), color: '#828282', fontWeight: '400', fontFamily: 'Pretendard' },
+
+    dualProgressContainer: { gap: rs(8) },
+    progressItem: { width: '100%', gap: rs(4) },
+    progressLabelRow: { flexDirection: 'row', justifyContent: 'space-between' },
+    progressLabel: { fontSize: rs(10), color: '#828282', fontWeight: '500', fontFamily: 'Pretendard' },
     progressValue: { fontSize: rs(10), fontWeight: '600', color: 'black', fontFamily: 'Pretendard' },
     progressBarBg: { height: rs(6), backgroundColor: '#F0F0F0', borderRadius: rs(3), overflow: 'hidden' },
-    progressBarFill: { height: '100%', backgroundColor: '#34B262', borderRadius: rs(3) },
+    progressBarFill: { height: '100%', borderRadius: rs(3) },
     expiredCard: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'white', padding: rs(12), borderRadius: rs(10), marginBottom: rs(8), elevation: 1 },
     expiredTitle: { fontSize: rs(12), color: '#828282', fontFamily: 'Pretendard' },
     expiredValue: { fontSize: rs(10), color: '#828282', fontFamily: 'Pretendard' },
