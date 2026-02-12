@@ -6,6 +6,7 @@ import {
 import { EventCard } from '@/src/app/(student)/components/event/event-card';
 import { SelectedEventDetail } from '@/src/app/(student)/components/event/selected-event-detail';
 import { NaverMap } from '@/src/app/(student)/components/map/naver-map-view';
+import type { NaverMapViewRef } from '@mj-studio/react-native-naver-map';
 import { SelectedStoreDetail } from '@/src/app/(student)/components/map/selected-store-detail';
 import { FilterTab, StoreFilterModal } from '@/src/app/(student)/components/map/store-filter-modal';
 import { StoreCard } from '@/src/app/(student)/components/store/store-card';
@@ -46,6 +47,7 @@ export default function MapTab() {
   const { setTabBarVisible } = useTabBar();
   const router = useRouter();
   const searchInputRef = useRef<TextInput>(null);
+  const naverMapRef = useRef<NaverMapViewRef>(null);
   const { category } = useLocalSearchParams<{ category?: string }>();
 
   const {
@@ -579,6 +581,7 @@ export default function MapTab() {
     <ThemedView style={styles.container}>
       {/* 지도 */}
       <NaverMap
+        ref={naverMapRef}
         center={mapCenter}
         markers={isEventOnlyMode ? [] : markers}
         eventMarkers={eventMarkers}
@@ -617,8 +620,12 @@ export default function MapTab() {
         <TouchableOpacity
           style={styles.controlButton}
           onPress={() => {
-            if (myLocation) {
-              setMapCenter({ lat: myLocation.lat, lng: myLocation.lng });
+            if (myLocation && naverMapRef.current) {
+              naverMapRef.current.animateCameraTo({
+                latitude: myLocation.lat,
+                longitude: myLocation.lng,
+                duration: 500,
+              });
             }
           }}
         >
