@@ -123,7 +123,11 @@ export default function StoreDetailScreen() {
         queryClient.invalidateQueries({ queryKey: ['/api/my-coupons'] });
       },
       onError: (error: any) => {
-        const errorMessage = error?.message || '이미 발급받은 쿠폰이거나 발급 기간이 아닙니다';
+        const errorMessage =
+          error?.data?.message ||
+          error?.data?.data?.message ||
+          error?.message ||
+          '이미 발급받은 쿠폰이거나 발급 기간이 아닙니다';
         Alert.alert('발급 실패', errorMessage);
       },
     },
@@ -190,18 +194,24 @@ export default function StoreDetailScreen() {
   const storeIsPartner = false; // TODO: StoreResponse에 isPartner 필드 추가 후 연동
   const storeBenefits: string[] = []; // TODO: 혜택 API 추가 후 연동
 
-  // 쿠폰: API CouponResponse → 컴포넌트 Coupon 타입
-  const storeCoupons = useMemo(() =>
-    apiCoupons.map((c) => ({
-      id: String(c.id),
-      title: c.title ?? '',
-      description: '',
-      discount: c.benefitValue ?? '',
-      expiryDate: c.issueEndsAt ? `${formatDate(c.issueEndsAt)}까지` : '',
-      isDownloaded: c.isDownloaded ?? false,
-    })),
-    [apiCoupons],
-  );
+  // 쿠폰: API CouponResponse → 컴포넌트 Coupon 타입 (발급 기간 필터링 포함)
+  const storeCoupons = useMemo(() => {
+    const now = new Date();
+    return apiCoupons
+      .filter((c) => {
+        if (c.issueStartsAt && new Date(c.issueStartsAt) > now) return false;
+        if (c.issueEndsAt && new Date(c.issueEndsAt) < now) return false;
+        return true;
+      })
+      .map((c) => ({
+        id: String(c.id),
+        title: c.title ?? '',
+        description: '',
+        discount: c.benefitValue ?? '',
+        expiryDate: c.issueEndsAt ? `${formatDate(c.issueEndsAt)}까지` : '',
+        isDownloaded: c.isDownloaded ?? false,
+      }));
+  }, [apiCoupons]);
 
   // 소식: API StoreNewsResponse → 컴포넌트 NewsItem 타입
   const storeNews = useMemo(() =>
