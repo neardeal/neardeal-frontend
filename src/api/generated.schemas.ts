@@ -44,7 +44,7 @@ export interface CommonResponseVoid {
 
 export interface CreateUniversityRequest {
   name: string;
-  emailDomain: string;
+  emailDomains: string[];
 }
 
 export interface CommonResponseLong {
@@ -98,6 +98,7 @@ export interface StoreCreateRequest {
   latitude?: number;
   longitude?: number;
   storePhone?: string;
+  representativeName?: string;
   introduction?: string;
   operatingHours?: string;
   storeCategories: StoreCreateRequestStoreCategoriesItem[];
@@ -180,6 +181,7 @@ export type CreateCouponRequestStatus = typeof CreateCouponRequestStatus[keyof t
 export const CreateCouponRequestStatus = {
   ACTIVE: 'ACTIVE',
   EXPIRED: 'EXPIRED',
+  WITHDRAWN_BY_OWNER: 'WITHDRAWN_BY_OWNER',
 } as const;
 
 export interface CreateCouponRequest {
@@ -555,7 +557,7 @@ export interface CreateEventRequest {
 }
 
 /**
- * 학교 이메일 도메인
+ * 대학교 이름
  */
 export interface JsonNullableString {
   present?: boolean;
@@ -614,6 +616,7 @@ export interface StoreUpdateRequest {
   latitude?: JsonNullableDouble;
   longitude?: JsonNullableDouble;
   phone?: JsonNullableString;
+  representativeName?: JsonNullableString;
   introduction?: JsonNullableString;
   operatingHours?: JsonNullableString;
   storeCategories?: JsonNullableListStoreCategory;
@@ -793,7 +796,7 @@ export interface UpdateEventRequest {
 export interface UniversityResponse {
   id?: number;
   name?: string;
-  emailDomain?: string;
+  emailDomains?: string[];
 }
 
 export interface CommonResponseListUniversityResponse {
@@ -833,6 +836,7 @@ export type CouponResponseStatus = typeof CouponResponseStatus[keyof typeof Coup
 export const CouponResponseStatus = {
   ACTIVE: 'ACTIVE',
   EXPIRED: 'EXPIRED',
+  WITHDRAWN_BY_OWNER: 'WITHDRAWN_BY_OWNER',
 } as const;
 
 export type CouponResponseBenefitType = typeof CouponResponseBenefitType[keyof typeof CouponResponseBenefitType];
@@ -916,6 +920,7 @@ export interface StoreResponse {
   latitude?: number;
   longitude?: number;
   phone?: string;
+  representativeName?: string;
   introduction?: string;
   operatingHours?: string;
   needToCheck?: boolean;

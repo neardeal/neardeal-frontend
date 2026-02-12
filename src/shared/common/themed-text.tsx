@@ -6,7 +6,7 @@ import { Fonts } from '@/src/shared/theme/theme';
 export type ThemedTextProps = TextProps & {
   lightColor?: string;
   darkColor?: string;
-  type?: 'default' | 'title' | 'defaultSemiBold' | 'subtitle' | 'caption' | 'link';
+  type?: 'default' | 'title' | 'defaultSemiBold' | 'subtitle' | 'caption' | 'captionSemiBold'| 'small' | 'link';
 };
 
 export function ThemedText({
@@ -26,8 +26,10 @@ export function ThemedText({
         type === 'title' ? styles.title : undefined,
         type === 'defaultSemiBold' ? styles.defaultSemiBold : undefined,
         type === 'subtitle' ? styles.subtitle : undefined,
-        type === 'caption' ? styles.caption : undefined,
         type === 'link' ? styles.link : undefined,
+        type === 'caption' ? styles.caption : undefined,
+        type === 'captionSemiBold' ? styles.captionSemiBold : undefined,
+        type === 'small' ? styles.small : undefined,
         style,
       ]}
       {...rest}
@@ -61,9 +63,16 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 16,
   },
-  
-
-  
+  captionSemiBold: {
+    fontFamily: Fonts.bold,
+    fontSize: 12,
+    lineHeight: 16,
+  },
+  small :{
+    fontFamily: Fonts.regular,
+    fontSize: 10,
+    lineHeight: 12,
+  },
   link: {
     fontFamily: Fonts.regular,
     lineHeight: 30,
