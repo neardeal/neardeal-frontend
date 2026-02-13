@@ -58,7 +58,8 @@ export type CreateOrganizationRequestCategory = typeof CreateOrganizationRequest
 export const CreateOrganizationRequestCategory = {
   COLLEGE: 'COLLEGE',
   DEPARTMENT: 'DEPARTMENT',
-  STUDENT_COUNCIL: 'STUDENT_COUNCIL',
+  UNIVERSITY_COUNCIL: 'UNIVERSITY_COUNCIL',
+  CLUB_ASSOCIATION: 'CLUB_ASSOCIATION',
 } as const;
 
 export interface CreateOrganizationRequest {
@@ -356,8 +357,8 @@ export interface CommonResponseIssueCouponResponse {
 }
 
 export interface BizInfo {
-  pnm?: string;
   bno?: string;
+  pnm?: string;
   b_no?: string;
   start_dt?: string;
   p_nm?: string;
@@ -416,6 +417,16 @@ export interface StudentSignupRequest {
   isClubMember?: boolean;
 }
 
+export interface LoginResponse {
+  accessToken?: string;
+  expiresIn?: number;
+}
+
+export interface CommonResponseLoginResponse {
+  isSuccess?: boolean;
+  data?: LoginResponse;
+}
+
 export type OwnerSignupRequestGender = typeof OwnerSignupRequestGender[keyof typeof OwnerSignupRequestGender];
 
 
@@ -441,16 +452,6 @@ export interface CouncilSignupRequest {
   password?: string;
   name?: string;
   universityId?: number;
-}
-
-export interface LoginResponse {
-  accessToken?: string;
-  expiresIn?: number;
-}
-
-export interface CommonResponseLoginResponse {
-  isSuccess?: boolean;
-  data?: LoginResponse;
 }
 
 export interface LoginRequest {
@@ -814,7 +815,8 @@ export type OrganizationResponseCategory = typeof OrganizationResponseCategory[k
 export const OrganizationResponseCategory = {
   COLLEGE: 'COLLEGE',
   DEPARTMENT: 'DEPARTMENT',
-  STUDENT_COUNCIL: 'STUDENT_COUNCIL',
+  UNIVERSITY_COUNCIL: 'UNIVERSITY_COUNCIL',
+  CLUB_ASSOCIATION: 'CLUB_ASSOCIATION',
 } as const;
 
 export interface OrganizationResponse {
@@ -1432,7 +1434,8 @@ export type PartnershipResponseCategory = typeof PartnershipResponseCategory[key
 export const PartnershipResponseCategory = {
   COLLEGE: 'COLLEGE',
   DEPARTMENT: 'DEPARTMENT',
-  STUDENT_COUNCIL: 'STUDENT_COUNCIL',
+  UNIVERSITY_COUNCIL: 'UNIVERSITY_COUNCIL',
+  CLUB_ASSOCIATION: 'CLUB_ASSOCIATION',
 } as const;
 
 export interface PartnershipResponse {
