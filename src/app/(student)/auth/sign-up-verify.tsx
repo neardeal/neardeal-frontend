@@ -408,8 +408,24 @@ export default function StudentVerificationPage() {
             }
           );
         },
-        onError: (error) => {
+        onError: (error: any) => {
           console.error("회원가입 실패:", error);
+          const errorData = error?.data?.data || error?.data || error;
+          const errorCode = errorData?.code;
+          const errorMessage = errorData?.message;
+
+          if (errorCode === "DUPLICATE_RESOURCE" || error?.status === 409) {
+            Alert.alert(
+              "회원가입 실패",
+              errorMessage || "이미 존재하는 아이디입니다. 다른 아이디로 다시 시도해주세요.",
+              [{ text: "확인", onPress: () => router.back() }]
+            );
+          } else {
+            Alert.alert(
+              "회원가입 실패",
+              errorMessage || "회원가입에 실패했습니다. 다시 시도해주세요."
+            );
+          }
         },
       }
     );

@@ -67,6 +67,14 @@ export default function OwnerOnboardingPage() {
     router.replace("/auth");
   }, [router]);
 
+  const handleNext = useCallback(() => {
+    if (currentIndex < SLIDES.length - 1) {
+      flatListRef.current?.scrollToIndex({ index: currentIndex + 1, animated: true });
+    } else {
+      handleComplete();
+    }
+  }, [currentIndex, handleComplete]);
+
   const onViewableItemsChanged = useCallback(
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {
       if (viewableItems.length > 0 && viewableItems[0].index != null) {
@@ -87,11 +95,20 @@ export default function OwnerOnboardingPage() {
       </View>
 
       {/* 슬라이드 이미지 */}
-      <Image
-        source={item.image}
-        style={styles.slideImage}
-        resizeMode="contain"
-      />
+      <View style={styles.imageContainer}>
+        <Image
+          source={item.image}
+          style={styles.slideImage}
+          resizeMode="contain"
+        />
+        {item.id === "5" && (
+          <Image
+            source={require("@/assets/images/onboarding/logo.png")}
+            style={styles.logoOverlay}
+            resizeMode="contain"
+          />
+        )}
+      </View>
     </View>
   );
 
@@ -137,7 +154,7 @@ export default function OwnerOnboardingPage() {
         <AppButton
           label={currentIndex === SLIDES.length - 1 ? "🍀 루키 시작하기" : "다음으로"}
           backgroundColor={Owner.primary}
-          onPress={handleComplete}
+          onPress={handleNext}
           style={styles.loginButton}
         />
       </View>
@@ -186,10 +203,21 @@ const styles = StyleSheet.create({
     color: Gray.black,
     textAlign: "center",
   },
+  imageContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   slideImage: {
     flex: 1,
     width: "100%",
     borderRadius: rs(20),
+  },
+  logoOverlay: {
+    position: "absolute",
+    width: rs(140),
+    height: rs(48),
+    top: "55%",
   },
   bottomArea: {
     paddingHorizontal: rs(24),

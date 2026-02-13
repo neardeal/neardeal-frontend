@@ -95,11 +95,20 @@ export default function StudentOnboardingPage() {
       </View>
 
       {/* 슬라이드 이미지 */}
-      <Image
-        source={item.image}
-        style={styles.slideImage}
-        resizeMode="contain"
-      />
+      <View style={styles.imageContainer}>
+        <Image
+          source={item.image}
+          style={styles.slideImage}
+          resizeMode="contain"
+        />
+        {item.id === "5" && (
+          <Image
+            source={require("@/assets/images/onboarding/logo.png")}
+            style={styles.logoOverlay}
+            resizeMode="contain"
+          />
+        )}
+      </View>
     </View>
   );
 
@@ -194,10 +203,21 @@ const styles = StyleSheet.create({
     color: Gray.black,
     textAlign: "center",
   },
+  imageContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   slideImage: {
     flex: 1,
     width: "100%",
     borderRadius: rs(20),
+  },
+  logoOverlay: {
+    position: "absolute",
+    width: rs(140),
+    height: rs(48),
+    top: "55%",
   },
   bottomArea: {
     paddingHorizontal: rs(24),

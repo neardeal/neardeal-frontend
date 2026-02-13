@@ -347,6 +347,7 @@ export default function SignupOwnerPage() {
             value={storePhone}
             onChangeText={setStorePhone}
             keyboardType="phone-pad"
+            maxLength={11}
           />
         </View>
 
@@ -373,6 +374,7 @@ export default function SignupOwnerPage() {
               if (isBizVerified) setIsBizVerified(false);
             }}
             keyboardType="number-pad"
+            maxLength={10}
             editable={!isBizVerified}
           />
           <TouchableOpacity
