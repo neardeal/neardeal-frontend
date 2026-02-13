@@ -168,9 +168,13 @@ export default function HomeScreen({ navigation }) {
 
   // 날짜 포맷 헬퍼
   const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
     return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}까지`;
+  };
+
+  // [헬퍼] 숫자 콤마 포맷팅
+  const formatNumber = (val) => {
+    if (!val && val !== 0) return '0';
+    return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 
   // [로직] 쿠폰 번호 검증 (API 연결)
@@ -337,7 +341,7 @@ export default function HomeScreen({ navigation }) {
               </View>
               <View style={styles.statInfoBox}>
                 <Text style={statStyles.statTitle}>단골 손님</Text>
-                <Text style={styles.statNumber}>{homeData.stats.regulars}</Text>
+                <Text style={styles.statNumber}>{formatNumber(homeData.stats.regulars)}</Text>
                 <Text style={styles.statSubText}>명이 찜했어요</Text>
               </View>
             </TouchableOpacity>
@@ -353,7 +357,7 @@ export default function HomeScreen({ navigation }) {
               </View>
               <View style={styles.statInfoBox}>
                 <Text style={statStyles.statTitle}>발행한 쿠폰</Text>
-                <Text style={styles.statNumber}>{homeData.stats.issuedCoupons}</Text>
+                <Text style={styles.statNumber}>{formatNumber(homeData.stats.issuedCoupons)}</Text>
                 <Text style={styles.statSubText}>장을 발행했어요</Text>
               </View>
             </TouchableOpacity>
@@ -372,7 +376,7 @@ export default function HomeScreen({ navigation }) {
               </View>
               <View style={styles.statInfoBox}>
                 <Text style={statStyles.statTitle}>총 리뷰</Text>
-                <Text style={styles.statNumber}>{homeData.stats.newReviews}</Text>
+                <Text style={styles.statNumber}>{formatNumber(homeData.stats.newReviews)}</Text>
                 <Text style={styles.statSubText}>명이 남겼어요</Text>
               </View>
             </TouchableOpacity>
@@ -388,7 +392,7 @@ export default function HomeScreen({ navigation }) {
               </View>
               <View style={styles.statInfoBox}>
                 <Text style={statStyles.statTitle}>사용된 쿠폰</Text>
-                <Text style={styles.statNumber}>{homeData.stats.usedCoupons}</Text>
+                <Text style={styles.statNumber}>{formatNumber(homeData.stats.usedCoupons)}</Text>
                 <Text style={styles.statSubText}>장 사용되었어요</Text>
               </View>
             </TouchableOpacity>
