@@ -7,7 +7,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   owner: "looky123",
   version: "1.0.0",
   orientation: "portrait",
-  icon: "./assets/images/icon.png",
+  icon: "./assets/images/logo/android-looky.png",
   scheme: "rnapp",
   userInterfaceStyle: "light",
   newArchEnabled: true,
@@ -18,10 +18,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   android: {
     package: "kr.looky.looky",
     adaptiveIcon: {
-      backgroundColor: "#E6F4FE",
-      foregroundImage: "./assets/images/android-icon-foreground.png",
-      backgroundImage: "./assets/images/android-icon-background.png",
-      monochromeImage: "./assets/images/android-icon-monochrome.png",
+      backgroundColor: "#FEF5E5",
+      foregroundImage: "./assets/images/logo/android-looky.png",
     },
     edgeToEdgeEnabled: true,
     predictiveBackGestureEnabled: false,

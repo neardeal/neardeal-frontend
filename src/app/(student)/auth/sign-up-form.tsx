@@ -1,4 +1,4 @@
-import NearDealLogo from "@/assets/images/logo/neardeal-logo.svg";
+import LookyLogo from "@/assets/images/logo/looky-logo.svg";
 import { checkUsernameAvailability, useSend, useVerify } from "@/src/api/auth";
 import { AppButton } from "@/src/shared/common/app-button";
 import { ArrowLeft } from "@/src/shared/common/arrow-left";
@@ -325,7 +325,7 @@ export default function SignupTypePage() {
       {/* Top Content */}
       <View style={styles.topContent}>
         <ThemedText style={styles.subtitle}>우리대학 제휴혜택이 궁금할 땐?</ThemedText>
-        <NearDealLogo width={169} height={57} />
+        <LookyLogo width={169} height={57} />
       </View>
 
       <KeyboardAvoidingView
