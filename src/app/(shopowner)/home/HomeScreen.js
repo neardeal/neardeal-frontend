@@ -8,7 +8,8 @@ import { ActivityIndicator, Image, Keyboard, KeyboardAvoidingView, Modal, Platfo
 
 // [API] 내 가게 조회 & 상점 통계 조회 임포트
 import { verifyCoupon } from '@/src/api/coupon';
-import { getMyStores, getStoreStats } from '@/src/api/store';
+import { getItems } from '@/src/api/item';
+import { getMyStores, getStore, getStoreStats } from '@/src/api/store';
 
 export default function HomeScreen({ navigation }) {
   // [상태 관리]
@@ -32,6 +33,8 @@ export default function HomeScreen({ navigation }) {
     storeId: null,
     storeName: "등록된 가게 없음",
     ownerName: "사장님",
+    isStoreInfoComplete: false, // 매장 정보 등록 완료 여부
+    menuCount: 0,                // 등록된 메뉴 개수
     stats: {
       regulars: 0,
       issuedCoupons: 0,
@@ -76,15 +79,37 @@ export default function HomeScreen({ navigation }) {
       console.log(`[API] 통계 조회 시작: storeId=${storeId}`);
       const statsResponse = await getStoreStats(storeId);
 
+      // [추가] 5. 상점 상세 정보 조회 (등록 상태 확인용)
+      const storeDetailResponse = await getStore(storeId);
+      const storeDetail = storeDetailResponse?.data?.data || {};
+
+      // 매장 정보가 모두 입력되었는지 확인 (소개, 전화번호, 주소, 이미지 중 하나라도 있어야 함 - 여기서는 최소한의 조건으로 체크)
+      const isStoreInfoComplete = !!(
+        storeDetail.introduction &&
+        storeDetail.phone &&
+        storeDetail.roadAddress &&
+        (storeDetail.imageUrls && storeDetail.imageUrls.length > 0)
+      );
+
+      // [추가] 6. 메뉴 목록 조회 (등록 상태 확인용)
+      const itemsResponse = await getItems(storeId);
+      const itemsData = itemsResponse?.data?.data || itemsResponse?.data || [];
+      const itemsList = Array.isArray(itemsData) ? itemsData : (itemsData.content || []);
+      const menuCount = itemsList.length;
+
       // 통계 데이터 언랩핑
       const statsData = statsResponse?.data?.data || {};
 
       console.log("📊 [통계 데이터 수신]:", statsData);
+      console.log("🏪 [매장 상세 확인]:", isStoreInfoComplete ? "완료" : "미완료");
+      console.log("🥘 [메뉴 개수 확인]:", menuCount);
 
       setHomeData({
         storeId: storeId,
         storeName: currentStore.name,
         ownerName: currentStore.ownerName || "사장님",
+        isStoreInfoComplete,
+        menuCount,
         stats: {
           regulars: statsData.totalRegulars || 0,
           issuedCoupons: statsData.totalIssuedCoupons || 0,
@@ -225,7 +250,11 @@ export default function HomeScreen({ navigation }) {
             <View style={styles.levelHeader}>
               <View style={styles.levelIconContainer}>
                 <Image
-                  source={require("@/assets/images/shopowner/3clover.png")}
+                  source={
+                    (homeData.isStoreInfoComplete && homeData.menuCount > 0)
+                      ? require("@/assets/images/shopowner/3clover.png")
+                      : require("@/assets/images/shopowner/2clover.png")
+                  }
                   style={styles.levelImage}
                   resizeMode="contain"
                 />
@@ -233,7 +262,9 @@ export default function HomeScreen({ navigation }) {
 
               <View style={styles.levelInfo}>
                 <Text style={styles.levelLabel}>현재 등급</Text>
-                <Text style={styles.levelValue}>세잎클로버</Text>
+                <Text style={styles.levelValue}>
+                  {(homeData.isStoreInfoComplete && homeData.menuCount > 0) ? "세잎클로버" : "새싹"}
+                </Text>
               </View>
 
               <TouchableOpacity
@@ -251,9 +282,21 @@ export default function HomeScreen({ navigation }) {
             <View style={styles.progressContainer}>
               <View style={styles.progressTextRow}>
                 <Ionicons name="sparkles" size={rs(12)} color="#A5F3C3" style={{ marginRight: 4 }} />
-                <Text style={styles.progressLabel}>훌륭해요! 행운이 가득한 매장이군요</Text>
+                <Text style={styles.progressLabel}>
+                  {(homeData.isStoreInfoComplete && homeData.menuCount > 0)
+                    ? "훌륭해요! 행운이 가득한 매장이군요"
+                    : "루키의 파트너 매장이 되셨군요!"}
+                </Text>
               </View>
-              <Text style={[styles.progressLabel2, { marginTop: rs(2) }]}>학생들에게 행운을 나눠주세요!</Text>
+              <Text style={[styles.progressLabel2, { marginTop: rs(2) }]}>
+                {(homeData.isStoreInfoComplete && homeData.menuCount > 0)
+                  ? "학생들에게 행운을 나눠주세요!"
+                  : (!homeData.isStoreInfoComplete && homeData.menuCount === 0)
+                    ? "다음 등급을 위해 매장과 메뉴 정보를 업데이트 해주세요!"
+                    : (homeData.menuCount === 0)
+                      ? "다음 등급을 위해 메뉴 정보도 업데이트 해주세요!"
+                      : "다음 등급을 위해 매장 정보도 업데이트 해주세요!"}
+              </Text>
             </View>
           </LinearGradient>
         </View>
@@ -391,7 +434,7 @@ export default function HomeScreen({ navigation }) {
                 />
                 <View style={styles.gradeTextBox}>
                   <Text style={styles.gradeItemTitle}>씨앗</Text>
-                  <Text style={styles.gradeItemDesc}>아직 니어딜에 정식 등록되지 않은 상태예요.</Text>
+                  <Text style={styles.gradeItemDesc}>{"아직 루키에 정식 등록되지 않은 상태예요.\n(입점 신청 필요)"}</Text>
                 </View>
               </View>
               <View style={styles.gradeItemBox}>
@@ -402,7 +445,7 @@ export default function HomeScreen({ navigation }) {
                 />
                 <View style={styles.gradeTextBox}>
                   <Text style={styles.gradeItemTitle}>새싹</Text>
-                  <Text style={styles.gradeItemDesc}>니어딜의 파트너가 되셨군요! 환영합니다.</Text>
+                  <Text style={styles.gradeItemDesc}>{"루키의 파트너가 되셨군요!\n환영합니다."}</Text>
                 </View>
               </View>
               <View style={styles.gradeItemBox}>
@@ -413,7 +456,7 @@ export default function HomeScreen({ navigation }) {
                 />
                 <View style={styles.gradeTextBox}>
                   <Text style={styles.gradeItemTitle}>세잎</Text>
-                  <Text style={styles.gradeItemDesc}>가게 정보를 모두 등록하여 손님 맞을 준비 완료!</Text>
+                  <Text style={styles.gradeItemDesc}>{"가게 정보를 모두 등록하여 손님 맞을 준비 완료!\n학생들에게 행운을 나눠주세요!"}</Text>
                 </View>
               </View>
             </View>
