@@ -684,7 +684,11 @@ export default function SignupTypePage() {
 
             {/* 비밀번호 */}
             <View style={styles.inputGroup}>
-              <View style={styles.inputContainer}>
+              <View style={[
+                styles.inputContainer,
+                password.length > 0 && isPasswordValid(password) && styles.inputSuccess,
+                password.length > 0 && !isPasswordValid(password) && styles.inputError,
+              ]}>
                 <TextInput
                   style={styles.input}
                   placeholder="비밀번호"
@@ -712,11 +716,20 @@ export default function SignupTypePage() {
                   비밀번호는 영어, 숫자, 특수문자를 포함한 8자~20자 이내로 입력해주세요
                 </ThemedText>
               )}
+              {password.length === 0 && (
+                <ThemedText style={styles.hintText}>
+                  영어, 숫자, 특수문자를 포함한 8~20자 이내로 입력해주세요
+                </ThemedText>
+              )}
             </View>
 
             {/* 비밀번호 확인 */}
             <View style={styles.inputGroup}>
-              <View style={styles.inputContainer}>
+              <View style={[
+                styles.inputContainer,
+                passwordConfirm.length > 0 && password === passwordConfirm && isPasswordValid(password) && styles.inputSuccess,
+                passwordConfirm.length > 0 && password !== passwordConfirm && styles.inputError,
+              ]}>
                 <TextInput
                   style={styles.input}
                   placeholder="비밀번호 확인"
@@ -739,6 +752,16 @@ export default function SignupTypePage() {
                   <EyeOffIcon color={Gray.gray5} />
                 </TouchableOpacity>
               </View>
+              {passwordConfirm.length > 0 && password === passwordConfirm && isPasswordValid(password) && (
+                <ThemedText style={styles.successText}>
+                  비밀번호가 일치합니다
+                </ThemedText>
+              )}
+              {passwordConfirm.length > 0 && password !== passwordConfirm && (
+                <ThemedText style={styles.errorText}>
+                  비밀번호가 일치하지 않습니다
+                </ThemedText>
+              )}
             </View>
           </>
         )}
