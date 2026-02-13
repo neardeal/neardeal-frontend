@@ -3,6 +3,7 @@ import { Fonts, Gray } from '@/src/shared/theme/theme';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import {
+    ActivityIndicator,
     Image,
     Modal,
     ModalProps,
@@ -18,6 +19,7 @@ export type ErrorType = 'NETWORK' | 'GPS';
 interface ErrorPopupProps extends ModalProps {
     visible: boolean;
     type: ErrorType;
+    isRefreshing?: boolean;
     onRefresh: () => void;
     onClose: () => void;
 }
@@ -36,6 +38,7 @@ const ERROR_MAPPINGS = {
 export function ErrorPopup({
     visible,
     type,
+    isRefreshing = false,
     onRefresh,
     onClose,
     ...modalProps
@@ -75,8 +78,16 @@ export function ErrorPopup({
                     </View>
 
                     {/* Refresh Button */}
-                    <TouchableOpacity style={styles.refreshButton} onPress={onRefresh}>
-                        <Text style={styles.refreshText}>새로고침</Text>
+                    <TouchableOpacity
+                        style={[styles.refreshButton, isRefreshing && { opacity: 0.8 }]}
+                        onPress={onRefresh}
+                        disabled={isRefreshing}
+                    >
+                        {isRefreshing ? (
+                            <ActivityIndicator color={Gray.white} size="small" />
+                        ) : (
+                            <Text style={styles.refreshText}>새로고침</Text>
+                        )}
                     </TouchableOpacity>
                 </View>
             </View>

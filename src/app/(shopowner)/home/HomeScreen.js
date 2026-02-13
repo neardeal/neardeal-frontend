@@ -10,12 +10,15 @@ import { ActivityIndicator, Image, Keyboard, KeyboardAvoidingView, Modal, Platfo
 import { verifyCoupon } from '@/src/api/coupon';
 import { getItems } from '@/src/api/item';
 import { getMyStores, getStore, getStoreStats } from '@/src/api/store';
+import { ErrorPopup } from '@/src/shared/common/error-popup';
 
 export default function HomeScreen({ navigation }) {
   // [상태 관리]
   const [modalVisible, setModalVisible] = useState(false); // 등급 안내 모달
   const [isLoading, setIsLoading] = useState(true);        // 로딩 상태
   const [refreshing, setRefreshing] = useState(false);     // 당겨서 새로고침
+  const [isErrorPopupVisible, setIsErrorPopupVisible] = useState(false); // 에러 팝업 상태 (전체화면)
+  const [isPopupRefreshing, setIsPopupRefreshing] = useState(false);    // 에러 팝업 내 새로고침 상태
 
   // [가게 선택 모달]
   const [isStoreModalVisible, setIsStoreModalVisible] = useState(false);
@@ -117,9 +120,13 @@ export default function HomeScreen({ navigation }) {
           usedCoupons: statsData.totalUsedCoupons || 0,
         }
       });
+      setIsErrorPopupVisible(false); // 데이터 로딩 성공 시 에러 팝업 닫기
+      setIsPopupRefreshing(false);   // 팝업 내 로딩 상태 해제
 
     } catch (error) {
       console.error("홈 데이터 로딩 실패:", error);
+      setIsErrorPopupVisible(true); // 에러 발생 시 팝업 띄우기
+      setIsPopupRefreshing(false);  // 에러 발생 시 (재시도 실패 시) 로딩 상태 해제
     } finally {
       setIsLoading(false);
       setRefreshing(false);
@@ -152,6 +159,12 @@ export default function HomeScreen({ navigation }) {
       fetchData();
     }, [])
   );
+
+  // [로직] 에러 팝업 새로고침
+  const handleErrorRefresh = () => {
+    setIsPopupRefreshing(true); // 팝업 버튼 내 로딩 표시 시작
+    fetchData();                // 데이터 다시 불러오기
+  };
 
   // 날짜 포맷 헬퍼
   const formatDate = (dateString) => {
@@ -641,6 +654,15 @@ export default function HomeScreen({ navigation }) {
           </View>
         </TouchableWithoutFeedback>
       </Modal>
+
+      {/* --- [모달] 에러 발생 팝업 --- */}
+      <ErrorPopup
+        visible={isErrorPopupVisible}
+        isRefreshing={isPopupRefreshing}
+        type="NETWORK"
+        onRefresh={handleErrorRefresh}
+        onClose={() => setIsErrorPopupVisible(false)}
+      />
     </SafeAreaView>
   );
 }
