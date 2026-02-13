@@ -68,8 +68,8 @@ export function EventSection({ events }: EventSectionProps) {
     router.push('/map?category=EVENT' as any);
   };
 
-  const handleEventPress = (_eventId: number) => {
-    router.push(`/map?category=EVENT` as any);
+  const handleEventPress = (eventId: number) => {
+    router.push(`/map?category=EVENT&eventId=${eventId}` as any);
   };
 
   const getDDayInfo = (event: EventItem) => {
@@ -104,11 +104,16 @@ export function EventSection({ events }: EventSectionProps) {
     itemVisiblePercentThreshold: 50,
   }).current;
 
-  // 종료일이 지난 이벤트는 제외
+  // 종료일이 지나지 않았고, 시작일이 지금으로부터 7일 이내인 이벤트만 표시
   const now = new Date();
+  const oneWeekLater = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
   const activeEvents = events
-    .filter((event) => new Date(event.endDateTime) > now)
-    .sort((a, b) => new Date(a.endDateTime).getTime() - new Date(b.endDateTime).getTime());
+    .filter((event) => {
+      const end = new Date(event.endDateTime);
+      const start = new Date(event.startDateTime);
+      return end > now && start <= oneWeekLater;
+    })
+    .sort((a, b) => new Date(a.startDateTime).getTime() - new Date(b.startDateTime).getTime());
 
   if (activeEvents.length === 0) {
     return null;

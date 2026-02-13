@@ -2,18 +2,18 @@ import { ArrowLeft } from '@/src/shared/common/arrow-left';
 import { ThemedText } from '@/src/shared/common/themed-text';
 import { ThemedView } from '@/src/shared/common/themed-view';
 import { rs } from '@/src/shared/theme/scale';
-import { Gray, Owner, Text } from '@/src/shared/theme/theme';
+import { Brand, Gray, Text } from '@/src/shared/theme/theme';
 import type { Event, EventType } from '@/src/shared/types/event';
 import { EVENT_TYPE_LABELS, getDDay, getEventStatus } from '@/src/shared/types/event';
-import { Ionicons } from '@expo/vector-icons';
+import LocationIcon from '@/assets/images/icons/event/location.svg';
+import CalendarIcon from '@/assets/images/icons/event/calendar.svg';
+import ClockIcon from '@/assets/images/icons/event/clock.svg';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import {
   ActivityIndicator,
   Image,
-  Linking,
   ScrollView,
-  Share,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -22,7 +22,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { customFetch } from '@/src/api/mutator';
 
-// API Response 타입
 interface EventResponse {
   id: number;
   title: string;
@@ -42,7 +41,6 @@ interface CommonResponseEventResponse {
   data: EventResponse;
 }
 
-// API 호출 함수
 async function fetchEvent(eventId: number) {
   return customFetch<{
     data: CommonResponseEventResponse;
@@ -51,7 +49,6 @@ async function fetchEvent(eventId: number) {
   }>(`/api/events/${eventId}`, { method: 'GET' });
 }
 
-// Response → Event 변환
 function transformEventResponse(response: EventResponse): Event {
   const startDateTime = new Date(response.startDateTime);
   const endDateTime = new Date(response.endDateTime);
@@ -71,6 +68,22 @@ function transformEventResponse(response: EventResponse): Event {
   };
 }
 
+function formatDate(date: Date) {
+  return date.toLocaleDateString('ko-KR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+
+function formatTime(date: Date) {
+  return date.toLocaleTimeString('ko-KR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
+}
+
 export default function EventDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -78,7 +91,6 @@ export default function EventDetailScreen() {
 
   const eventId = Number(id);
 
-  // API 호출
   const { data: eventRes, isLoading, isError } = useQuery({
     queryKey: ['event', eventId],
     queryFn: () => fetchEvent(eventId),
@@ -90,68 +102,23 @@ export default function EventDetailScreen() {
     ? transformEventResponse(eventRes.data.data)
     : null;
 
-  // 날짜 포맷
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      weekday: 'short',
-    });
+  const handleViewOnMap = () => {
+    router.push(`/map?category=EVENT&eventId=${id}` as any);
   };
 
-  // 시간 포맷
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('ko-KR', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true,
-    });
-  };
-
-  // 핸들러
-  const handleBack = () => router.back();
-
-  const handleShare = async () => {
-    if (!event) return;
-    try {
-      await Share.share({
-        message: `${event.title}\n\n${event.description}`,
-      });
-    } catch {
-      // 공유 취소
-    }
-  };
-
-  const handleNavigate = () => {
-    if (!event) return;
-    // 네이버 지도 앱으로 길찾기
-    const url = `nmap://route/walk?dlat=${event.lat}&dlng=${event.lng}&dname=${encodeURIComponent(event.title)}&appname=com.yourapp`;
-    Linking.openURL(url).catch(() => {
-      // 네이버 지도 앱이 없으면 웹으로
-      Linking.openURL(
-        `https://map.naver.com/v5/directions/-/-/-/walk?c=${event.lng},${event.lat},15,0,0,0,dh`
-      );
-    });
-  };
-
-  // 로딩 상태
   if (isLoading) {
     return (
-      <ThemedView style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color={Owner.primary} />
+      <ThemedView style={[styles.container, styles.center]}>
+        <ActivityIndicator size="large" color={Brand.primary} />
       </ThemedView>
     );
   }
 
-  // 에러 상태
   if (isError || !event) {
     return (
-      <ThemedView style={[styles.container, styles.centerContent]}>
-        <ThemedText style={styles.errorText}>
-          이벤트 정보를 불러오지 못했습니다.
-        </ThemedText>
-        <TouchableOpacity onPress={handleBack} style={styles.errorButton}>
+      <ThemedView style={[styles.container, styles.center]}>
+        <ThemedText style={styles.errorText}>이벤트 정보를 불러오지 못했습니다.</ThemedText>
+        <TouchableOpacity onPress={() => router.back()} style={styles.errorButton}>
           <ThemedText style={styles.errorButtonText}>돌아가기</ThemedText>
         </TouchableOpacity>
       </ThemedView>
@@ -169,120 +136,93 @@ export default function EventDetailScreen() {
         contentContainerStyle={{ paddingBottom: insets.bottom + rs(100) }}
         showsVerticalScrollIndicator={false}
       >
-        {/* 헤더 이미지 */}
-        <View style={styles.headerContainer}>
+        {/* 배너 이미지 */}
+        <View style={styles.bannerContainer}>
           {event.imageUrls.length > 0 ? (
-            <Image source={{ uri: event.imageUrls[0] }} style={styles.headerImage} />
+            <Image source={{ uri: event.imageUrls[0] }} style={styles.bannerImage} />
           ) : (
-            <View style={[styles.headerImage, styles.headerPlaceholder]}>
-              <Ionicons name="calendar" size={60} color={Gray.gray4} />
-            </View>
+            <View style={[styles.bannerImage, styles.bannerPlaceholder]} />
           )}
-
-          {/* 뒤로가기 버튼 */}
-          <View style={[styles.backButton, { top: insets.top + rs(12) }]}>
-            <ArrowLeft onPress={handleBack} />
+          {/* 뒤로가기 */}
+          <View style={[styles.backButton, { top: insets.top + rs(8) }]}>
+            <ArrowLeft onPress={() => router.back()} />
           </View>
         </View>
 
-        {/* 콘텐츠 */}
+        {/* 본문 */}
         <View style={styles.content}>
-          {/* 이벤트 타입 & 날짜 */}
-          <View style={styles.metaRow}>
-            <View style={styles.typeContainer}>
-              {event.eventTypes.map((type) => (
-                <View key={type} style={styles.typeTag}>
-                  <ThemedText style={styles.typeText}>
-                    {EVENT_TYPE_LABELS[type]}
-                  </ThemedText>
-                </View>
-              ))}
-            </View>
-            <ThemedText style={styles.dateText}>
-              {formatDate(event.createdAt)}
-            </ThemedText>
+          {/* 제목 + D-day 뱃지 */}
+          <View style={styles.titleRow}>
+            <ThemedText style={styles.title} numberOfLines={3}>{event.title}</ThemedText>
+            {!isEnded && (
+              <View style={[styles.dDayBadge, isLive && styles.dDayLive]}>
+                <ThemedText style={[styles.dDayText, isLive && styles.dDayTextLive]}>
+                  {isLive ? '진행중' : dDay}
+                </ThemedText>
+              </View>
+            )}
           </View>
 
-          {/* 제목 */}
-          <ThemedText style={styles.title}>{event.title}</ThemedText>
-
-          {/* D-day 뱃지 */}
-          <View
-            style={[
-              styles.dDayBadge,
-              isLive && styles.dDayBadgeLive,
-              isEnded && styles.dDayBadgeEnded,
-            ]}
-          >
-            <ThemedText style={[styles.dDayText, isLive && styles.dDayTextLive]}>
-              {isEnded ? '종료' : isLive ? '진행중' : dDay}
-            </ThemedText>
+          {/* 카테고리 태그 */}
+          <View style={styles.tagRow}>
+            {event.eventTypes.map((type) => (
+              <View key={type} style={styles.tag}>
+                <ThemedText type="captionSemiBold" style={styles.tagText}>{EVENT_TYPE_LABELS[type]}</ThemedText>
+              </View>
+            ))}
           </View>
 
-          {/* 설명 */}
-          <View style={styles.descriptionBox}>
-            <ThemedText style={styles.description}>{event.description}</ThemedText>
-          </View>
+          {/* 구분선 */}
+          <View style={styles.divider} />
 
-          {/* 일시 정보 */}
+          {/* 정보 */}
           <View style={styles.infoSection}>
             <View style={styles.infoRow}>
-              <Ionicons name="location" size={20} color={Owner.primary} />
-              <ThemedText style={styles.infoLabel}>장소</ThemedText>
-              <ThemedText style={styles.infoValue}>
+              <LocationIcon width={rs(18)} height={rs(18)} />
+              <ThemedText style={styles.infoValue} numberOfLines={2}>
                 {event.description.split('\n')[0] || '위치 정보 없음'}
               </ThemedText>
             </View>
-
             <View style={styles.infoRow}>
-              <Ionicons name="calendar" size={20} color={Owner.primary} />
-              <ThemedText style={styles.infoLabel}>일시</ThemedText>
+              <CalendarIcon width={rs(18)} height={rs(18)} />
               <ThemedText style={styles.infoValue}>
                 {formatDate(event.startDateTime)}
               </ThemedText>
             </View>
-
             <View style={styles.infoRow}>
-              <Ionicons name="time" size={20} color={Owner.primary} />
-              <ThemedText style={styles.infoLabel}>시간</ThemedText>
+              <ClockIcon width={rs(18)} height={rs(18)} />
               <ThemedText style={styles.infoValue}>
                 {formatTime(event.startDateTime)} ~ {formatTime(event.endDateTime)}
               </ThemedText>
             </View>
           </View>
 
-          {/* 이미지 갤러리 */}
+          {/* 갤러리 (첫 번째 이미지 제외) */}
           {event.imageUrls.length > 1 && (
-            <View style={styles.gallery}>
-              <ThemedText style={styles.galleryTitle}>이미지</ThemedText>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                <View style={styles.galleryRow}>
-                  {event.imageUrls.slice(1).map((url, index) => (
-                    <Image
-                      key={index}
-                      source={{ uri: url }}
-                      style={styles.galleryImage}
-                    />
-                  ))}
-                </View>
-              </ScrollView>
+            <View style={styles.galleryRow}>
+              {event.imageUrls.slice(1).map((url, index) => (
+                <Image
+                  key={index}
+                  source={{ uri: url }}
+                  style={styles.galleryImage}
+                  resizeMode="cover"
+                />
+              ))}
             </View>
           )}
+
+          {/* 구분선 */}
+          <View style={styles.divider} />
+
+          {/* 본문 설명 */}
+          <ThemedText style={styles.description}>{event.description}</ThemedText>
         </View>
       </ScrollView>
 
-      {/* 하단 고정 버튼 */}
+      {/* 하단 바 */}
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + rs(16) }]}>
-        <TouchableOpacity style={styles.bottomButton} onPress={handleNavigate}>
-          <Ionicons name="navigate" size={20} color={Gray.white} />
-          <ThemedText style={styles.bottomButtonText}>길찾기</ThemedText>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.bottomButton, styles.bottomButtonSecondary]}
-          onPress={handleShare}
-        >
-          <Ionicons name="share-outline" size={20} color={Owner.primary} />
-          <ThemedText style={styles.bottomButtonTextSecondary}>공유</ThemedText>
+        <TouchableOpacity style={styles.btnLocation} onPress={handleViewOnMap}>
+          <ThemedText style={styles.btnLocationText}>위치 보기</ThemedText>
         </TouchableOpacity>
       </View>
     </ThemedView>
@@ -294,141 +234,117 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Gray.white,
   },
-  centerContent: {
+  center: {
     justifyContent: 'center',
     alignItems: 'center',
   },
   scrollView: {
     flex: 1,
   },
-  // 헤더
-  headerContainer: {
+  // 배너
+  bannerContainer: {
     position: 'relative',
   },
-  headerImage: {
+  bannerImage: {
     width: '100%',
-    height: rs(250),
+    height: rs(220),
     resizeMode: 'cover',
   },
-  headerPlaceholder: {
-    backgroundColor: Gray.gray2,
-    justifyContent: 'center',
-    alignItems: 'center',
+  bannerPlaceholder: {
+    backgroundColor: Gray.gray3,
   },
   backButton: {
     position: 'absolute',
     left: rs(16),
+    backgroundColor: Gray.white,
+    borderRadius: rs(20),
+    padding: rs(4),
   },
-  // 콘텐츠
+  // 본문
   content: {
     padding: rs(20),
+    gap: rs(12),
   },
-  metaRow: {
+  titleRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: rs(12),
-  },
-  typeContainer: {
-    flexDirection: 'row',
-    gap: rs(8),
-  },
-  typeTag: {
-    backgroundColor: Owner.primary + '15',
-    paddingHorizontal: rs(10),
-    paddingVertical: rs(4),
-    borderRadius: rs(4),
-  },
-  typeText: {
-    fontSize: rs(12),
-    color: Owner.primary,
-    fontWeight: '600',
-  },
-  dateText: {
-    fontSize: rs(13),
-    color: Text.secondary,
+    gap: rs(12),
   },
   title: {
-    fontSize: rs(24),
+    flex: 1,
+    fontSize: rs(22),
     fontWeight: '700',
     color: Text.primary,
-    lineHeight: rs(32),
-    marginBottom: rs(12),
+    lineHeight: rs(30),
   },
-  // D-day 뱃지
+  // D-day
   dDayBadge: {
-    alignSelf: 'flex-start',
     backgroundColor: Gray.gray2,
-    paddingHorizontal: rs(14),
-    paddingVertical: rs(6),
+    paddingHorizontal: rs(10),
+    paddingVertical: rs(4),
     borderRadius: rs(6),
-    marginBottom: rs(20),
   },
-  dDayBadgeLive: {
-    backgroundColor: Owner.primary,
-  },
-  dDayBadgeEnded: {
-    backgroundColor: Gray.gray4,
+  dDayLive: {
+    backgroundColor: Brand.primary,
   },
   dDayText: {
-    fontSize: rs(14),
+    fontSize: rs(12),
     fontWeight: '700',
     color: Text.primary,
   },
   dDayTextLive: {
     color: Gray.white,
   },
-  // 설명
-  descriptionBox: {
-    backgroundColor: Gray.gray1,
-    padding: rs(16),
-    borderRadius: rs(12),
-    marginBottom: rs(24),
+  // 태그
+  tagRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: rs(8),
   },
-  description: {
-    fontSize: rs(15),
-    color: Text.primary,
-    lineHeight: rs(24),
+  tag: {
+    backgroundColor: Brand.primary + '20',
+    paddingHorizontal: rs(10),
+    paddingVertical: rs(4),
   },
-  // 정보 섹션
+  tagText: {
+    color: Brand.primaryDarken,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: Gray.gray3,
+  },
+  // 정보
   infoSection: {
-    gap: rs(16),
-    marginBottom: rs(24),
+    gap: rs(12),
   },
   infoRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: rs(12),
-  },
-  infoLabel: {
-    fontSize: rs(14),
-    color: Text.secondary,
-    width: rs(40),
+    alignItems: 'flex-start',
+    gap: rs(8),
   },
   infoValue: {
     flex: 1,
     fontSize: rs(14),
     color: Text.primary,
+    lineHeight: rs(20),
   },
   // 갤러리
-  gallery: {
-    marginTop: rs(8),
-  },
-  galleryTitle: {
-    fontSize: rs(16),
-    fontWeight: '600',
-    color: Text.primary,
-    marginBottom: rs(12),
-  },
   galleryRow: {
     flexDirection: 'row',
-    gap: rs(12),
+    flexWrap: 'wrap',
+    gap: rs(8),
   },
   galleryImage: {
-    width: rs(120),
-    height: rs(120),
+    width: rs(100),
+    height: rs(100),
     borderRadius: rs(8),
-    backgroundColor: Gray.gray2,
+    backgroundColor: Gray.gray3,
+  },
+  // 본문
+  description: {
+    fontSize: rs(15),
+    color: Text.primary,
+    lineHeight: rs(24),
   },
   // 하단 바
   bottomBar: {
@@ -436,38 +352,23 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    flexDirection: 'row',
-    gap: rs(12),
     paddingHorizontal: rs(20),
     paddingTop: rs(16),
     backgroundColor: Gray.white,
     borderTopWidth: 1,
-    borderTopColor: Gray.gray2,
+    borderTopColor: Gray.gray3,
   },
-  bottomButton: {
-    flex: 1,
-    flexDirection: 'row',
+  btnLocation: {
+    backgroundColor: Brand.primary,
+    paddingVertical: rs(16),
+    borderRadius: rs(12),
     alignItems: 'center',
     justifyContent: 'center',
-    gap: rs(8),
-    backgroundColor: Owner.primary,
-    paddingVertical: rs(14),
-    borderRadius: rs(12),
   },
-  bottomButtonSecondary: {
-    backgroundColor: Gray.white,
-    borderWidth: 1,
-    borderColor: Owner.primary,
-  },
-  bottomButtonText: {
+  btnLocationText: {
     fontSize: rs(16),
-    fontWeight: '600',
+    fontWeight: '700',
     color: Gray.white,
-  },
-  bottomButtonTextSecondary: {
-    fontSize: rs(16),
-    fontWeight: '600',
-    color: Owner.primary,
   },
   // 에러
   errorText: {
@@ -478,7 +379,7 @@ const styles = StyleSheet.create({
   errorButton: {
     paddingHorizontal: rs(24),
     paddingVertical: rs(12),
-    backgroundColor: Owner.primary,
+    backgroundColor: Brand.primary,
     borderRadius: rs(8),
   },
   errorButtonText: {
