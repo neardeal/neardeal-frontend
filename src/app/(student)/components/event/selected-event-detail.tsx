@@ -4,6 +4,8 @@ import { Gray, Owner, Text } from '@/src/shared/theme/theme';
 import type { Event } from '@/src/shared/types/event';
 import { EVENT_TYPE_LABELS, getDDay } from '@/src/shared/types/event';
 import { Ionicons } from '@expo/vector-icons';
+import LocationIcon from '@/assets/images/icons/event/location.svg';
+import ClockIcon from '@/assets/images/icons/event/clock.svg';
 import React from 'react';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 
@@ -55,31 +57,48 @@ export function SelectedEventDetail({
     <View style={styles.container}>
       <TouchableOpacity onPress={onViewDetail} activeOpacity={0.8}>
         {/* 배너 이미지 */}
-        {event.imageUrls.length > 0 ? (
-          <Image
-            source={{ uri: event.imageUrls[0] }}
-            style={styles.image}
-          />
-        ) : (
-          <View style={[styles.image, styles.imagePlaceholder]}>
-            <Ionicons name="calendar" size={40} color={Gray.gray4} />
-          </View>
-        )}
+        <View style={styles.imageWrapper}>
+          {event.imageUrls.length > 0 ? (
+            <Image
+              source={{ uri: event.imageUrls[0] }}
+              style={styles.image}
+            />
+          ) : (
+            <View style={[styles.image, styles.imagePlaceholder]}>
+              <Ionicons name="calendar" size={40} color={Gray.gray4} />
+            </View>
+          )}
 
-        {/* D-day 뱃지 */}
-        <View
-          style={[
-            styles.dDayBadge,
-            isLive && styles.dDayBadgeLive,
-            isEnded && styles.dDayBadgeEnded,
-          ]}
-        >
-          <ThemedText style={[styles.dDayText, isLive && styles.dDayTextLive]}>
-            {isEnded ? '종료' : dDay ?? '진행중'}
-          </ThemedText>
+          {/* D-day 뱃지 - 이미지 오른쪽 하단 */}
+          <View
+            style={[
+              styles.dDayBadge,
+              isLive && styles.dDayBadgeLive,
+              isEnded && styles.dDayBadgeEnded,
+            ]}
+          >
+            <ThemedText style={[styles.dDayText, isLive && styles.dDayTextLive]}>
+              {isEnded ? '종료' : dDay ?? '진행중'}
+            </ThemedText>
+          </View>
         </View>
 
         <View style={styles.info}>
+          {/* 제목 */}
+          <ThemedText style={styles.title} numberOfLines={2}>
+            {event.title}
+          </ThemedText>
+
+          {/* 위치(거리) */}
+          {event.distance && (
+            <View style={styles.detail}>
+              <LocationIcon width={rs(16)} height={rs(16)} />
+              <ThemedText style={styles.distanceText}>
+                {event.distance}
+              </ThemedText>
+            </View>
+          )}
+
           {/* 이벤트 타입 태그 */}
           <View style={styles.typeContainer}>
             {event.eventTypes.slice(0, 2).map((type) => (
@@ -91,48 +110,21 @@ export function SelectedEventDetail({
             ))}
           </View>
 
-          {/* 제목 */}
-          <ThemedText style={styles.title} numberOfLines={2}>
-            {event.title}
-          </ThemedText>
-
-          {/* 거리 */}
-          {event.distance && (
-            <View style={styles.detail}>
-              <Ionicons name="location-outline" size={16} color={Text.secondary} />
-              <ThemedText style={styles.distanceText}>
-                내 위치에서 {event.distance}
-              </ThemedText>
-            </View>
-          )}
-
-          {/* 일시 */}
+          {/* 시간 (진행 중이면 앞에 표시) */}
           <View style={styles.detail}>
-            <Ionicons name="calendar-outline" size={16} color={Text.secondary} />
-            <ThemedText style={styles.detailText}>
-              {formatDate(event.startDateTime)}
-            </ThemedText>
-          </View>
-
-          <View style={styles.detail}>
-            <Ionicons name="time-outline" size={16} color={Text.secondary} />
-            <View style={[styles.statusDot, { backgroundColor: statusInfo.color }]} />
-            <ThemedText style={[styles.statusText, { color: statusInfo.color }]}>
-              {statusInfo.text}
-            </ThemedText>
+            <ClockIcon width={rs(16)} height={rs(16)} />
+            {isLive && (
+              <>
+                <View style={[styles.statusDot, { backgroundColor: statusInfo.color }]} />
+                <ThemedText style={[styles.statusText, { color: statusInfo.color }]}>
+                  {statusInfo.text}
+                </ThemedText>
+              </>
+            )}
             <ThemedText style={styles.detailText}>
               {formatTime(event.startDateTime)} - {formatTime(event.endDateTime)}
             </ThemedText>
           </View>
-
-          {/* 설명 미리보기 */}
-          {event.description && (
-            <View style={styles.descriptionBox}>
-              <ThemedText style={styles.descriptionText} numberOfLines={2}>
-                {event.description}
-              </ThemedText>
-            </View>
-          )}
         </View>
       </TouchableOpacity>
 
@@ -159,12 +151,15 @@ const styles = StyleSheet.create({
   container: {
     paddingVertical: rs(16),
   },
+  imageWrapper: {
+    position: 'relative',
+    marginBottom: rs(16),
+  },
   image: {
     width: '100%',
     height: rs(150),
     borderRadius: rs(12),
     backgroundColor: Gray.gray2,
-    marginBottom: rs(16),
   },
   imagePlaceholder: {
     justifyContent: 'center',
@@ -173,11 +168,11 @@ const styles = StyleSheet.create({
   // D-day 뱃지
   dDayBadge: {
     position: 'absolute',
-    top: rs(12),
-    right: rs(12),
+    bottom: rs(10),
+    right: rs(10),
     backgroundColor: Gray.white,
-    paddingHorizontal: rs(12),
-    paddingVertical: rs(6),
+    paddingHorizontal: rs(10),
+    paddingVertical: rs(3),
     borderRadius: rs(4),
     borderWidth: 1,
     borderColor: Gray.gray3,
@@ -245,17 +240,6 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: rs(14),
     fontWeight: '600',
-  },
-  descriptionBox: {
-    backgroundColor: Gray.gray2,
-    padding: rs(12),
-    borderRadius: rs(8),
-    marginTop: rs(4),
-  },
-  descriptionText: {
-    fontSize: rs(13),
-    color: Text.secondary,
-    lineHeight: rs(20),
   },
   // 액션 버튼
   actions: {
